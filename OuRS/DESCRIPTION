@@ -1,0 +1,10 @@
+Package: ours
+Type: Package
+Title: OUtliers and Robust Structures
+Version: 0.1.0
+Author: Kelly Sunderland and Derek Beaton
+Maintainer: Derek Beaton <exposition.software@gmail.com>
+Description: Identification of outliers (observations), their sources, and robust multivariate structures
+License: GPL3
+Encoding: UTF-8
+LazyData: true
