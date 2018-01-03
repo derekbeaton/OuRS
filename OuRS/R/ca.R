@@ -1,3 +1,5 @@
+## test change.
+
 ca <- function(X,k=0){
   preproc <- ca.preproc(X)
   M <- diag(1/preproc$m)
