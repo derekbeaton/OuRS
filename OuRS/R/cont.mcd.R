@@ -24,7 +24,7 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h.
   ## only grab the top sample.
   best.sample <- mcd.samples$final.orders[1,]
 
-
+  ### NOTE: I should pass the tol parameter through to all places where tolerance.svd gets called.
   ## compute standard distances (especially Mahal)
   tsvd.res <- tolerance.svd(expo.scale(data,center=center,scale=scale))
   mahals <- rowSums(tsvd.res$u^2)

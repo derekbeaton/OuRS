@@ -1,7 +1,12 @@
-cat.mcd.find.sample <- function(data,make.data.nominal=F,alpha=.75,h.size.abs=F,eigen.fix=F,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05){
 
-  if(make.data.nominal){
-    data <- makeNominalData(data)
+
+### the point of this function is to strictly return the best sample(s) for MCD.
+  ## however, this is the heavy-duty part of MCD.
+
+cat.mcd.find.sample <- function(data, make.data.disjunctive=F,alpha=.75,h.size.abs=F,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05){
+
+  if(make.data.disjunctive){
+    data <- make.data.nominal(data)
   }
   ## do CA preproc stuff here.
   preproc.data <- ca.preproc(data)
@@ -16,8 +21,8 @@ cat.mcd.find.sample <- function(data,make.data.nominal=F,alpha=.75,h.size.abs=F,
   }else{
     h.size <- h.alpha.n(alpha,nrow(data),ncol(data))
   }
-
   max.det.iters <- round(max.total.iters / num.subsets)
+  
 
   dets <- vector("numeric", num.subsets)
   orders <- matrix(NA,num.subsets,h.size)
@@ -26,23 +31,27 @@ cat.mcd.find.sample <- function(data,make.data.nominal=F,alpha=.75,h.size.abs=F,
     ##actually, make a while here to find the best random min(dim(data)+1 set, then pass the order in
     ##instead of det = 0, I can test if the mahals are all ~= from the min(dim(data)+1 set
     findInit <- T
+    ## this doesn't make much sense... this needs to be smarter.    
     init.size <- min(dim(data))+1
 
     while( findInit ){
 
       init.samp <- sort(sample(nrow(data),init.size))
+      
       init.svd <- tolerance.svd(preproc.data$weightedZx[init.samp,])
       init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round?
 
       if(length(unique(init.mds)) < 2){
         init.size <- init.size + 1
       }else{
-        samp.config <- sort(order(mahal.from.ca(profiles, preproc.data$m, preproc.data$w, init.svd$v, init.svd$d))[1:h.size])
+        sup.scores <- mahal.from.ca(profiles, preproc.data$m, preproc.data$w, init.svd$v, init.svd$d) ## this really needs updating.
+        
+        samp.config <- sort(order(sup.scores)[1:h.size])
         findInit <- F
       }
     }
 
-    min.info <- cat.c.step(profiles, preproc.data$weightedZx, preproc.data$m, preproc.data$w, eigen.fix=eigen.fix, samp.config, max.det.iters)
+    min.info <- cat.c.step(profiles, preproc.data$weightedZx, preproc.data$m, preproc.data$w, samp.config, max.det.iters)
     dets[i] <- min.info$min.det
     orders[i,] <- min.info$obs.order
   }
