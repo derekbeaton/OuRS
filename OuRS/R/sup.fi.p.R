@@ -1,3 +1,6 @@
+## should this take in a class to determine which route to go?
+  ## maybe for now (easy) just make these
+
 sup.fi.u <- function(data,center=F,scale=F,loadings,singular.values){
 
   fi.scores <- (expo.scale(data,center=center,scale=scale) %*% loadings)

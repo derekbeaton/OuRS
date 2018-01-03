@@ -1,6 +1,6 @@
 	## I do not know what robust.mahals is as a flag...
-#quant.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, robust.mahals=T, h.size.abs=F, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
-quant.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h.size.abs=F, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+#cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, robust.mahals=T, h.size.abs=F, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h.size.abs=F, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
 
   if(ncol(data) > (nrow(data)*.9)){
@@ -14,13 +14,13 @@ quant.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h
     if(collinearity.stop){
       stop("Data are collinear. Some variables are likely combinations of other variables. Please perform a plain SVD and inspect the small value singular values and their respective vectors.")
     }else{
-      warn("Data are collinear. Some variables are likely combinations of other variables. You have chosen to ignore these components for the MCD computation. MCD will proceed.")
+      warning("Data are collinear. Some variables are likely combinations of other variables. You have chosen to ignore these components for the MCD computation. MCD will proceed.")
     }
   }
 
 
   ## sample finder
-  mcd.samples <- quant.mcd.find.sample(data, center=center, scale=scale, alpha=alpha, h.size.abs=h.size.abs, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
+  mcd.samples <- cont.mcd.find.sample(data, center=center, scale=scale, alpha=alpha, h.size.abs=h.size.abs, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
   ## only grab the top sample.
   best.sample <- mcd.samples$final.orders[1,]
 

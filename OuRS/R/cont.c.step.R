@@ -1,4 +1,4 @@
-quant.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sqrt(.Machine$double.eps)){
+cont.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sqrt(.Machine$double.eps)){
 
   old.det <- Inf
   old.center <- NaN
