@@ -147,8 +147,8 @@ gsvd <- function(DAT, LW=NaN, RW=NaN, nu= min(dim(DAT)), nv = min(dim(DAT)), k =
     fj <- q * matrix(d,nrow(q),ncol(q),byrow=T)
   }
 
-  rownames(res$u) <- rownames(p) <- rownames(DAT)
-  rownames(res$v) <- rownames(q) <- colnames(DAT)
+  rownames(fi) <- rownames(res$u) <- rownames(p) <- rownames(DAT)
+  rownames(fj) <- rownames(res$v) <- rownames(q) <- colnames(DAT)
 
   return(list(fi = fi, fj = fj, p = p, q = q, u = res$u, v = res$v, d = d, d.orig = d.orig, tau = tau))
 }

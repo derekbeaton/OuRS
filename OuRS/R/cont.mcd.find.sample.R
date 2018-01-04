@@ -3,18 +3,13 @@
 ### the point of this function is to strictly return the best sample(s) for MCD.
   ## however, this is the heavy-duty part of MCD.
 
-cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, h.size.abs=F, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05){
+cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05){
 
 
-  if(h.size.abs){
-    if(alpha<=.5){
-      h.size <- floor((nrow(data)+1)/2)
-    }else{
-      h.size <- ceiling(nrow(data)*alpha)
-    }
-  }else{
-    h.size <- h.alpha.n(alpha,nrow(data),ncol(data))
+  if(alpha<.5){
+    h.size <- floor((nrow(data)+1)/2)
   }
+  h.size <- h.alpha.n(alpha,nrow(data),ncol(data))
   max.det.iters <- round(max.total.iters / num.subsets)
 
   dets <- vector("numeric", num.subsets)
@@ -37,7 +32,7 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, h.size.abs=
       if(length(unique(init.mds)) < 2){
         init.size <- init.size + 1
       }else{
-        sup.scores <- sup.fi.u(data, attributes(init.norm)$`scaled:center`, attributes(init.norm)$`scaled:scale`, init.svd$v, init.svd$d)
+        sup.scores <- cont.sup.fi.u(data, attributes(init.norm)$`scaled:center`, attributes(init.norm)$`scaled:scale`, init.svd$v, init.svd$d)
         mahals <- rowSums(sup.scores$sup.u^2)
         samp.config <- sort(order(mahals)[1:h.size])
         findInit <- F

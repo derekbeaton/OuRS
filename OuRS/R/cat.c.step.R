@@ -1,13 +1,4 @@
-## need to make sure I do break out of the for loop if results are same as previous iteration.
 cat.c.step <- function(profiles, weighted.deviations, row.weights, col.weights, obs.order, max.iters=25, tol=sqrt(.Machine$double.eps)){
-
-  # benzecri.eigenfix <- function (eigvals, num_variables) ##stolen from ExPosition.
-  # {
-  #   new_eigvals <- eigvals[eigvals > (1/num_variables)]
-  #   new_eigvals <- (num_variables/(num_variables - 1)) * (new_eigvals - (1/num_variables))
-  #   new_eigvals <- new_eigvals^2
-  #   return(new_eigvals[new_eigvals > (2 * .Machine$double.eps)])
-  # }
 
   old.det <- Inf
   old.center <- NaN
@@ -19,14 +10,9 @@ cat.c.step <- function(profiles, weighted.deviations, row.weights, col.weights, 
     new.center <- colMeans(sub.data)
     svd.res <- tryCatch( {tolerance.svd(sub.data)}, error=function(x) 'FAIL') ## this should probably be explained a bit!
 
-
     if(length(svd.res)==3){
-        ## This was an idea that I no longer support at this time: use the standard MCA correction. This requires further research.
-      #if(eigen.fix){
-      #  new.det <- geometric.mean(benzecri.eigenfix(svd.res$d^2))
-      #}else{
-        new.det <- geometric.mean(svd.res$d^2)
-      #}
+      new.det <- geometric.mean(svd.res$d^2)
+
 
       if( (new.det <= old.det) & (!isTRUE(all.equal(new.det,0,tolerance=tol))) ){
         if( center.sigma_checker(old.center, new.center, old.v, svd.res$v,tol=tol) & isTRUE(all.equal(new.det, old.det, tolerance= tol)) ){
@@ -39,14 +25,14 @@ cat.c.step <- function(profiles, weighted.deviations, row.weights, col.weights, 
           old.v <- svd.res$v
           old.order <- new.order
 
-          mahals <- mahal.from.ca(profiles, row.weights, col.weights, svd.res$v, svd.res$d)
+          sup.scores <- cat.sup.fi.u(profiles, row.weights, col.weights, svd.res$v, svd.res$d)
+          mahals <- rowSums(sup.scores$sup.u^2)
           new.order <- sort(order(mahals)[1:length(obs.order)]	)
 
           if( isTRUE(all.equal(sort(new.order),sort(old.order))) ){
             return( list(obs.order = old.order, min.det = old.det) )
           }
         }
-
       }else{
         return( list(obs.order = old.order, min.det = old.det) )
       }

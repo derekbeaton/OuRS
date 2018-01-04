@@ -6,7 +6,6 @@ cont.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sq
   new.order <- old.order <- obs.order
 
   for(i in 1:max.iters){
-
     sub.data <- data[new.order,]
     sub.data.normed <- expo.scale(sub.data,center=center,scale=scale)
     svd.res <- tolerance.svd(sub.data.normed)
@@ -26,7 +25,7 @@ cont.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sq
         old.v <- svd.res$v
         old.order <- new.order
 
-        sup.scores <- sup.fi.u(data, new.center, new.scale, svd.res$v, svd.res$d)
+        sup.scores <- cont.sup.fi.u(data, new.center, new.scale, svd.res$v, svd.res$d)
         mahals <- rowSums(sup.scores$sup.u^2)
         new.order <- sort(order(mahals)[1:length(obs.order)])
 
@@ -35,7 +34,6 @@ cont.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sq
         }
       }
     }else{
-
       return( list(obs.order = old.order, min.det = old.det) )
     }
   }

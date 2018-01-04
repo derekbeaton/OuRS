@@ -37,7 +37,7 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h.
   robust.tsvd.res <- tolerance.svd(rob.sample)
 
   ## call to function that computes robust mahal
-  robust.dists <- sup.fi.u(data,center=rob.center,scale=rob.scale,robust.tsvd.res$v,robust.tsvd.res$d)
+  robust.dists <- cont.sup.fi.u(data,center=rob.center,scale=rob.scale,robust.tsvd.res$v,robust.tsvd.res$d)
   robust.mahals <- rowSums(robust.dists$sup.u^2)
   robust.chis <- rowSums(robust.dists$sup.fi^2)
 
