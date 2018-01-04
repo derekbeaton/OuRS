@@ -16,10 +16,7 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
   orders <- matrix(NA,num.subsets,h.size)
   for(i in 1:num.subsets){
 
-    ##actually, make a while here to find the best random min(dim(data)+1 set, then pass the order in
-    ##instead of det = 0, I can test if the mahals are all ~= from the min(dim(data)+1 set
     findInit <- T
-    ## this doesn't make much sense... this needs to be smarter.
     init.size <- min(dim(data))+1
 
     while( findInit ){
@@ -27,7 +24,7 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
       init.samp <- sort(sample(nrow(data),init.size))
       init.norm <- expo.scale(data[init.samp,],center,scale)
       init.svd <- tolerance.svd(init.norm)
-      init.mds <- round(rowSums(init.svd$u^2),digits=8)
+      init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round? ### I should probably use a tol parameter here...
 
       if(length(unique(init.mds)) < 2){
         init.size <- init.size + 1
@@ -46,8 +43,7 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
 
   perc.cut <- round(num.subsets * top.sets.percent)	## they take "top 10" -- I will allow our search to be broader
   unique.min.configs <- unique(orders[order(dets),])
-  final.configs <- unique.min.configs[1:min(nrow(unique.min.configs), perc.cut),]
-
+  final.configs <- unique(unique.min.configs[1:min(nrow(unique.min.configs), perc.cut),])
 
   final.dets <- vector("numeric", nrow(final.configs))
   final.orders <- matrix(NA,nrow(final.configs),h.size)
@@ -58,10 +54,10 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
     final.dets[i] <- min.info$min.det
     final.orders[i,] <- min.info$obs.order
   }
+
   best.order <- order(final.dets)
   final.dets <- final.dets[best.order]
   final.orders <- final.orders[best.order,]
-
 
   return( list(final.dets = final.dets, final.orders = final.orders) )
 

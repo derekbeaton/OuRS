@@ -1,6 +1,6 @@
 	## I do not know what robust.mahals is as a flag...
 #cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, robust.mahals=T, h.size.abs=F, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
-cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h.size.abs=F, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
 
   if(ncol(data) > (nrow(data)*.9)){
@@ -20,7 +20,7 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h.
 
 
   ## sample finder
-  mcd.samples <- cont.mcd.find.sample(data, center=center, scale=scale, alpha=alpha, h.size.abs=h.size.abs, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
+  mcd.samples <- cont.mcd.find.sample(data, center=center, scale=scale, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
   ## only grab the top sample.
   best.sample <- mcd.samples$final.orders[1,]
 
@@ -49,7 +49,7 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h.
 	#
 	return(
 	  list( best.det=mcd.samples$final.dets[1],
-	        best.order=mcd.samples$final.orders[1,],
+	        best.sample=best.sample,
 	        best.loadings= robust.tsvd.res$v,
 	        best.center= rob.center,
 	        best.scale= rob.scale,
@@ -58,6 +58,7 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, h.
 	        best.m.od= mahal.od,
 	        best.chi.od= chi.od,
 	        md= mahals,
-	        chid=(tsvd.res$u  * matrix(tsvd.res$d,nrow(tsvd.res$u),ncol(tsvd.res$u),byrow=T)),
-	        final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders)) )
+	        chid=chis,
+	        final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders))
+	  )
 }
