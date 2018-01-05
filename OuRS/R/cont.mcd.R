@@ -51,6 +51,7 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, nu
 	  list( best.det=mcd.samples$final.dets[1],
 	        best.sample=best.sample,
 	        best.loadings= robust.tsvd.res$v,
+	        best.svs=robust.tsvd.res$d,
 	        best.center= rob.center,
 	        best.scale= rob.scale,
 	        best.rob.md = robust.mahals,

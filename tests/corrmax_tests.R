@@ -61,20 +61,44 @@ for(i2 in 1:nrB)
 
 
 
-
 db.sampvar <- var(datamat) ## "reference" or "population" data
 db.sqrt.diag.sampvar <- sqrt(diag(db.sampvar))
 db.invvar <- db.sampvar %^% (-1)
-
 db.DSD <- sweep(sweep(db.sampvar,1,db.sqrt.diag.sampvar,"/"),2,db.sqrt.diag.sampvar,"/")
+  ## so there is a way!
+  #db.DSD2 <- tcrossprod(sweep(sweep(db.svd.res$v,2,db.svd.res$d,"*"),1,db.sqrt.diag.sampvar,"/"))  / (nrow(datamat)-1)
+  #db.DSD2 / db.DSD
 db.invDSDhalf <- db.DSD %^% (-1/2)
+  #db.invDShalf2 <- (tcrossprod(sweep(sweep(db.svd.res$v,2,db.svd.res$d,"*"),1,db.sqrt.diag.sampvar,"/") %^% (-1/2)))   * sqrt((nrow(datamat)-1))
+  #db.invDShalf2 / db.invDSDhalf
 db.diff.dat <- expo.scale(IndivObs,center=colMeans(rawdata),scale=F) #signs are switched; I can just *-1
-db.Tsquares <- diag(db.diff.dat %*% db.invvar %*% t(db.diff.dat))
+#db.Tsquares <- diag(db.diff.dat %*% db.invvar %*% t(db.diff.dat))
 db.Ws <- t(sweep(db.invDSDhalf,2,db.sqrt.diag.sampvar,"/") %*% t(db.diff.dat))
+  #sweep(db.invDSDhalf,2,db.sqrt.diag.sampvar,"/")
 db.GK <- db.Ws * db.Ws
 db.percentages <- sweep(db.GK,1,rowSums(db.GK),"/")*100
 
   ## don't know what this is really for...
 db.corrs <- diag(db.invDSDhalf %^% (-1))
+
+
+  ## I can get this even shorter, too, somehow...
+db2.svd.res <- tolerance.svd(expo.scale(datamat,center=T,scale=F))
+  #db2.sqrt.diag.sampvar <- sqrt(diag(tcrossprod(db2.svd.res$v %*% diag(db2.svd.res$d))) / (nrow(datamat)-1))
+  #db2.invDShalf2 <- (tcrossprod(sweep(sweep(db2.svd.res$v,2,db2.svd.res$d,"*"),1,db2.sqrt.diag.sampvar,"/") %^% (-1/2)))   * sqrt((nrow(datamat)-1))
+db2.sqrt.diag.sampvar <- sqrt(diag(tcrossprod(db2.svd.res$v %*% diag(db2.svd.res$d))))
+db2.invDShalf <- (tcrossprod(sweep(sweep(db2.svd.res$v,2,db2.svd.res$d,"*"),1,db2.sqrt.diag.sampvar,"/") %^% (-1/2)))
+db2.diff.dat <- expo.scale(IndivObs,center=colMeans(rawdata),scale=F) #signs are switched; I can just *-1
+db2.Ws <- t(sweep(db2.invDShalf,2,db2.sqrt.diag.sampvar,"/") %*% t(db2.diff.dat))
+db2.contribs <- db2.Ws^2
+db2.percentages <- sweep(db2.contribs,1,rowSums(db2.contribs),"/")*100
+
+
+  ## ok so we should return percentages and use those as they have meaning and they are just the contribs scaled.
+
+
+## corrmax needs:
+  # loadings, svs, sample size (can be compute dfrom data), data (duh)
+    ## that should be it...
 
 #our.corrmax <- corrmax(IndivObs,rawdata)

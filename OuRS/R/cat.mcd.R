@@ -41,6 +41,7 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
     list( best.det=mcd.samples$final.dets[1],
           best.sample=best.sample,
           best.loadings= robust.tsvd.res$v,
+          best.svs=robust.tsvd.res$d,
           best.rob.md = robust.mahals,
           best.rob.chid= robust.chis,
           best.m.od= mahal.od,

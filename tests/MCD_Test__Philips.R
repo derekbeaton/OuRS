@@ -16,7 +16,7 @@ setdiff(ours.res$best.sample,rb.res$best)
 #setdiff(rr.res@best,ours.res$best.order)
 
 
-  # what the hell is robustbase and rrcov doing to get Mahal?
+# what the hell is robustbase and rrcov doing to get Mahal?
 #rb.res$raw.mah / rr.res@raw.mah
 rb.res$raw.mah / ours.res$md
 mahalanobis(philips,colMeans(philips),cov(philips)) / ours.res$md
