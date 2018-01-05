@@ -2,6 +2,7 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
 
   if(make.data.disjunctive){
     data <- make.data.nominal(data)
+    make.data.disjunctive <- F
   }
 
   if(ncol(data) > (nrow(data)*.9)){
@@ -34,8 +35,8 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
   # compute ODs.
   mahal.od <- rowSums((ca.res$u - robust.dists$sup.u)^2)
   chi.od <- rowSums((ca.res$fi - robust.dists$sup.fi)^2)  # should be identical...
+                                                          ## actually this isn't the same because they are not in differnt positions.
 
-  #
   return(
     list( best.det=mcd.samples$final.dets[1],
           best.sample=best.sample,
@@ -44,7 +45,7 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
           best.rob.chid= robust.chis,
           best.m.od= mahal.od,
           best.chi.od= chi.od,
-          md= mahals,
+          md=mahals,
           chid=chis,
           final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders))
   )

@@ -1,48 +1,35 @@
-## a generalized SVD function.
-
-#  Generalized SVD: A GSVD function that takes in left and right constraints (usually diagonal matrices, but any positive semi-definite matrix is fine).
-#   Constraints are applied to the left and right singular vectors for the orthogonality constraint.
-
+#' @export
 #'
-#'  @export
+#' @title Generalized SVD
 #'
-#'  @title \code{gsvd}: the generalized singular value decomposition.
-#'
-#'  @description \code{gsvd} takes in left (\code{LW}) and right (\code{RW}) constraints (usually diagonal matrices, but any positive semi-definite matrix is fine) that are applied to the data (\code{DAT})
+#' @description
+#' \code{gsvd} takes in left (\code{LW}) and right (\code{RW}) constraints (usually diagonal matrices, but any positive semi-definite matrix is fine) that are applied to the data (\code{DAT})
 #'   Left and right constraints are used for the orthogonality conditions.
 #'
-#'  @param DAT a data matrix to decompose
-#'  @param LW \bold{L}eft \bold{W}eights -- the constraints applied to the left side (rows) of the matrix and thus left singular vectors
-#'  @param RW \bold{R}ight \bold{W}eights -- the constraints applied to the right side (rows) of the matrix and thus right singular vectors
-#'  @param nu the number of left singular vectors to be computed. Default is \code{min(dim(x))}
-#'  @param nv the number of right singular vectors to be computed. Default is \code{min(dim(x))}
-#'  @param k total number of components to return though the full variance (based on nu and nv) will still be returned (see \code{Dv.orig})
-#'  @param tol A tolerance level for eliminating (tiny variance or negative or imaginary) components. Default is .Machine$double.eps
+#' @param DAT a data matrix to decompose
+#' @param LW \bold{L}eft \bold{W}eights -- the constraints applied to the left side (rows) of the matrix and thus left singular vectors.
+#' @param RW \bold{R}ight \bold{W}eights -- the constraints applied to the right side (rows) of the matrix and thus right singular vectors.
+#' @param k total number of components to return though the full variance will still be returned (see \code{d.orig}). If 0, the full set of components are returned.
+#' @param tol default is .Machine$double.eps. A parameter with two roles: A tolerance level for (1) eliminating (tiny variance or negative or imaginary) components and (2) converting all values < tol to 0 in \item{u} and \item{v}.
 #'
-#'  @return
-#'  A list with seven elements:
-#'  \item{u} Left singular vectors. A matrix whose columns contain the left singular vectors of x, present if nu > 0. Dimension c(n, nu) but also accounting for \code{tol}.
-#'  \item{v} Right singular vectors. A matrix whose columns contain the left singular vectors of x, present if nv > 0. Dimension c(p, nv) but also accounting for \code{tol}.
-#'  \item{p} Left generalized singular vectors. A vector containing the singular values of x of length min(n, p) but also accounting for \code{tol}.
-#'  \item{q} Right generalized singular vectors. A vector containing the singular values of x of length min(n, p) but also accounting for \code{tol}.
-#'  \item{d} a vector containing the singular values of x of length min(n, p) but also accounting for \code{tol}.
-#'  \item{d.orig} a vector containing the singular values of x of length min(n, p) but also accounting for \code{tol}.
-#'  \item{tau} a vector that contains the (original) explained variance per component.
+#' @return A list with nine elements:
+#' \item{d.orig}{A vector containing the singular values of DAT > \code{tol}.}
+#' \item{tau}{A vector that contains the (original) explained variance per component (eigenvalues derived from \code{$d.orig}.}
+#' \item{d}{A vector containing the singular values of x > \code{tol}. Length is \code{min(length(d.orig), k)}}
+#' \item{u}{Left (rows) singular vectors. Dimensions are \code{nrow(DAT)} by k.}
+#' \item{p}{Left (rows) generalized singular vectors. Dimensions are \code{nrow(DAT)} by k.}
+#' \item{fi}{Left (rows) component scores. Dimensions are \code{nrow(DAT)} by k.}
+#' \item{v}{Right (columns) singular vectors. Dimensions are \code{ncol(DAT)} by k.}
+#' \item{q}{Right (columns) generalized singular vectors. Dimensions are \code{ncol(DAT)} by k.}
+#' \item{fj}{Right (columns) component scores. Dimensions are \code{ncol(DAT)} by k.}
 #'
-#'  @seealso \code{\link{tolerance.svd}} and \code{\link{svd}}
+#' @seealso \code{\link{tolerance.svd}} and \code{\link{svd}}
 #'
-#'  @examples
+#' @examples
 #'  ## an example with correspondence analysis.
-#'  authors <- rbind(
-#'    cbind(7836, 13112, 6026),
-#'    cbind(53655, 102383, 42413),
-#'    cbind(115615, 184541, 59226),
-#'    cbind(161926, 340479, 62754),
-#'    cbind(38177, 105101, 12670),
-#'    cbind(46371, 58367, 14299)
-#'    )
-#'
-#'  Observed <- authors/sum(authors)
+#'  data(authors)
+#'  author.data <- authors$ca$data
+#'  Observed <- author.data/sum(author.data)
 #'  row.w <- rowSums(Observed)
 #'    row.W <- diag(1/row.w)
 #'  col.w <- colSums(Observed)
@@ -50,105 +37,199 @@
 #'  Expected <- row.w %o% col.w
 #'  Deviations <- Observed - Expected
 #'  ca.res <- gsvd(Deviations,row.W,col.W)
-#'    ## fi & fj in example deprecated because this is now part of the GSVD return.
-#'  #fi <- row.W %*% ca.res$p %*% diag(ca.res$d)
-#'  #fj <- col.W %*% ca.res$q %*% diag(ca.res$d)
 #'
-#'  @author Derek Beaton
-#'  @keywords multivariate, diagonalization, eigen
+#'  ## an example with canonical correlation analysis (though not all bells and whistles exist)
+#'  data(two.table.wine)
+#'  X <- scale(wine$objective)
+#'  Y <- scale(wine$subjective)
+#'
+#'  cca.res <- gsvd(
+#'      matrix.generalized.inverse(crossprod(X)) %*% t(X) %*% Y %*% matrix.generalized.inverse(crossprod(Y)),
+#'      crossprod(X),
+#'      crossprod(Y)
+#'  )
+#'
+#'  cca.res$lx <- (X %*% cca.res$p)
+#'  cca.res$ly <- (Y %*% cca.res$q)
+#'
+#'  \dontrun{
+#'      optimize.for <- t(cca.res$lx) %*% cca.res$ly
+#'      all.equal(diag(optimize.for),cca.res$d)
+#'
+#'
+#'      base.cca <- cancor(X,Y,F,F)
+#'
+#'      sum(abs(base.cca$cor - cca.res$d)) < (.Machine$double.eps*100)
+#'      base.cca$xcoef / cca.res$p
+#'      base.cca$ycoef[,1:ncol(cca.res$q)] / cca.res$q
+#'  }
+#'
+#' @author Derek Beaton
+#' @keywords multivariate, diagonalization, eigen
 
 
-gsvd <- function(DAT, LW=NaN, RW=NaN, nu= min(dim(DAT)), nv = min(dim(DAT)), k = 0, tol=.Machine$double.eps){
+gsvd <- function(DAT, LW, RW, k = 0, tol=.Machine$double.eps){
 
-    ## probably need some rudimentary checks here.
-    DAT <- as.matrix(DAT)
-
-    ## I should check if LW and RW are rectangular. If they are, I should exit with an error.
-
-    RW.is.vector <- LW.is.vector <- RW.is.nan <- LW.is.nan <- F
-      ## clean this up to avoid the warnings...
-    if( is.nan(LW) ){
-      LW.is.nan <- T
+  is.identity.matrix <- function(x,tol=.Machine$double.eps){
+    if(is.null(dim(x))){
+      stop("is.identity.matrix: x is not a matrix.")
+    }
+    x <- as.matrix(x)
+    x[abs(x) < tol] <- 0
+    if(is.diagonal.matrix(x)){
+      if( all(diag(x)==1) ){
+        return(TRUE)
+      }else{
+        return(FALSE)
+      }
     }else{
-      if ( is.null(dim(LW)) & (length(LW) > 0) ) {
-        LW.is.vector <- T
-      }
-      if(!LW.is.vector){
-        if( isDiagonal.matrix(LW) ){
-          LW <- diag(LW)
-          LW.is.vector <- T
-        }
-      }
+      return(FALSE)
     }
-    if( is.nan(RW) ){
-      RW.is.nan <- T
+  }
+  is.empty.matrix <- function(x,tol=.Machine$double.eps){
+    x <- as.matrix(x)
+    x[abs(x) < tol] <- 0
+    if(sum(x)==0){
+      return(TRUE)
     }else{
-      if ( is.null(dim(RW)) & (length(RW) > 0) ) {
-        RW.is.vector <- T
-      }
-      if(!RW.is.vector){
-        if( isDiagonal.matrix(RW) ){
-          RW <- diag(RW)
-          RW.is.vector <- T
+      return(FALSE)
+    }
+  }
+
+
+  # preliminaries
+  DAT.dims <- dim(DAT)
+  if(length(DAT.dims)!=2){
+    stop("gsvd: DAT must have dim length of 2 (i.e., rows and columns)")
+  }
+  DAT <- as.matrix(DAT)
+  DAT[abs(DAT) < tol] <- 0
+  RW.is.vector <- LW.is.vector <- RW.is.missing <- LW.is.missing <- F
+
+  if(is.empty.matrix(LW)){
+    stop("gsvd: LW is empty (i.e., all 0s")
+  }
+  if(is.empty.matrix(RW)){
+    stop("gsvd: RW is empty (i.e., all 0s")
+  }
+
+  # check if LW and RW are missing, if they are vectors, or if they are diagonal matrices.
+
+  if( missing(LW) ){
+    LW.is.missing <- T
+  }else{ # it's here and we have to check!
+
+    if ( is.vector(LW) ) {
+      LW.is.vector <- T
+    }else if(!LW.is.vector){
+
+      if( is.identity.matrix(LW) ){
+        LW.is.missing <- T
+        warning("gsvd: LW was an identity matrix. LW will not be used in the GSVD.")
+      }else if( is.diagonal.matrix(LW) ){
+
+        LW <- diag(LW)
+
+        if( length(LW) != DAT.dims[1] ){
+          stop("gsvd:length(LW) does not equal nrow(DAT)")
+        }else{
+          LW.is.vector <- T  #now it's a vector
         }
+
+      }else if( nrow(LW) != ncol(LW) | nrow(LW) != DAT.dims[1] ){
+        stop("gsvd:nrow(LW) does not equal ncol(LW) or nrow(DAT)")
       }
     }
+  }
 
 
-    if( LW.is.vector ){
-      DAT <- matrix(sqrt(LW),nrow=nrow(DAT),ncol=ncol(DAT),byrow=F) * DAT
-    }else if(!LW.is.nan){
-      DAT <- power.rebuild_matrix(LW, power = 1/2) %*% DAT
+  if( missing(RW) ){
+    RW.is.missing <- T
+  }else{ # it's here and we have to check!
+
+    if ( is.vector(RW) ) {
+      RW.is.vector <- T
+    }else if(!RW.is.vector){
+
+      if( is.identity.matrix(RW) ){
+        RW.is.missing <- T
+        warning("gsvd: RW was an identity matrix. RW will not be used in the GSVD.")
+      }else if( is.diagonal.matrix(RW) ){
+
+        RW <- diag(RW)
+
+        if( length(RW) != DAT.dims[2] ){
+          stop("gsvd:length(RW) does not equal ncol(DAT)")
+        }else{
+          RW.is.vector <- T  #now it's a vector
+        }
+
+      }else if( nrow(RW) != ncol(RW) | nrow(RW) != DAT.dims[2] ){
+        stop("gsvd:nrow(RW) does not equal ncol(RW) or ncol(DAT)")
+      }
     }
-    if( RW.is.vector ){
-      DAT <- DAT * matrix(sqrt(RW),nrow=nrow(DAT),ncol=ncol(DAT),byrow=T)
-    }else if(!RW.is.nan){
-      DAT <- DAT %*% power.rebuild_matrix(RW, power = 1/2)
-    }
+  }
 
-  ## I also need to skip over this computation if LW or RW are either empty or all 1s
-  #dat.for.svd <- power.rebuild_matrix(LW, power = 1/2) %*% DAT %*% power.rebuild_matrix(RW, power = 1/2)
+
+  ## these tests can be moved up but I just can't find a good place for them.
+  if( LW.is.vector ){  ## replace with sweep
+    DAT <- sweep(DAT,1,sqrt(LW),"*")
+  }else if(!LW.is.missing){
+    DAT <- (LW %^% (1/2)) %*% DAT
+  }else{
+    stop("gsvd: unknown condition for LW.")
+  }
+
+  if( RW.is.vector ){  ## replace with sweep
+    DAT <- sweep(DAT,2,sqrt(RW),"*")
+  }else if(!RW.is.missing){
+    DAT <- DAT %*% (RW %^% (1/2))
+  }else{
+    stop("gsvd: unknown condition for RW.")
+  }
+
 
   if(k<=0){
     k <- min(nrow(DAT),ncol(DAT))
   }
-  res <- tolerance.svd(DAT,nu=nu,nv=nv,tol=tol)
 
-  d.orig <- res$d
-  tau <- d.orig^2/sum(d.orig^2)
-  comp.ret <- min(length(d.orig),k)
+  res <- tolerance.svd(DAT,nu=k,nv=k,tol=tol)
 
-  d <- d.orig[1:comp.ret]
-          ## this should protect against the rank 1 where it's just a vector.
-  res$u <- as.matrix(res$u[,1:comp.ret])
-  res$v <- as.matrix(res$v[,1:comp.ret])
+  res$d.orig <- res$d
+  res$tau <- res$d.orig^2/sum(res$d.orig^2)
+  components.to.return <- min(length(res$d.orig),k) #a safety check
+
+  res$d <- res$d.orig[1:components.to.return]
+  ## u and v should already be k vectors but again, be safe.
+  res$u <- as.matrix(res$u[,1:components.to.return])
+  res$v <- as.matrix(res$v[,1:components.to.return])
 
 
-    ## I also need to skip over this computation if LW or RW are either empty or all 1s
   if(LW.is.vector){
-    p <- matrix(1/sqrt(LW),nrow=nrow(res$u),ncol=ncol(res$u),byrow=F) * res$u
-    fi <- matrix(LW,nrow=nrow(p),ncol=ncol(p),byrow=F) * p * matrix(d,nrow(p),ncol(p),byrow=T)
-  }else if(!LW.is.nan){
-    p <- power.rebuild_matrix(LW, power = -1/2) %*% res$u
-    fi <- LW %*% p * matrix(d,nrow(p),ncol(p),byrow=T)
+    res$p <- sweep(res$u,1,1/sqrt(LW),"*")
+    res$fi <- sweep(sweep(res$p,1,LW,"*"),2,res$d,"*")
+  }else if(!LW.is.missing){
+    res$p <- (LW %^% (-1/2)) %*% res$u
+    res$fi <- sweep((LW %*% res$p),2,res$d,"*")
   }else{
-    p <- res$u
-    fi <- p * matrix(d,nrow(p),ncol(p),byrow=T)
+    res$p <- res$u
+    res$fi <- sweep(res$p,2,res$d,"*")
   }
 
   if(RW.is.vector){
-    q <- matrix(1/sqrt(RW),nrow=nrow(res$v),ncol=ncol(res$v),byrow=F) * res$v
-    fj <- matrix(RW,nrow=nrow(q),ncol=ncol(q),byrow=F) * q * matrix(d,nrow(q),ncol(q),byrow=T)
-  }else if(!RW.is.nan){
-    q <- power.rebuild_matrix(RW, power = -1/2) %*% res$v
-    fj <- RW %*% q * matrix(d,nrow(q),ncol(q),byrow=T)
+    res$q <- sweep(res$v,1,1/sqrt(RW),"*")
+    res$fj <- sweep(sweep(res$q,1,RW,"*"),2,res$d,"*")
+  }else if(!RW.is.missing){
+    res$q <- (RW %^% (-1/2)) %*% res$v
+    res$fj <- sweep((RW %*% res$q),2,res$d,"*")
   }else{
-    q <- res$v
-    fj <- q * matrix(d,nrow(q),ncol(q),byrow=T)
+    res$q <- res$v
+    res$fj <- sweep(res$q,2,res$d,"*")
   }
 
-  rownames(fi) <- rownames(res$u) <- rownames(p) <- rownames(DAT)
-  rownames(fj) <- rownames(res$v) <- rownames(q) <- colnames(DAT)
+  rownames(res$fi) <- rownames(res$u) <- rownames(res$p) <- rownames(DAT)
+  rownames(res$fj) <- rownames(res$v) <- rownames(res$q) <- colnames(DAT)
 
-  return(list(fi = fi, fj = fj, p = p, q = q, u = res$u, v = res$v, d = d, d.orig = d.orig, tau = tau))
+  return(res)
+  #return(list(fi = fi, fj = fj, p = p, q = q, u = res$u, v = res$v, d = d, d.orig = d.orig, tau = tau))
 }

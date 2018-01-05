@@ -1,11 +1,13 @@
 ## test change.
 
 ca <- function(X,k=0){
-  preproc <- ca.preproc(X)
-  ca.res <- gsvd(preproc$Zx, 1/preproc$m, 1/preproc$w, k=k)
-  #ca.res$fi <- M %*% ca.res$p %*% diag(ca.res$Dv)
-  #rownames(ca.res$fi) <- rownames(preproc$Zx)
-  #ca.res$fj <- W %*% ca.res$q %*% diag(ca.res$Dv)
-  #rownames(ca.res$fj) <- colnames(preproc$Zx)
+
+  sum.data <- sum(X)
+  rowSums.data <- rowSums(X)
+  wi <- rowSums.data/sum.data
+  wj <- colSums(X)/sum.data
+  ca.res <- gsvd( sweep(sweep(X,1,rowSums.data,"/"),2,wj), wi, 1/wj, k = k )
+  ca.res$fi <- sweep(ca.res$fi,1,wi,"/")
+
   return( ca.res )
 }
