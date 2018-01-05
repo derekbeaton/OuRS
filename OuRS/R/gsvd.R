@@ -95,13 +95,6 @@ gsvd <- function(DAT, LW, RW, k = 0, tol=.Machine$double.eps){
       return(FALSE)
     }
   }
-  is.diagonal.matrix <- function(x,tol=.Machine$double.eps){
-    if(is.null(dim(x))){
-      stop("is.diagonal.matrix: X is not a matrix.")
-    }
-    x[ x^2 < tol ] <- 0
-    return(all(x[lower.tri(x)] == 0, x[upper.tri(x)] == 0))
-  }
 
 
   # preliminaries
