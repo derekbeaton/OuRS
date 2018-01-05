@@ -50,7 +50,7 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
   for( i in 1:nrow(final.configs)){
 
     ## RETURN TO THIS. I NEED INF to work.
-    min.info <- cont.c.step(data, final.configs[i,], center, scale, 1000)	## set to Inf so that this converges on its own; need to make this settable & have a real max embedded in c.step
+    min.info <- cont.c.step(data, final.configs[i,], center, scale, 100)	## set to Inf so that this converges on its own; need to make this settable & have a real max embedded in c.step
     final.dets[i] <- min.info$min.det
     final.orders[i,] <- min.info$obs.order
   }

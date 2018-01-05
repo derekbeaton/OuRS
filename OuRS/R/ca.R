@@ -1,4 +1,3 @@
-## test change.
 
 ca <- function(X,k=0){
 

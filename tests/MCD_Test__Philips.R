@@ -1,6 +1,6 @@
 
 library(robustbase)
-library(rrcov)
+#library(rrcov)
 library(cellWise)
 data("philips")
 
@@ -26,4 +26,4 @@ mahalanobis(philips,colMeans(philips),cov(philips)) / rb.res$raw.mah
 plot(rb.res$mah,rb.res$raw.mah) ## these are not "raw" Mahalanobis distances.
 plot(rb.res$mah,ours.res$best.rob.md) ## we are not far off.
 plot(rb.res$raw.mah,ours.res$best.rob.md) ## we are not far off.
-plot(rb.res$raw.mah,ours.res$md) ## we are not far off.
+plot(rb.res$raw.mah,ours.res$md) ## these are not "raw" Mahalanobis distances.

@@ -16,7 +16,6 @@ cat.mcd.find.sample <- function(data, make.data.disjunctive=F,alpha=.75,num.subs
   h.size <- h.alpha.n(alpha,nrow(data),ncol(data))
   max.det.iters <- round(max.total.iters / num.subsets)
 
-
   dets <- vector("numeric", num.subsets)
   orders <- matrix(NA,num.subsets,h.size)
   for(i in 1:num.subsets){
