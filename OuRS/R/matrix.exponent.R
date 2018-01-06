@@ -70,6 +70,9 @@ matrix.exponent <- function(x, power = 1, k = 0, ...){
   }
 
   res <- tolerance.svd(x, nu = k, nv = k, ...)
+  if(k > length(res$d)){
+    k <- length(res$d)
+  }
   return( sweep(res$u,2,res$d[1:k]^power,"*") %*% t(res$v) )
 
 }
