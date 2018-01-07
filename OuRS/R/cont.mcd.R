@@ -42,24 +42,39 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, nu
   robust.chis <- rowSums(robust.dists$sup.fi^2)
 
 
-	# compute ODs.
-	mahal.od <- rowSums((tsvd.res$u - robust.dists$sup.u)^2)
-	chi.od <- rowSums(((tsvd.res$u  * matrix(tsvd.res$d,nrow(tsvd.res$u),ncol(tsvd.res$u),byrow=T)) - robust.dists$sup.fi)^2)
+  # compute ODs.
+  u.od <- rowSums((tsvd.res$u - robust.dists$sup.u)^2)
+  fi.od <- rowSums(( sweep(tsvd.res$u,2,tsvd.res$d,"*") - robust.dists$sup.fi)^2)  # should be identical...
+  ## actually this isn't the same because they are not in differnt positions.
 
-	#
-	return(
-	  list( best.det=mcd.samples$final.dets[1],
-	        best.sample=best.sample,
-	        best.loadings= robust.tsvd.res$v,
-	        best.svs=robust.tsvd.res$d,
-	        best.center= rob.center,
-	        best.scale= rob.scale,
-	        best.rob.md = robust.mahals,
-	        best.rob.chid= robust.chis,
-	        best.m.od= mahal.od,
-	        best.chi.od= chi.od,
-	        md= mahals,
-	        chid=chis,
-	        final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders))
-	  )
+  #best res
+
+  # return(
+  #   list( best.det=mcd.samples$final.dets[1],
+  #         best.sample=best.sample,
+  #         best.loadings= robust.tsvd.res$v,
+  #         best.svs=robust.tsvd.res$d,
+  #         best.rob.md = robust.mahals,
+  #         best.rob.chid= robust.chis,
+  #         best.m.od= mahal.od,
+  #         best.chi.od= chi.od,
+  #         md=mahals,
+  #         chid=chis,
+  #         final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders))
+  # )
+  return(list(
+    cov = list(loadings = robust.tsvd.res$v,
+               singular.values = robust.tsvd.res$d,
+               center = rob.center,
+               scale = rob.scale
+    ),
+    dists = list(rob.md = robust.mahals,
+                 rob.chid = robust.chis,
+                 md = mahals,
+                 chid = chis,
+                 u.od = u.od,
+                 fi.od = fi.od),
+    det.samps = list(dets = mcd.samples$final.dets,
+                         samples = mcd.samples$final.orders)
+  ))
 }

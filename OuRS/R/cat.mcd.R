@@ -33,23 +33,37 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
   robust.chis <- rowSums(robust.dists$sup.fi^2)
 
   # compute ODs.
-  mahal.od <- rowSums((ca.res$u - robust.dists$sup.u)^2)
-  chi.od <- rowSums((ca.res$fi - robust.dists$sup.fi)^2)  # should be identical...
+  u.od <- rowSums((ca.res$u - robust.dists$sup.u)^2)
+  fi.od <- rowSums((ca.res$fi - robust.dists$sup.fi)^2)  # should be identical...
                                                           ## actually this isn't the same because they are not in differnt positions.
 
-  return(
-    list( best.det=mcd.samples$final.dets[1],
-          best.sample=best.sample,
-          best.loadings= robust.tsvd.res$v,
-          best.svs=robust.tsvd.res$d,
-          best.rob.md = robust.mahals,
-          best.rob.chid= robust.chis,
-          best.m.od= mahal.od,
-          best.chi.od= chi.od,
-          md=mahals,
-          chid=chis,
-          final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders))
-  )
+  #best res
 
+  # return(
+  #   list( best.det=mcd.samples$final.dets[1],
+  #         best.sample=best.sample,
+  #         best.loadings= robust.tsvd.res$v,
+  #         best.svs=robust.tsvd.res$d,
+  #         best.rob.md = robust.mahals,
+  #         best.rob.chid= robust.chis,
+  #         best.m.od= mahal.od,
+  #         best.chi.od= chi.od,
+  #         md=mahals,
+  #         chid=chis,
+  #         final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders))
+  # )
+  return(list(
+  cov = list(loadings = robust.tsvd.res$v,
+              singular.values = robust.tsvd.res$d
+  ),
+  dists = list(rob.md = robust.mahals,
+               rob.chid = robust.chis,
+               md = mahals,
+               chid = chis,
+               u.od = u.od,
+               fi.od = fi.od),
+  det.samps = list(dets = mcd.samples$final.dets,
+                   samples = mcd.samples$final.orders)
+  ))
 
 }
