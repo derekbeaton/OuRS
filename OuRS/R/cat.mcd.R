@@ -33,11 +33,17 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
   robust.chis <- rowSums(robust.dists$sup.fi^2)
 
   # compute ODs.
-  u.od <- rowSums((ca.res$u - robust.dists$sup.u)^2)
-  fi.od <- rowSums((ca.res$fi - robust.dists$sup.fi)^2)  # should be identical...
-                                                          ## actually this isn't the same because they are not in differnt positions.
+  if(ncol(tsvd.res$u)==ncol(robust.dists$sup.u)){
+    u.od <- rowSums((ca.res$u - robust.dists$sup.u)^2)
+  }else{
+    u.od <- NA #for now
+  }
 
-  #best res
+  if(ncol(tsvd.res$u)==ncol(robust.dists$sup.fi)){
+    fi.od <- rowSums((ca.res$fi - robust.dists$sup.fi)^2)  # should be identical...
+  }else{
+    fi.od <- NA #for now
+  }
 
   # return(
   #   list( best.det=mcd.samples$final.dets[1],

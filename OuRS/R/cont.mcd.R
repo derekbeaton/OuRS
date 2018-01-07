@@ -43,11 +43,17 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, nu
 
 
   # compute ODs.
-  u.od <- rowSums((tsvd.res$u - robust.dists$sup.u)^2)
-  fi.od <- rowSums(( sweep(tsvd.res$u,2,tsvd.res$d,"*") - robust.dists$sup.fi)^2)  # should be identical...
-  ## actually this isn't the same because they are not in differnt positions.
+  if(ncol(tsvd.res$u)==ncol(robust.dists$sup.u)){
+    u.od <- rowSums((tsvd.res$u - robust.dists$sup.u)^2)
+  }else{
+    u.od <- NA #for now
+  }
 
-  #best res
+  if(ncol(tsvd.res$u)==ncol(robust.dists$sup.fi)){
+    fi.od <- rowSums(( sweep(tsvd.res$u,2,tsvd.res$d,"*") - robust.dists$sup.fi)^2)  # should be identical...
+  }else{
+    fi.od <- NA #for now
+  }
 
   # return(
   #   list( best.det=mcd.samples$final.dets[1],
