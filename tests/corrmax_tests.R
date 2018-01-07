@@ -199,6 +199,7 @@ snps.res <- cat.mcd(SNPS,make.data.disjunctive = T,num.subsets = 500,alpha = .5)
 
 snps.svd <- tolerance.svd(preproc.res$weightedZx)
 
+
 diag.sampcov <- sqrt(diag(tcrossprod( sweep(snps.res$best.loadings,2,snps.res$best.svs,"*") )))
 inv.DSD.half <- (tcrossprod(sweep( sweep(snps.res$best.loadings,2,snps.res$best.svs,"*"),1,diag.sampcov,"/") %^% (-1/2)))
 
@@ -218,3 +219,16 @@ snps.w.svd$u / snps.svd$u
 
 
 heatmap(percs * make.data.nominal(SNPS),Rowv=NA,Colv=NA)
+
+
+  ## maybe there's something here...
+res1 <- cat.corrmax(preproc.res$Zx,loadings = snps.res$best.loadings, singular.values = snps.res$best.svs)
+res2 <- cat.corrmax(preproc.res$Zx,loadings = snps.svd$v, singular.values = snps.svd$d)
+
+
+(res1-res2)[c(23,53),]
+
+
+
+test <- (res1-res2)
+test[test < 0 ]<-0
