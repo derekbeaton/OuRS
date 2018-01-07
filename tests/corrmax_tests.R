@@ -216,3 +216,5 @@ snps.w.svd <- tolerance.svd(W)
 rowSums(snps.w.svd$u^2) / rowSums(snps.svd$u^2)
 snps.w.svd$u / snps.svd$u
 
+
+heatmap(percs * make.data.nominal(SNPS),Rowv=NA,Colv=NA)
