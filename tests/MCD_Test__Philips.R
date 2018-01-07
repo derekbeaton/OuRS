@@ -27,3 +27,14 @@ plot(rb.res$mah,rb.res$raw.mah) ## these are not "raw" Mahalanobis distances.
 plot(rb.res$mah,ours.res$best.rob.md) ## we are not far off.
 plot(rb.res$raw.mah,ours.res$best.rob.md) ## we are not far off.
 plot(rb.res$raw.mah,ours.res$md) ## these are not "raw" Mahalanobis distances.
+
+
+
+
+cov.res <- eigen(rb.res$cov)
+raw.cov.res <- eigen(rb.res$raw.cov)
+
+  ## ok so these are identical (ish)
+raw.cov.res$vectors / ours.res$best.loadings
+raw.cov.res$values / (ours.res$best.svs^2)
+

@@ -60,6 +60,25 @@ for(i2 in 1:nrB)
 }
 
 
+## KS CODE
+
+
+#mcd1@cov
+
+# Based on 2016 paper: Contributions to Quadratic Form
+smpsd <- sqrt(diag(cov(datamat)))
+d <- diag(1/smpsd)      ## DB NOTE: a fraction can make a diag() panic.
+dsd <- d %*% cov(datamat) %*% d   ## DB Q: Is this converting cov to cor?
+
+trans1 <- sweep(IndivObs,2, colMeans(datamat)) ## DB Q: Center data by robust mean?
+#corrmax <- sqrtMat(dsd,-1/2) %*% d ## DB Q: inverse sqrt of cor times data?
+corrmax <- dsd %^% (-1/2) %*% d
+colnames(corrmax) <- rownames(corrmax) <- colnames(IndivObs)
+contrib <- apply(trans1,1,function(i){corrmax %*% as.matrix(i)}) # DB Q: data times correlation?
+w2 <- t(contrib**2) ## DB Q: squared "contributions"?
+
+
+## MY CODE
 
 db.sampvar <- var(datamat) ## "reference" or "population" data
 db.sqrt.diag.sampvar <- sqrt(diag(db.sampvar))
@@ -108,15 +127,30 @@ db2.percentages <- sweep(db2.Ws*db2.Ws,1,rowSums(db2.contribs),"/")*100
 
   ## ok so we should return percentages and use those as they have meaning and they are just the contribs scaled.
 
+  ## NOTE: I need to functionalize (for testing) the KS corr-max code
+  ## and allow for input of arbitrary cov, center, data; I can get the vectors and SVs from robustbase's @cov and use that in my cont.corrmax call.
+## ok what the hell
+diff.svd <- tolerance.svd(db2.diff.dat)
+w.svd <- tolerance.svd(db2.Ws)
+indobs.svd <- tolerance.svd(expo.scale(IndivObs,scale=F))
+
+  ## these are the same but the vectors are not...
+rowSums(diff.svd$u^2)
+rowSums(w.svd$u^2)
+  ## so corrmax solution lives within the Mahal space of the cov by the target?
+  ## OK so because this is true that means there *must* be a faster/easier solution through the SVD.
+
+
+## what about this:
+contribs.ca <- ca(db2.contribs)
+percs.ca <- ca(db2.percentages)
+
 
 ## corrmax needs:
   # loadings, svs, sample size (can be compute dfrom data), data (duh)
     ## that should be it...
 
 #our.corrmax <- corrmax(IndivObs,rawdata)
-
-
-
 
 
 corrmax.temp <- function(target.data,rob.center=T,rob.scale=F,loadings,singular.values){
@@ -133,15 +167,18 @@ corrmax.temp <- function(target.data,rob.center=T,rob.scale=F,loadings,singular.
 
 }
 
-
 datamat.cs <- expo.scale(datamat,T,F)
 svd.res <- tolerance.svd(datamat.cs)
 
-cm.res <- corrmax.temp(IndivObs,rob.center=attributes(datamat.cs)$`scaled:center`,rob.scale = attributes(datamat.cs)$`scaled:scale`,svd.res$v,svd.res$d)
+#cm.res <- corrmax.temp(IndivObs,rob.center=attributes(datamat.cs)$`scaled:center`,rob.scale = attributes(datamat.cs)$`scaled:scale`,svd.res$v,svd.res$d)
+library(cellWise)
+data("philips")
+ours.res <- cont.mcd(philips,num.subsets = 500,alpha = .75)
+cm.res <- cont.corrmax(philips,ours.res$best.center,ours.res$best.scale,ours.res$best.loadings,ours.res$best.svs)
 
-
-
-
+philips2 <- expo.scale(philips,ours.res$best.center,F)
+phil.svd <- tolerance.svd(philips2)
+  ## somehow this is just the plain MD.
 
 
 ### categorical corrmax?
@@ -156,5 +193,26 @@ Mah <- preproc.res$Zx %*% (crossprod(preproc.res$Zx) %^% (-1)) %*% t(preproc.res
 diag(wMah) / diag(Mah)
 
 
+  ## ok so the condtion of corrmax above is that the target data Mahals should end up the same as the W Mahals.
+snps.res <- cat.mcd(SNPS,make.data.disjunctive = T,num.subsets = 500,alpha = .5)
+  ## use this as reference
 
+snps.svd <- tolerance.svd(preproc.res$weightedZx)
+
+diag.sampcov <- sqrt(diag(tcrossprod( sweep(snps.res$best.loadings,2,snps.res$best.svs,"*") )))
+inv.DSD.half <- (tcrossprod(sweep( sweep(snps.res$best.loadings,2,snps.res$best.svs,"*"),1,diag.sampcov,"/") %^% (-1/2)))
+
+W <- t(sweep(inv.DSD.half,2,diag.sampcov,"/") %*% t(preproc.res$Zx))
+W2 <- W*W
+
+  ## well hot damn.
+percs <- sweep(W2,1,rowSums(W2),"/")*100
+
+
+
+snps.w.svd <- tolerance.svd(W)
+
+  ## well I think we've solved it.
+rowSums(snps.w.svd$u^2) / rowSums(snps.svd$u^2)
+snps.w.svd$u / snps.svd$u
 
