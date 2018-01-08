@@ -4,18 +4,35 @@ snps.res <- cat.mcd(SNPS,make.data.disjunctive = T,num.subsets = 500,alpha = .5)
 ca.preproc.res <- ca.preproc(make.data.nominal(SNPS))
 profiles <- sweep(ca.preproc.res$Ox,1,ca.preproc.res$m,"/")
 
-## OK so we do need a non-resampling cutoff... how can we do that? Just simple percentiles for now?
 
-this.boot.samp <- 1:nrow(SNPS)
-#this.boot.samp <- c(1:59,59)
 
-#sup.scores <- cont.sup.fi.u(philips[this.boot.samp,],ours.res$cov$center,ours.res$cov$scale,loadings = ours.res$cov$loadings, singular.values = ours.res$cov$singular.values)
-#sup.scores <- cat.sup.fi.u(profiles = profiles,row.weights = ca.preproc.res$m, col.weights = ca.preproc.res$w,loadings = ours.res$cov$loadings,singular.values = ours.res$cov$singular.values)
+## BOOT!
+boot.res <- cat.boot.sup.fi.u(make.data.nominal(SNPS),snps.res$cov$loadings,snps.res$cov$singular.values,iters = 100)
 
-sup.res <- cat.sup.fi.u(profiles, ca.preproc.res$m, ca.preproc.res$w, snps.res$cov$loadings, snps.res$cov$singular.values)
+## compare these two.
+hist(c(boot.res))
+hist(snps.res$dists$rob.md)
 
-scale.dat <- expo.scale(philips[this.boot.samp,],ours.res$cov$center,ours.res$cov$scale)
-this.sup.u <- scale.dat %*% ours.res$cov$loadings %*% diag(1/ours.res$cov$singular.values)
 
-## well, bootstrap doesn't really work here.
-rowSums(this.sup.u^2) / ours.res$dists$rob.md[this.boot.samp]
+that.boot <- sample(nrow(SNPS),replace=T)
+
+ca.preproc.data <- ca.preproc(make.data.nominal(SNPS)[that.boot,])
+loadings <- snps.res$cov$loadings
+singular.values <- snps.res$cov$singular.values
+
+these.vecs <- sweep(loadings,1,sqrt(ca.preproc.data$w)/ca.preproc.data$w,"*")
+these.vecs[is.nan(these.vecs)] <- 0
+
+this.dumb.thing <- sweep(
+  sweep(
+
+    sweep(ca.preproc.data$Ox,1,ca.preproc.data$m,"/") %*% these.vecs
+
+    ,2,singular.values,"/")
+  ,1,sqrt(ca.preproc.data$m),"*")
+
+
+#this.dumb.thing
+
+rowSums(this.dumb.thing^2)
+

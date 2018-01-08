@@ -1,3 +1,5 @@
+  ## a bunch of these go to NaN... why?
+
 cat.sup.fi.u <- function(profiles, row.weights, col.weights, loadings, singular.values){
 
   ## NOT EFFICIENT. MAKE MORE EFFICIENT
