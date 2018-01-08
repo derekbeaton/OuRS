@@ -16,4 +16,24 @@ philips.boot.res <- cont.boot.sup.u(philips,T,F,philips.res$cov$loadings,philips
       ### here we have a boot distribution of possible distances, the matrix size is the same as the data but does not correspond to the rows
         #### this should be flattened/vectorized and used as larger distribution for a cutoff.
 
+vec.boot.md <- c(philips.boot.res)
+
+lower.cut <- sort(vec.boot.md)[(length(vec.boot.md) * .75)]
+upper.cut <- sort(vec.boot.md)[(length(vec.boot.md) * .9)]
+
+
+
+inliers <- which(philips.res$dists$rob.md <= lower.cut)
+extreme.outliers <- which(philips.res$dists$rob.md >= upper.cut)
+in.betweeniers <- which(philips.res$dists$rob.md < upper.cut & philips.res$dists$rob.md > lower.cut)
+
+
+length(inliers) / nrow(philips)
+length(extreme.outliers) / nrow(philips)
+length(in.betweeniers) / nrow(philips)
+
+
+
+
+
 
