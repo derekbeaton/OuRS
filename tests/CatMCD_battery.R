@@ -12,4 +12,4 @@ snps.res <- cat.mcd(SNPs.nom,make.data.disjunctive = F,num.subsets = 500,alpha =
 snps.corrmax.res <- cat.corrmax(ca.preproc.res$weightedZx, loadings = snps.res$cov$loadings,singular.values = snps.res$cov$singular.values)
 
   ## do bootstrap
-boot.res <- cat.boot.sup.u(make.data.nominal(SNPS),snps.res$cov$loadings,snps.res$cov$singular.values,iters = 100)
+snps.boot.res <- cat.boot.sup.u(make.data.nominal(SNPS),snps.res$cov$loadings,snps.res$cov$singular.values,iters = 100)
