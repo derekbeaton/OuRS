@@ -7,7 +7,7 @@ profiles <- sweep(ca.preproc.res$Ox,1,ca.preproc.res$m,"/")
 
 
 ## BOOT!
-boot.res <- cat.boot.sup.fi.u(make.data.nominal(SNPS),snps.res$cov$loadings,snps.res$cov$singular.values,iters = 100)
+boot.res <- cat.boot.sup.u(make.data.nominal(SNPS),snps.res$cov$loadings,snps.res$cov$singular.values,iters = 100)
 
 ## compare these two.
 hist(c(boot.res))

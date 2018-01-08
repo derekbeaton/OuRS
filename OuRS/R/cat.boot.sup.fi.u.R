@@ -7,7 +7,7 @@ cat.boot.sup.fi.u <- function(target.data,loadings,singular.values,iters=100){
 
       ## I'm sure this could be much more efficient in some way.
     these.vecs <- sweep(loadings,1,sqrt(ca.preproc.data$w)/ca.preproc.data$w,"*")
-    these.vecs[is.nan(these.vecs)] <- 0
+    these.vecs[is.nan(these.vecs)] <- 0 # this happens when rare categories drop from resampling
     boot.distrs[,i] <- rowSums(
       (sweep(
         sweep(

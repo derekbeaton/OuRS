@@ -61,7 +61,7 @@ boot.maker <- function(target.data,center=T,scale=F,loadings,singular.values,ite
 
 
 #boot.res <- boot.maker(philips,T,F,ours.res$cov$loadings,ours.res$cov$singular.values,iters = 100)
-boot.res <- cont.boot.sup.fi.u(philips,T,F,ours.res$cov$loadings,ours.res$cov$singular.values,iters = 100)
+boot.res <- cont.boot.sup.u(philips,T,F,ours.res$cov$loadings,ours.res$cov$singular.values,iters = 100)
 
   ## compare these two.
 hist(c(boot.res))
