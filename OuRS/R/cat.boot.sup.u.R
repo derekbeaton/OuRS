@@ -1,5 +1,5 @@
 
-cat.boot.sup.fi.u <- function(target.data,loadings,singular.values,iters=100){
+cat.boot.sup.u <- function(target.data,loadings,singular.values,iters=100){
 
   boot.distrs <- matrix(NA,nrow(target.data),iters)
   for(i in 1:iters){
