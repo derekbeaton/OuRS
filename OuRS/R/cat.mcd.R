@@ -16,7 +16,8 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
   best.sample <- mcd.samples$final.orders[1,]
 
   preproc.data <- ca.preproc(data) ## this could be more efficient...
-  profiles <- (diag(1/preproc.data$m) %*% preproc.data$Ox)
+  #profiles <- (diag(1/preproc.data$m) %*% preproc.data$Ox)
+  profiles <- sweep(preproc.data$Ox,1,preproc.data$m,"/")
 
   ca.res <- ca(data)
   mahals <- rowSums(ca.res$u^2)
@@ -33,13 +34,13 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
   robust.chis <- rowSums(robust.dists$sup.fi^2)
 
   # compute ODs.
-  if(ncol(tsvd.res$u)==ncol(robust.dists$sup.u)){
+  if(ncol(ca.res$u)==ncol(robust.dists$sup.u)){
     u.od <- rowSums((ca.res$u - robust.dists$sup.u)^2)
   }else{
     u.od <- NA #for now
   }
 
-  if(ncol(tsvd.res$u)==ncol(robust.dists$sup.fi)){
+  if(ncol(ca.res$fi)==ncol(robust.dists$sup.fi)){
     fi.od <- rowSums((ca.res$fi - robust.dists$sup.fi)^2)  # should be identical...
   }else{
     fi.od <- NA #for now

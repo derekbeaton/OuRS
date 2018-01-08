@@ -8,7 +8,8 @@ cat.mcd.find.sample <- function(data, make.data.disjunctive=F,alpha=.75,num.subs
     data <- make.data.nominal(data)
   }
   preproc.data <- ca.preproc(data) ## this could be more efficient...
-  profiles <- (diag(1/preproc.data$m) %*% preproc.data$Ox)
+  #profiles <- (diag(1/preproc.data$m) %*% preproc.data$Ox)
+  profiles <- sweep(preproc.data$Ox,1,preproc.data$m,"/")
 
   if(alpha<.5){
     h.size <- floor((nrow(data)+1)/2)
