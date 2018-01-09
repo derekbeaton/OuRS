@@ -25,7 +25,7 @@ upper.cut <- sort(vec.boot.md)[(length(vec.boot.md) * .9)]
 
 inliers <- which(philips.res$dists$rob.md <= lower.cut)
 extreme.outliers <- which(philips.res$dists$rob.md >= upper.cut)
-in.betweeniers <- which(philips.res$dists$rob.md < upper.cut & philips.res$dists$rob.md > lower.cut)
+in.betweeniers <- which(philips.res$dists$rob.md < upper.cut & philips.res$dists$rob.md >= lower.cut)
 
 
 length(inliers) / nrow(philips)

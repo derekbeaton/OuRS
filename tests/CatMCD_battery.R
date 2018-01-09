@@ -22,7 +22,7 @@ upper.cut <- sort(vec.boot.md)[(length(vec.boot.md) * .9)]
 
 inliers <- which(snps.res$dists$rob.md <= lower.cut)
 extreme.outliers <- which(snps.res$dists$rob.md >= upper.cut)
-in.betweeniers <- which(snps.res$dists$rob.md < upper.cut & snps.res$dists$rob.md > lower.cut)
+in.betweeniers <- which(snps.res$dists$rob.md < upper.cut & snps.res$dists$rob.md >= lower.cut)
 
 
 length(inliers) / nrow(SNPS)
