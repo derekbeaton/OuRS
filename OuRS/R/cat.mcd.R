@@ -59,18 +59,22 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
   #         chid=chis,
   #         final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders))
   # )
-  return(list(
-  cov = list(loadings = robust.tsvd.res$v,
-              singular.values = robust.tsvd.res$d
-  ),
-  dists = list(rob.md = robust.mahals,
-               rob.chid = robust.chis,
-               md = mahals,
-               chid = chis,
-               u.od = u.od,
-               fi.od = fi.od),
-  det.samps = list(dets = mcd.samples$final.dets,
-                   samples = mcd.samples$final.orders)
-  ))
+
+  res <- list(
+    cov = list(loadings = robust.tsvd.res$v,
+               singular.values = robust.tsvd.res$d
+    ),
+    dists = list(rob.md = robust.mahals,
+                 rob.chid = robust.chis,
+                 md = mahals,
+                 chid = chis,
+                 u.od = u.od,
+                 fi.od = fi.od),
+    det.samps = list(dets = mcd.samples$final.dets,
+                     samples = mcd.samples$final.orders)
+  )
+    ## for now.
+  class(res) <- c("catMCD","list")
+  return(res)
 
 }

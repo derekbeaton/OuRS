@@ -68,7 +68,7 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, nu
   #         chid=chis,
   #         final.sets = list(final.dets = mcd.samples$final.dets, final.orders = mcd.samples$final.orders))
   # )
-  return(list(
+  res <- list(
     cov = list(loadings = robust.tsvd.res$v,
                singular.values = robust.tsvd.res$d,
                center = rob.center,
@@ -81,6 +81,8 @@ cont.mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, nu
                  u.od = u.od,
                  fi.od = fi.od),
     det.samps = list(dets = mcd.samples$final.dets,
-                         samples = mcd.samples$final.orders)
-  ))
+                     samples = mcd.samples$final.orders)
+  )
+  class(res) <- c("contMCD","list")
+  return(res)
 }

@@ -1,5 +1,5 @@
 
-  ## does not work. Will need to revisit this.
+  ## should be unpacked. Will need to revisit this.
 mcd.outliers.list <- function(
   rob.mds,
   corrmax.res,
