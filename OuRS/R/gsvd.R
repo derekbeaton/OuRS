@@ -106,11 +106,15 @@ gsvd <- function(DAT, LW, RW, k = 0, tol=.Machine$double.eps){
   DAT[abs(DAT) < tol] <- 0
   RW.is.vector <- LW.is.vector <- RW.is.missing <- LW.is.missing <- F
 
-  if(is.empty.matrix(LW)){
-    stop("gsvd: LW is empty (i.e., all 0s")
+  if( !missing(LW) ){
+    if(is.empty.matrix(LW)){
+      stop("gsvd: LW is empty (i.e., all 0s")
+    }
   }
-  if(is.empty.matrix(RW)){
-    stop("gsvd: RW is empty (i.e., all 0s")
+  if( !missing(LW) ){
+    if(is.empty.matrix(RW)){
+      stop("gsvd: RW is empty (i.e., all 0s")
+    }
   }
 
   # check if LW and RW are missing, if they are vectors, or if they are diagonal matrices.
@@ -176,17 +180,17 @@ gsvd <- function(DAT, LW, RW, k = 0, tol=.Machine$double.eps){
     DAT <- sweep(DAT,1,sqrt(LW),"*")
   }else if(!LW.is.missing){
     DAT <- (LW %^% (1/2)) %*% DAT
-  }else{
-    stop("gsvd: unknown condition for LW.")
-  }
+  }#else{
+  #  stop("gsvd: unknown condition for LW.")
+  #}
 
   if( RW.is.vector ){  ## replace with sweep
     DAT <- sweep(DAT,2,sqrt(RW),"*")
   }else if(!RW.is.missing){
     DAT <- DAT %*% (RW %^% (1/2))
-  }else{
-    stop("gsvd: unknown condition for RW.")
-  }
+  }#else{
+  #  stop("gsvd: unknown condition for RW.")
+  #}
 
 
   if(k<=0){

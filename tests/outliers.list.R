@@ -1,5 +1,4 @@
 
-
 ##### Making the lists of outliers #####
 
 outliers.list <- function(
@@ -34,13 +33,16 @@ outliers.list <- function(
     outliers <- names(which(dists >= lower.cut))
   }
 
+      ## clindat3 does not exist
   corrmax.sum <- matrix(NA, nrow=nrow(corrmax.res),ncol=ncol(clindat3),dimnames=list(rownames(corrmax.res),colnames(clindat3))) ### CLINDAT3 NEEDS TO BE CALLED INTO THE FUNCTION
 
   for(i in colnames(clindat3)){
     # cat(sprintf("%s: %s\n",i,paste(grep(paste0("^",i),colnames(corrmax.res),val=T),collapse=", ")))
     corrmax.sum[,i] <- rowSums(corrmax.res[,grep(paste0("^",i),colnames(corrmax.res))])
+      ## this may not work if similar enough stems exist.
   }
 
+      ## this should be !=
   if(all(rowSums(corrmax.sum) == 100)){cat("PROBLEM WITH SUMMING!\n");browser()}
 
   MD_prop <- data.frame(MD_prop=dists/sum(dists))
