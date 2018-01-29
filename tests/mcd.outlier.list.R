@@ -11,11 +11,13 @@ mcd.outliers.list <- function(
   rob.mb.lower.cut=0.75, # (lower) cutoff for in-betweeners; if same as upper.cut, in.betweeners will be an empty set
   rob.mb.upper.cut=0.9, # cutoff for in-betweeners (upper) and extreme outliers (lower)
   corrmax.threshold=(1/ncol(corrmax.res))*2, # corrmax threshold, i.e. what minimum percent contrib to include in list
-  list.type = "list" # options are "long" or "wide" atm
+  list.type = "list" # options are "long", "list", or "wide"
 ){
 
-  # add check that list.type has "long" and "wide" options only
-
+  if(!(list.type %in% c("long","list","wide"))){
+    cat("Did not recognize list.type - making long\n");
+    list.type <- "long"
+  }
 
   vec.boot.md <- c(boot.res)
   lower.cut <- sort(vec.boot.md)[(length(vec.boot.md) * rob.mb.lower.cut)]
@@ -38,9 +40,13 @@ mcd.outliers.list <- function(
     list2 <- do.call("rbind",list1)
     list2$ID <- substr(rownames(list2),1,14)
 
-  }else if(list.type == "wide"){
+  }else if(list.type == "list"){
     list1 <- sapply(idcontrib,function(i){paste(names(i),collapse="; ")})
     list2 <- data.frame(ID=names(list1),VARS=list1)
+
+  }else if(list.type == "wide"){
+    list1 <- apply(contrib_prop,2,function(i){ifelse(i >= corrmax.threshold,i,NA)})
+    list2 <- data.frame(ID=rownames(list1),list1)
 
   }else{
     # Not an option yet!
@@ -54,15 +60,20 @@ mcd.outliers.list <- function(
   list.outliers <- list3[which(list3$ID %in% names(outliers)),]
   list.outliers <- list.outliers[order(list.outliers$MD_prop,decreasing = T),] # verify contrib order is still in long
 
-  if(length(in.betweeniers) != 0){
-    list.in.betweeniers <- list3[which(list3$ID %in% names(in.betweeniers)),]
-    list.in.betweeniers <- list.in.betweeniers[order(list.in.betweeniers$MD_prop,decreasing = T),]
+  list.in.betweeniers <- list3[which(list3$ID %in% names(in.betweeniers)),]
+  list.in.betweeniers <- list.in.betweeniers[order(list.in.betweeniers$MD_prop,decreasing = T),]
 
-    return(list(extreme.outliers=list.outliers,in.betweeniers=list.in.betweeniers))
-
-  }else{
-    return(list(extreme.outliers=list.outliers))
+  if(list.type=="wide"){
+    if(any(apply(list.outliers,2,function(i){all(is.na(i))}))){
+      list.outliers <- list.outliers[,-which(apply(list.outliers,2,function(i){all(is.na(i))}))]
+    }
+    if(any(apply(list.in.betweeniers,2,function(i){all(is.na(i))}))){
+      list.in.betweeniers <- list.in.betweeniers[,-which(apply(list.in.betweeniers,2,function(i){all(is.na(i))}))]
+    }
   }
+
+  return(list(extreme.outliers=list.outliers,in.betweeniers=list.in.betweeniers))
+
 
 
 }
