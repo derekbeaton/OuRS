@@ -1,11 +1,12 @@
 
 
-require(ggplot)
+require(ggplot2)
+require(gridExtra)
 
 
 mcd.outliers.plot <- function(
   target.data,
-  rob.mds, # dists$rob.md output from cont.mcd
+  dists, # dists$rob.md output from cont.mcd
   corrmax.res, # output from cont.corrmax (verify)
   boot.res, # output from cont.boot.sup.u
   rob.mb.lower.cut=0.75, # (lower) cutoff for in-betweeners; if same as upper.cut, in.betweeners will be an empty set
@@ -14,6 +15,8 @@ mcd.outliers.plot <- function(
 ){
 
   # copied from mcd.outliers.list()
+
+  rob.mds <- dists$rob.md
 
   vec.boot.md <- c(boot.res)
   lower.cut <- sort(vec.boot.md)[(length(vec.boot.md) * rob.mb.lower.cut)]
@@ -32,29 +35,54 @@ mcd.outliers.plot <- function(
   contrib_prop <- t(apply(corrmax.res,1,function(i){i/sum(i)}))
   idcontrib <- apply(contrib_prop,1,function(i){sort(i[which(i >= corrmax.threshold)],decreasing=T)})
 
-  browser()
-
   topcontribs <- t(sapply(idcontrib,function(i){names(i)[1:2]}))
   colnames(topcontribs) <- c("VAR1","VAR2")
 
   mapdat <- merge(as.data.frame(MD_prop),data.frame(topcontribs),by=0)
   colnames(mapdat)[1] <- "ID"
   mapdat$FLAG <- ifelse(mapdat$ID %in% outliers,"O",ifelse(mapdat$ID %in% in.betweeniers,"B","I"))
-  mapdat <- mapdat[order(mapdat$MD_prop,decreasing = T),]
+
+  # For global plots
+  distsdat <- merge(merge(as.data.frame(dists$md),as.data.frame(dists$rob.md),by=0),as.data.frame(dists$rob.chid),by.x=1,by.y=0)
+  colnames(distsdat) <- c("ID","MD","ROB.MD","ROB.CHI2")
+
+  mapdat <- merge(mapdat,distsdat)
 
 
-  # eventually make a plot matrix with the "main" plot in the centre, but now just make a bunch of plots to start
+  # Plots
+  listplots <- list()
 
-  for(i in 1:length(outliers)){ # or outliers and inbetweeniers
-    tmpvars <- c(as.matrix(mapdat[i,c("VAR1","VAR2")]))
-    tmpdat <- target.data[,]
+  # Global Plots
+
+  listplots[["MDs"]] <- ggplot(mapdat,aes(x=MD,y=ROB.MD,col=FLAG)) + geom_point(size=3) +
+    labs(title="TITLE",x="Raw Mahalanobis Distance",y="Robust Mahalanobis Distance",color=element_blank()) +
+    scale_color_manual(breaks=c("I","B","O"),labels=c("Inlier","In-betweener","Outlier"),values=c("blue","grey","red")) +
+    theme_classic()
+
+  listplots[["ROBs"]] <- ggplot(mapdat,aes(x=ROB.CHI2,y=ROB.MD,col=FLAG)) + geom_point(size=3) +
+    labs(title="TITLE",x="Robust Chi-Square Distance",y="Robust Mahalanobis Distance",color=element_blank()) +
+    scale_color_manual(breaks=c("I","B","O"),labels=c("Inlier","In-betweener","Outlier"),values=c("blue","grey","red")) +
+    theme_classic()
+
+# Individual outlier plots
+
+
+  for(i in outliers){ # or outliers and inbetweeniers
+    tmpvars <- c(as.matrix(mapdat[which(mapdat$ID == i),c("VAR1","VAR2")]))
+    tmpdat <- data.frame(target.data[,tmpvars])
+    colnames(tmpdat) <- c("VAR1","VAR2")
+
+    tmpdat <- merge(tmpdat,mapdat[,c("ID","FLAG")],by.x=0,by.y=1)
+    tmpdat$PART_d <- ifelse(tmpdat$Row.names == i,"FLAG","")
+    tmpdat$PART_c <- ifelse(tmpdat$Row.names == i,1,0)
+
+    listplots[[i]] <- ggplot(tmpdat,aes(x=VAR1,y=VAR2,col=FLAG,shape=PART_d,size=PART_c)) + geom_point() +
+      labs(title=i,x=tmpvars[1],y=tmpvars[2],color=element_blank()) + scale_shape_discrete(guide=F) + scale_size(guide=F,range=c(3,5)) +
+      scale_color_manual(breaks=c("I","B","O"),labels=c("Inlier","In-betweener","Outlier"),values=c("blue","grey","red")) +
+      theme_classic()
+
   }
 
-
-
-
-
-
-
+return(listplots)
 
 }

@@ -73,7 +73,4 @@ mcd.outliers.list <- function(
   }
 
   return(list(extreme.outliers=list.outliers,in.betweeniers=list.in.betweeniers))
-
-
-
 }
