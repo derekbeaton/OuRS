@@ -1,76 +1,81 @@
 
+# turn these into help file with roxygen2 or devtools.
+#
+# cont.mcd.res$dists$rob.md, # now the full results; can switch distances by the dist.type function.
+# corrmax.res, # output from cont.corrmax (verify)
+# boot.res, # output from cont.boot.sup.u
+# lower.bound=0.75, # (lower) cutoff for in-betweeners; if same as upper.cut, in.betweeners will be an empty set
+# upper.bound=0.9, # cutoff for in-betweeners (upper) and extreme outliers (lower)
+# corrmax.threshold=(1/ncol(corrmax.res))*2, # corrmax threshold, i.e. what minimum percent contrib to include in list
+# list.type = "list", # options are "long", "list", or "wide"
+# dist.type = "mahal"
 
-####### This one is for continuous data ###########
+
+## someday soon we'll need to update the code so that output from any of the functions can pass through to the reporting function
+  ## however for now we'll keep everything in "parallel" streams with the cat. and cont. prefixes.
+cont.mcd.outliers.list <- function(cont.mcd.res, corrmax.res, boot.res, lower.bound=0.75, upper.bound=0.9, corrmax.threshold=((100/ncol(corrmax.res))*2),  output.type = "list" ){
 
 
-## should be unpacked. Will need to revisit this.
-mcd.outliers.list <- function(
-  rob.mds, # dists$rob.md output from cont.mcd
-  corrmax.res, # output from cont.corrmax (verify)
-  boot.res, # output from cont.boot.sup.u
-  rob.mb.lower.cut=0.75, # (lower) cutoff for in-betweeners; if same as upper.cut, in.betweeners will be an empty set
-  rob.mb.upper.cut=0.9, # cutoff for in-betweeners (upper) and extreme outliers (lower)
-  corrmax.threshold=(1/ncol(corrmax.res))*2, # corrmax threshold, i.e. what minimum percent contrib to include in list
-  list.type = "list" # options are "long", "list", or "wide"
-){
-
-  if(!(list.type %in% c("long","list","wide"))){
-    cat("Did not recognize list.type - making long\n");
-    list.type <- "long"
+    # can bring this back later.
+  # if( !(dist.type %in% c("md","cd","od")) ){
+  #   warning("Distance type not recognized. Setting to Mahalanobis distance (`md``).")
+  #   dist.type <- "md"
+  # }
+  if(!(output.type %in% c("long","list","wide"))){
+    warning("Output type not recognized. Setting to wide (`wide`).");
+    list.type <- "wide"
   }
 
-  vec.boot.md <- c(boot.res)
-  lower.cut <- sort(vec.boot.md)[(length(vec.boot.md) * rob.mb.lower.cut)]
-  upper.cut <- sort(vec.boot.md)[(length(vec.boot.md) * rob.mb.upper.cut)]
 
-  outliers <- which(rob.mds >= upper.cut)
-  inliers <- which(rob.mds < lower.cut)
-  ## if lower.cut and upper.cut are the same then in.betweeniers will be empty.
-  in.betweeniers <- which(rob.mds >= lower.cut & rob.mds < upper.cut )
+  lower.cut <- sort(c(boot.res))[(length(boot.res) * lower.bound)]
+  upper.cut <- sort(c(boot.res))[(length(boot.res) * upper.bound)]
 
-  # proportion of all MDs that this participant possesses (all MDs sum to 1)
-  MD_prop <- rob.mds/sum(rob.mds)
+  outliers <- which(cont.mcd.res$dists$rob.md >= upper.cut)
+  inliers <- which(cont.mcd.res$dists$rob.md < lower.cut)
+  betweenliers <- which(cont.mcd.res$dists$rob.md >= lower.cut & cont.mcd.res$dists$rob.md < upper.cut )
 
-  # identifying top contributing variables for each participant
-  contrib_prop <- t(apply(corrmax.res,1,function(i){i/sum(i)}))
-  idcontrib <- apply(contrib_prop,1,function(i){sort(i[which(i >= corrmax.threshold)],decreasing=T)})
 
-  if(list.type == "long"){
-    list1 <- lapply(idcontrib,function(i){data.frame(VAR=names(i),CONTRIB_prop=i)})
-    list2 <- do.call("rbind",list1)
-    list2$ID <- substr(rownames(list2),1,14)
+  proportional.obs.variance <- (cont.mcd.res$dists$rob.md/sum(cont.mcd.res$dists$rob.md))*100
+  top.contributions.per.obs <- apply(corrmax.res,1,function(i){sort(i[which(i >= corrmax.threshold)],decreasing=T)})
 
-  }else if(list.type == "list"){
-    list1 <- sapply(idcontrib,function(i){paste(names(i),collapse="; ")})
-    list2 <- data.frame(ID=names(list1),VARS=list1)
+  if(output.type == "long"){
 
-  }else if(list.type == "wide"){
-    list1 <- apply(contrib_prop,2,function(i){ifelse(i >= corrmax.threshold,i,NA)})
-    list2 <- data.frame(ID=rownames(list1),list1)
+    output.temp <- lapply(top.contributions.per.obs,function(i){data.frame(VAR=names(i),CONTRIBUTION.PERCENTAGE=i)})
+    output.structure <- do.call("rbind",output.temp)
+    output.structure$ID <- rep(names(output.temp),unlist(lapply(output.temp,nrow)))
+    rownames(output.structure) <- NULL
 
-  }else{
-    # Not an option yet!
-    stop()
+  }else if(output.type == "list"){
+
+    output.temp <- sapply(top.contributions.per.obs,function(i){paste(names(i),collapse="; ")})
+    output.structure <- data.frame(ID=names(output.temp),VARS=output.temp)
+
+  }else if(output.type == "wide"){
+
+    output.temp <- apply(corrmax.res,2,function(i){ifelse(i >= corrmax.threshold,i,NA)})
+    output.structure <- data.frame(ID=rownames(output.temp),output.temp)
+
   }
 
-  # merging contrib info with MD_prop
-  list3 <- merge(as.data.frame(MD_prop),list2,by.x=0,by.y="ID")
-  colnames(list3)[1] <- "ID"
+  output.structure <- merge(as.data.frame(proportional.obs.variance),output.structure,by.x=0,by.y="ID")
+  colnames(output.structure)[1] <- "ID"
 
-  list.outliers <- list3[which(list3$ID %in% names(outliers)),]
-  list.outliers <- list.outliers[order(list.outliers$MD_prop,decreasing = T),] # verify contrib order is still in long
+  list.outliers <- output.structure[which(output.structure$ID %in% names(outliers)),]
+  list.outliers <- list.outliers[order(list.outliers$proportional.obs.variance,decreasing = T),] # verify contrib order is still in long
 
-  list.in.betweeniers <- list3[which(list3$ID %in% names(in.betweeniers)),]
-  list.in.betweeniers <- list.in.betweeniers[order(list.in.betweeniers$MD_prop,decreasing = T),]
+  list.betweenliers <- output.structure[which(output.structure$ID %in% names(betweenliers)),]
+  list.betweenliers <- list.betweenliers[order(list.betweenliers$proportional.obs.variance,decreasing = T),]
 
   if(list.type=="wide"){
     if(any(apply(list.outliers,2,function(i){all(is.na(i))}))){
       list.outliers <- list.outliers[,-which(apply(list.outliers,2,function(i){all(is.na(i))}))]
     }
-    if(any(apply(list.in.betweeniers,2,function(i){all(is.na(i))}))){
-      list.in.betweeniers <- list.in.betweeniers[,-which(apply(list.in.betweeniers,2,function(i){all(is.na(i))}))]
+    if(any(apply(list.betweenliers,2,function(i){all(is.na(i))}))){
+      list.betweenliers <- list.betweenliers[,-which(apply(list.betweenliers,2,function(i){all(is.na(i))}))]
     }
   }
 
-  return(list(extreme.outliers=list.outliers,in.betweeniers=list.in.betweeniers))
+  ##replace NAs with blanks here.
+
+  return(list(extreme.outliers=list.outliers,betweenliers=list.betweenliers))
 }
