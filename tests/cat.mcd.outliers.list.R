@@ -1,41 +1,46 @@
 
-# turn these into help file with roxygen2 or devtools.
-#
-# cont.mcd.res$dists$rob.md, # now the full results; can switch distances by the dist.type function.
-# corrmax.res, # output from cont.corrmax (verify)
-# boot.res, # output from cont.boot.sup.u
-# lower.bound=0.75, # (lower) cutoff for in-betweeners; if same as upper.cut, in.betweeners will be an empty set
-# upper.bound=0.9, # cutoff for in-betweeners (upper) and extreme outliers (lower)
-# corrmax.threshold=(1/ncol(corrmax.res))*2, # corrmax threshold, i.e. what minimum percent contrib to include in list
-# list.type = "list", # options are "long", "list", or "wide"
-# dist.type = "mahal"
+
+cat.mcd.outliers.list <- function(cat.mcd.res, corrmax.res, boot.res, lower.bound=0.75, upper.bound=0.9, corrmax.threshold.type = "level", variable.map, corrmax.threshold,  output.type = "list" ){
 
 
-## someday soon we'll need to update the code so that output from any of the functions can pass through to the reporting function
-  ## however for now we'll keep everything in "parallel" streams with the cat. and cont. prefixes.
-cont.mcd.outliers.list <- function(cont.mcd.res, corrmax.res, boot.res, lower.bound=0.75, upper.bound=0.9, corrmax.threshold=((100/ncol(corrmax.res))*2),  output.type = "list" ){
+  ### trying to capture that variable-wise, not level-wise is wanted.
 
-
-    # can bring this back later.
-  # if( !(dist.type %in% c("md","cd","od")) ){
-  #   warning("Distance type not recognized. Setting to Mahalanobis distance (`md``).")
-  #   dist.type <- "md"
-  # }
-  if(!(output.type %in% c("long","list","wide"))){
-    warning("Output type not recognized. Setting to wide (`wide`).");
-    list.type <- "wide"
+  if(corrmax.threshold.type=="variable"){
+    if(length(variable.map)==ncol(corrmax.res)){ # valid variable.map
+      # make some magic happen...
+      corrmax.res <- corrmax.res %*% make.data.nominal(as.matrix(variable.map))
+    }else{
+      warning("Invalid variable map. Will default to level-wise list")
+      corrmax.threshold.type <- "level"
+    }
+  }else{
+    if(corrmax.threshold.type!="level"){
+      warning("corrmax.threshold.type not recognized. Will default to level-wise list")
+      corrmax.threshold.type <- "level"
+    }
   }
 
+  if(missing(corrmax.threshold) | is.nan(corrmax.threshold) | is.na(corrmax.threshold) | !is.numeric(corrmax.threshold) | is.infinite(corrmax.threshold) | is.null(corrmax.threshold)){
+    corrmax.threshold <- (100/ncol(corrmax.res))*2 ## I could move this below...
+  }
+
+  ## should perform a corrmax.threshold check to make sure it's a valid value within the ranges of corrmax.res
+    ## else change to default
+  #findInterval(1:22,c(5,20),left.open = T)
+  #corrmax.threshold quantile(c(corrmax.res),probs = )
+  if( findInterval(corrmax.threshold,quantile(c(corrmax.res),probs = c(.1,.9)))!=1  ){
+    warning("corrmax.threshold is below 10% or above 90%. Setting to default.")
+    corrmax.threshold <- (100/ncol(corrmax.res))*2 ## I could move this below...
+  }
 
   lower.cut <- sort(c(boot.res))[(length(boot.res) * lower.bound)]
   upper.cut <- sort(c(boot.res))[(length(boot.res) * upper.bound)]
 
-  outliers <- which(cont.mcd.res$dists$rob.md >= upper.cut)
-  inliers <- which(cont.mcd.res$dists$rob.md < lower.cut)
-  betweenliers <- which(cont.mcd.res$dists$rob.md >= lower.cut & cont.mcd.res$dists$rob.md < upper.cut )
+  outliers <- which(cat.mcd.res$dists$rob.md >= upper.cut)
+  inliers <- which(cat.mcd.res$dists$rob.md < lower.cut)
+  betweenliers <- which(cat.mcd.res$dists$rob.md >= lower.cut & cat.mcd.res$dists$rob.md < upper.cut )
 
-
-  proportional.obs.variance <- (cont.mcd.res$dists$rob.md/sum(cont.mcd.res$dists$rob.md))*100
+  proportional.obs.variance <- (cat.mcd.res$dists$rob.md/sum(cat.mcd.res$dists$rob.md))*100
   top.contributions.per.obs <- apply(corrmax.res,1,function(i){sort(i[which(i >= corrmax.threshold)],decreasing=T)})
 
   if(output.type == "long"){
@@ -76,6 +81,6 @@ cont.mcd.outliers.list <- function(cont.mcd.res, corrmax.res, boot.res, lower.bo
   }
 
   ##replace NAs with blanks here.
-
   return(list(extreme.outliers=list.outliers,betweenliers=list.betweenliers))
+
 }
