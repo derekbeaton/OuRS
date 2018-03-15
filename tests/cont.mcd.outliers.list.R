@@ -72,7 +72,7 @@ cont.mcd.outliers.list <- function(cont.mcd.res, corrmax.res, boot.res, lower.bo
   list.betweenliers <- output.structure[which(output.structure$ID %in% names(betweenliers)),]
   list.betweenliers <- list.betweenliers[order(list.betweenliers$proportional.obs.variance,decreasing = T),]
 
-  if(list.type=="wide"){
+  if(output.type=="wide"){
     if(any(apply(list.outliers,2,function(i){all(is.na(i))}))){
       list.outliers <- list.outliers[,-which(apply(list.outliers,2,function(i){all(is.na(i))}))]
     }

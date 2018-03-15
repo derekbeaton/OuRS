@@ -1,6 +1,6 @@
 
 
-# require(ggplot2)
+require(ggplot2)
 # require(gridExtra)
 
 
@@ -55,12 +55,12 @@ mcd.outliers.plot <- function(
   # Global Plots
 
   listplots[["MDs"]] <- ggplot(mapdat,aes(x=MD,y=ROB.MD,col=FLAG)) + geom_point(size=3) +
-    labs(title="TITLE",x="Raw Mahalanobis Distance",y="Robust Mahalanobis Distance",color=element_blank()) +
+    labs(title="Raw vs Robust MD",x="Raw Mahalanobis Distance",y="Robust Mahalanobis Distance",color=element_blank()) +
     scale_color_manual(breaks=c("I","B","O"),labels=c("Inlier","In-betweener","Outlier"),values=c("blue","grey","red")) +
     theme_classic()
 
   listplots[["ROBs"]] <- ggplot(mapdat,aes(x=ROB.CHI2,y=ROB.MD,col=FLAG)) + geom_point(size=3) +
-    labs(title="TITLE",x="Robust Chi-Square Distance",y="Robust Mahalanobis Distance",color=element_blank()) +
+    labs(title="Robust Chi-Square vs Mahalanobis Distances",x="Robust Chi-Square Distance",y="Robust Mahalanobis Distance",color=element_blank()) +
     scale_color_manual(breaks=c("I","B","O"),labels=c("Inlier","In-betweener","Outlier"),values=c("blue","grey","red")) +
     theme_classic()
 
