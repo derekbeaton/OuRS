@@ -36,6 +36,9 @@ cont.mcd.outliers.list <- function(cont.mcd.res, corrmax.res, boot.res, lower.bo
   lower.cut <- sort(c(boot.res))[(length(boot.res) * lower.bound)]
   upper.cut <- sort(c(boot.res))[(length(boot.res) * upper.bound)]
 
+  cutoffs <- c(lower.cut,upper.cut)
+  names(cutoffs) <- c("lower.cut","upper.cut")
+
   outliers <- which(cont.mcd.res$dists$rob.md >= upper.cut)
   inliers <- which(cont.mcd.res$dists$rob.md < lower.cut)
   betweenliers <- which(cont.mcd.res$dists$rob.md >= lower.cut & cont.mcd.res$dists$rob.md < upper.cut )
@@ -48,28 +51,28 @@ cont.mcd.outliers.list <- function(cont.mcd.res, corrmax.res, boot.res, lower.bo
 
     output.temp <- lapply(top.contributions.per.obs,function(i){data.frame(VAR=names(i),CONTRIBUTION.PERCENTAGE=i)})
     output.structure <- do.call("rbind",output.temp)
-    output.structure$ID <- rep(names(output.temp),unlist(lapply(output.temp,nrow)))
+    output.structure$SUBJECT <- rep(names(output.temp),unlist(lapply(output.temp,nrow)))
     rownames(output.structure) <- NULL
 
   }else if(output.type == "list"){
 
     output.temp <- sapply(top.contributions.per.obs,function(i){paste(names(i),collapse="; ")})
-    output.structure <- data.frame(ID=names(output.temp),VARS=output.temp)
+    output.structure <- data.frame(SUBJECT=names(output.temp),VARS=output.temp)
 
   }else if(output.type == "wide"){
 
     output.temp <- apply(corrmax.res,2,function(i){ifelse(i >= corrmax.threshold,i,NA)})
-    output.structure <- data.frame(ID=rownames(output.temp),output.temp)
+    output.structure <- data.frame(SUBJECT=rownames(output.temp),output.temp)
 
   }
 
-  output.structure <- merge(as.data.frame(proportional.obs.variance),output.structure,by.x=0,by.y="ID")
-  colnames(output.structure)[1] <- "ID"
+  output.structure <- merge(as.data.frame(proportional.obs.variance),output.structure,by.x=0,by.y="SUBJECT")
+  colnames(output.structure)[1] <- "SUBJECT"
 
-  list.outliers <- output.structure[which(output.structure$ID %in% names(outliers)),]
+  list.outliers <- output.structure[which(output.structure$SUBJECT %in% names(outliers)),]
   list.outliers <- list.outliers[order(list.outliers$proportional.obs.variance,decreasing = T),] # verify contrib order is still in long
 
-  list.betweenliers <- output.structure[which(output.structure$ID %in% names(betweenliers)),]
+  list.betweenliers <- output.structure[which(output.structure$SUBJECT %in% names(betweenliers)),]
   list.betweenliers <- list.betweenliers[order(list.betweenliers$proportional.obs.variance,decreasing = T),]
 
   if(output.type=="wide"){
@@ -83,5 +86,5 @@ cont.mcd.outliers.list <- function(cont.mcd.res, corrmax.res, boot.res, lower.bo
 
   ##replace NAs with blanks here.
 
-  return(list(extreme.outliers=list.outliers,betweenliers=list.betweenliers))
+  return(list(cutoffs=cutoffs,extreme.outliers=list.outliers,betweenliers=list.betweenliers))
 }
