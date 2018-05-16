@@ -99,7 +99,7 @@ plot(sqrt(catmcd.results$dists$md),sqrt(catmcd.results$dists$rob.md),pch=21,bg="
 
 ## PCA+SHR
 
-[[Needs updates]].[Gives point and interval estimates. Can be done on data of any dimensionality. First we'll do `philips` and compare against the MCD results. Then we'll do the data from `golubEsets`. PCA+SHR is a large framework that provides many ways to identify outliers of different types. We illustrate a few of those here.]
+<!-- [[Needs updates]].[Gives point and interval estimates. Can be done on data of any dimensionality. First we'll do `philips` and compare against the MCD results. Then we'll do the data from `golubEsets`. PCA+SHR is a large framework that provides many ways to identify outliers of different types. We illustrate a few of those here.] -->
 
 ```{r,echo=F,include=F,eval=F}
 
