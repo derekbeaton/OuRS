@@ -1,0 +1,72 @@
+---
+title: "OuRS: Outliers and Robust Structures"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# OuRS
+
+`OuRS` is short for *Ou*tliers and *R*obust *S*tructures. The goal of this package is to provide a variety of multivariate outlier detection and robust subspace techniques. While there are several other packages to do so in `R`, this package was developed to meet specific needs not currently met including, for examples, outlier detection in multivariate categorical or mixed data, and simplified approaches to high dimensional (i.e., $n << P$) data.
+
+As of now, the OuRS package is under active development. However, several approaches we make available in `OuRS` are stable and available for use, namely: 
+
+* Minimum covariance determinant (MCD)
+
+* A generalized MCD ("GenMCD") for almost any data type
+
+* Principal components analysis + split-half resampling (PCA+SHR) 
+
+
+## Installation
+
+Because `OuRS` is under development it is not yet available as a complete package, though it can still be installed. `OuRS` depends on the `GSVD` package ([GSVD](https://github.com/derekbeaton/ExPosition-Family/tree/master/ExPosition2/GSVD)). For now, the simplest approach to installation is through the `devtools` package:
+
+```{r eval=FALSE}
+devtools::install_github("derekbeaton/ExPosition-Family",subdir="/ExPosition2/GSVD/Package")
+devtools::install_github("derekbeaton/OuRS",subdir="/OuRS")
+```
+
+
+# Examples
+
+Here we provide examples with brief explanations of the three previously mentioned approaches: MCD, GenMCD, and PCA+SHR.
+
+## MCD
+
+The MCD algorithm () is an outlier detection and robust covariance technique.  The MCD's goal is to find a covariance matrix with a robust location (mean) and minimum scatter (covariance). The objective of the MCD is to find a minimum determinant (i.e., product of the eigenvalues), which reflects a minimum scatter. The MCD primarily relies on *subsampling* to find some subsample $H$ that provides a minimum determinant. Generally the MCD works as follows. Given some matrix $\mathbf{X}$ with $I$ rows and $J$ columns, we randomly subsample $\mathbf{X}$ to have $H$ rows, referred to as $\mathbf{X}_{H}$. The size of $H$ is controlled by the user through the $\alpha$ parameter which must exist between .5 and 1:
+
+1. For $\mathbf{X}_{H}$, compute the column-wise mean as $\boldsymbol{\mu}_{H}$ and the covariance as $\mathbf{S}_{H}$.
+
+2. Compute the squared Mahalanobis distances for each observation in $\mathbf{X}$ as $m_{i} = (x_{i} - \boldsymbol{\mu}_{H}) \mathbf{S}_{H}^{-1} (x_{i} - \boldsymbol{\mu}_{H})^{T}$.
+
+3. Set $\mathbf{X}_{H}$ as the subset of $H$ observations with the smallest Mahalanobis distances computed from Step 2.
+
+4. Compute and store the determinant of $\mathbf{S}_{H}$ which is the covariance matrix of $\mathbf{X}_{H}$.
+
+The steps above are repeated for either a pre-specified number of iterations or until convergence (i.e., the determinant in Step 4 has little to no change). Once completed, the $H$ set with a minimum determinant reflects the sub-sample with the robust location (robust mean), minimum scatter (robust covariance) from the data in $\mathbf{X}$. Furthermore, a set of robust Mahalanobis distances are computed from the robust covariance matrix. The robust Mahalanobis distances can then be used to identify outliers. 
+
+Below we provide an example of the MCD for a routinely used data set for the MCD: the `philips` dataset from the `cellWise` package. While there are numerous outputs from the algorithm, we only show a graph of the standard vs. robust Mahalanobis distances for the `philips` data.
+
+```{r,eval=T,echo=F}
+require(GSVD)
+require(ours)
+require(cellWise)
+data("philips")
+```
+
+```{r}
+  # default parameters for now.
+mcd.results <- cont.mcd(philips)
+plot(mcd.results$dists$md,mcd.results$dists$rob.md,pch=20,col="mediumorchid4")
+
+```
+
+
+## GenMCD
+
+## PCA+SHR
+
