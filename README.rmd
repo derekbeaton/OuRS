@@ -4,7 +4,8 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(formatR)
+knitr::opts_chunk$set(echo = TRUE,tidy = T,tidy.opts = list(blank=FALSE, width.cutoff=60))
 ```
 
 
@@ -30,6 +31,19 @@ devtools::install_github("derekbeaton/ExPosition-Family",subdir="/ExPosition2/GS
 devtools::install_github("derekbeaton/OuRS",subdir="/OuRS")
 ```
 
+# Set up
+
+Prior to running the examples, we require several packages to be loaded. Some packages---such as `OuRS` and `GSVD`---are used here, but other packages such as `golubEsets`, and `cellWise` have data that we use in these examples.
+
+
+```{r,echo=F,include=F}
+require(GSVD)
+require(ours)
+require(cellWise)
+#require(ExPosition)
+require(golubEsets) ## from Bioconductor
+set.seed(13)
+```
 
 # Examples
 
@@ -37,7 +51,7 @@ Here we provide examples with brief explanations of the three previously mention
 
 ## MCD
 
-The MCD algorithm () is an outlier detection and robust covariance technique.  The MCD's goal is to find a covariance matrix with a robust location (mean) and minimum scatter (covariance). The objective of the MCD is to find a minimum determinant (i.e., product of the eigenvalues), which reflects a minimum scatter. The MCD primarily relies on *subsampling* to find some subsample $H$ that provides a minimum determinant. Generally the MCD works as follows. Given some matrix $\mathbf{X}$ with $I$ rows and $J$ columns, we randomly subsample $\mathbf{X}$ to have $H$ rows, referred to as $\mathbf{X}_{H}$. The size of $H$ is controlled by the user through the $\alpha$ parameter which must exist between .5 and 1:
+The [MCD algorithm (Hubert & Debruyne, 2009)](https://onlinelibrary.wiley.com/doi/full/10.1002/wics.61) is an outlier detection and robust covariance technique.  The MCD's goal is to find a covariance matrix with a robust location (mean) and minimum scatter (covariance). The objective of the MCD is to find a minimum determinant (i.e., product of the eigenvalues), which reflects a minimum scatter. The MCD primarily relies on *subsampling* to find some subsample $H$ that provides a minimum determinant. Generally the MCD works as follows. Given some matrix $\mathbf{X}$ with $I$ rows and $J$ columns, we randomly subsample $\mathbf{X}$ to have $H$ rows, referred to as $\mathbf{X}_{H}$. The size of $H$ is controlled by the user through the $\alpha$ parameter which must exist between .5 and 1:
 
 1. For $\mathbf{X}_{H}$, compute the column-wise mean as $\boldsymbol{\mu}_{H}$ and the covariance as $\mathbf{S}_{H}$.
 
@@ -49,24 +63,94 @@ The MCD algorithm () is an outlier detection and robust covariance technique.  T
 
 The steps above are repeated for either a pre-specified number of iterations or until convergence (i.e., the determinant in Step 4 has little to no change). Once completed, the $H$ set with a minimum determinant reflects the sub-sample with the robust location (robust mean), minimum scatter (robust covariance) from the data in $\mathbf{X}$. Furthermore, a set of robust Mahalanobis distances are computed from the robust covariance matrix. The robust Mahalanobis distances can then be used to identify outliers. 
 
-Below we provide an example of the MCD for a routinely used data set for the MCD: the `philips` dataset from the `cellWise` package. While there are numerous outputs from the algorithm, we only show a graph of the standard vs. robust Mahalanobis distances for the `philips` data.
+Below we provide an example of the MCD for a routinely used data set for the MCD: the `philips` dataset from the `cellWise` package. While there are numerous outputs from the algorithm, we only show a graph of the standard vs. robust Mahalanobis distances for the `philips` data. The `philips` data are used as a typical example because of the "masking" effect, wherein there are outliers that exist but are not detectable by Mahalanobis distance. This is because they outlyingness of these observations exist, typically, in a lower variance subspace. Thus the MCD and robust Mahalanobis distance "unmasks" these observations.
 
-```{r,eval=T,echo=F}
-require(GSVD)
-require(ours)
-require(cellWise)
-data("philips")
-```
 
 ```{r}
-  # default parameters for now.
-mcd.results <- cont.mcd(philips)
-plot(mcd.results$dists$md,mcd.results$dists$rob.md,pch=20,col="mediumorchid4")
+data("philips")
 
+  # mostly default parameters for now, but with the lowest size of H, i.e., alpha=.5, and many iterations
+mcd.results <- cont.mcd(philips,alpha = .5,num.subsets = 2000)
+plot(sqrt(mcd.results$dists$md),sqrt(mcd.results$dists$rob.md),pch=21,bg="mediumorchid4",xlab="Mahalanobis Distances",ylab="Robust Mahalanobis Distances")
 ```
+
+As can be seen in the above figure, there are observations with a large robust Mahalanobis distance, but relatively small Mahalanobis distance; these are the observations that were "masked".
 
 
 ## GenMCD
 
+One of the primary motivations behind the creation of the `OuRS` package was the development of an extension to the MCD. We initially extended the MCD so that it could be applied to categorical (and similar data). However, our extension of the MCD can incorporate data of almost any data type  (categorical, ordinal, continuous, counts), either as a homogeneous set or heterogeneous variables (i.e., mixed data).
+
+The example we provide here is strictly categorical data. The data here are a re-coded version of a survey that asked opinions of [different beers brewed in the Dallas-Fort Worth area](http://www.dallasobserver.com/restaurants/dfws-favorite-local-beer-as-proven-by-an-actual-scientist-7024953). Each person's response to each beer is categorized as "LIKE", "DO.NOT.LIKE", or "NO.OPINION". 
+
+
+
+```{r}
+load('OuRS/data/dfw.beer.survey.rda')
+summary(DFW.beer.survey[,1:2])
+
+  # data are transformed to disjunctive coding:
+beer.disj <- make.data.nominal(DFW.beer.survey)
+
+  # mostly default parameters for now, but with the lowest size of H, i.e., alpha=.5, and many iterations
+catmcd.results <- cat.mcd(beer.disj,alpha = .5,num.subsets = 2000)
+plot(sqrt(catmcd.results$dists$md),sqrt(catmcd.results$dists$rob.md),pch=21,bg="mediumorchid4",xlab="Mahalanobis Distances",ylab="Robust Mahalanobis Distances")
+```
+
 ## PCA+SHR
 
+[[Needs updates]].[Gives point and interval estimates. Can be done on data of any dimensionality. First we'll do `philips` and compare against the MCD results. Then we'll do the data from `golubEsets`. PCA+SHR is a large framework that provides many ways to identify outliers of different types. We illustrate a few of those here.]
+
+```{r,echo=F,include=F,eval=F}
+
+pca_shr.low.dim.results <- split.half.pca(philips,center = T,iters = 500)
+
+mahal.d <- apply(pca_shr.low.dim.results$pred.u.array^2,c(1,3),sum,na.rm=T)
+mahal.median <- apply(mahal.d,1,median)
+mahal.iqr <- apply(mahal.d,1,function(x){ IQR(x) })
+
+chi.d <- apply(pca_shr.low.dim.results$pred.fi.array^2,c(1,3),sum,na.rm=T)
+chi.median <- apply(chi.d,1,median)
+chi.iqr <- apply(chi.d,1,function(x){ IQR(x) })
+
+
+## identify reproducible subspace
+# apply(abs(pca_shr.low.dim.results$loadings.cors),c(1,2),mean)
+
+## maybe 2, maybe 4; try both
+# mahal.d_12 <- apply(pca_shr.low.dim.results$pred.u.array[,1:2,]^2,c(1,3),sum,na.rm=T)
+# mahal.median_12 <- apply(mahal.d_12,1,median)
+# mahal.iqr_12 <- apply(mahal.d_12,1,function(x){ IQR(x) })
+# 
+# chi.d_12 <- apply(pca_shr.low.dim.results$pred.fi.array[,1:2,]^2,c(1,3),sum,na.rm=T)
+# chi.median_12 <- apply(chi.d_12,1,median)
+# chi.iqr_12 <- apply(chi.d_12,1,function(x){ IQR(x) })
+
+mahal.d_14 <- apply(pca_shr.low.dim.results$pred.u.array[,1:4,]^2,c(1,3),sum,na.rm=T)
+mahal.median_14 <- apply(mahal.d_14,1,median)
+mahal.iqr_14 <- apply(mahal.d_14,1,function(x){ IQR(x) })
+
+chi.d_14 <- apply(pca_shr.low.dim.results$pred.fi.array[,1:4,]^2,c(1,3),sum,na.rm=T)
+chi.median_14 <- apply(chi.d_14,1,median)
+chi.iqr_14 <- apply(chi.d_14,1,function(x){ IQR(x) })
+
+these.cols <- rep("grey80",nrow(philips))
+these.cols[which(mcd.results$dists$rob.md>.6)] <- "mediumorchid4"
+plot(mahal.median,chi.median,col=these.cols)
+plot(mahal.iqr,chi.iqr,col=these.cols)
+
+plot(mahal.median_14,chi.median_14,col=these.cols)
+plot(mahal.iqr_14,chi.iqr_14,col=these.cols)
+
+plot(chi.median,chi.iqr,col=these.cols)
+plot(chi.median_14,chi.iqr_14,col=these.cols)
+#plot(chi.median_12,chi.iqr_12,col=these.cols)
+```
+
+```{r,echo=F,include=F,eval=F}
+data("Golub_Merge")
+DATA <- t(exprs(Golub_Merge))
+DATA.log10 <- log10(abs(DATA)) * sign(DATA)
+DATA.log10[is.nan(DATA.log10)] <- 0
+
+```

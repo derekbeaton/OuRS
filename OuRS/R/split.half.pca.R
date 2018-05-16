@@ -42,7 +42,7 @@ split.half.pca <- function(DATA,center=T,scale=F,iters=500,sh1.k=0,sh2.k=0){
     pred.fi.array[sh2,1:length(sh1.res$d),i] <- expo.scale(DATA[sh2,],center=sh1.center,scale=sh1.scale) %*% sh1.res$v
     pred.u.array[sh2,1:length(sh1.res$d),i] <- sweep(pred.fi.array[sh2,1:length(sh1.res$d),i],2,sh1.res$d,"/")
 
-    print(i)
+    #print(i)
   }
 
 
