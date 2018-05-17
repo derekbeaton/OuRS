@@ -104,9 +104,9 @@ We first illustrate PCA+SHR here with the same data (`philips`) as in the MCD ex
 
 ### PCA
 
-PCA can be expressed as follows. Given some matrix **X** with *I* rows and *J* columns, and assuming that **X** is column-wise centered (and possibly scaled), PCA decomposes **X** into three matrices: **X** = **U****Δ****V**<sup>*T*</sup>, where the observations are represented on the rows of the left singular vectors **U**, or with the component scores as **F**<sub>*I*</sub> = **U****Δ**, which are the columns (components) of the left singular vectors scaled by the singular values (**Δ**). From PCA we can compute two distances:
+PCA can be expressed as follows. Given some matrix **X** with *I* rows and *J* columns, and assuming that **X** is column-wise centered (and possibly scaled), PCA decomposes **X** into three matrices: **X** = **UΔV**<sup>*T*</sup>, where the observations are represented on the rows of the left singular vectors **U**, or with the component scores as **F**<sub>*I*</sub> = **UΔ**, which are the columns (components) of the left singular vectors scaled by the singular values (**Δ**). From PCA we can compute two distances:
 
-1.  Squared Mahalanobis distance where **m**<sub>*I*</sub> = diag{**U****U**<sup>*T*</sup>}, and
+1.  Squared Mahalanobis distance where **m**<sub>*I*</sub> = diag{**UU**<sup>*T*</sup>}, and
 
 2.  Squared score distance where **c**<sub>*I*</sub> = diag{**F**<sub>*I*</sub>**F**<sub>*I*</sub><sup>*T*</sup>}.
 
