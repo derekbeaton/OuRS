@@ -33,7 +33,7 @@ devtools::install_github("derekbeaton/OuRS",subdir="/OuRS")
 
 # Set up
 
-Prior to running the examples, we require several packages to be loaded. Some packages---such as `OuRS` and `GSVD`---are used here, but other packages such as `golubEsets`, and `cellWise` have data that we use in these examples.
+Prior to running the examples, we require several packages to be loaded. The analyses are all performed in `OuRS`, which depends on `GSVD`. We also require `golubEsets` and `cellWise` to access data, and `robustbase` for the `tolEllipsePlot()` function.
 
 
 ```{r,echo=F,include=F}
@@ -42,7 +42,8 @@ require(ours)
 require(cellWise)
 #require(ExPosition)
 require(golubEsets) ## from Bioconductor
-set.seed(13)
+require(robustbase)
+set.seed(42)
 ```
 
 # Examples
@@ -99,52 +100,61 @@ plot(sqrt(catmcd.results$dists$md),sqrt(catmcd.results$dists$rob.md),pch=21,bg="
 
 ## PCA+SHR
 
-<!-- [[Needs updates]].[Gives point and interval estimates. Can be done on data of any dimensionality. First we'll do `philips` and compare against the MCD results. Then we'll do the data from `golubEsets`. PCA+SHR is a large framework that provides many ways to identify outliers of different types. We illustrate a few of those here.] -->
+The MCD algorithm works only for full (column) rank data with a sufficient ratio of observations to variables (i.e., $n > P$). However sometimes data are rank deficient with many more variables than observations (i.e., $n < P$ or $n << P$). While several options exist for high dimensional data, most are computationally expensive or otherwise restricted in their goals or even what they can estimate. Thus we have [proposed](http://ww2.amstat.org/meetings/jsm/2018/onlineprogram/AbstractDetails.cfm?abstractid=330168), and implemented here, a framework to help identify outliers and make predictive distance estimates regardless of dimensionality. This framework uses principal components analysis (PCA) an split-half resampling (SHR). The PCA+SHR framework allows for us to estimate a variety of distances, as well as identify reproducible and thus robust subspaces (i.e., sets of components). 
 
-```{r,echo=F,include=F,eval=F}
+### PCA
+
+PCA can be expressed as follows. Given some matrix $\mathbf{X}$ with $I$ rows and $J$ columns, and assuming that $\mathbf{X}$ is column-wise centered (and possibly scaled), PCA decomposes $\mathbf{X}$ into three matrices: $\mathbf{X} = \mathbf{U}\mathbf{\Delta}\mathbf{V}^{T}$, where the observations are represented on the rows of the left singular vectors $\mathbf{U}$, or with the component scores as $\mathbf{F}_{I} = \mathbf{U}\mathbf{\Delta}$, which are the columns (components) of the left singular vectors scaled by the singular values ($\mathbf{\Delta}$). From PCA we can compute two distances:
+
+1. Squared Mahalanobis distance where $\mathbf{m}_{I} = \text{diag}\{\mathbf{U}\mathbf{U}^{T}\}$, and
+
+2. Squared score distance where $\mathbf{c}_{I} = \text{diag}\{\mathbf{F}_{I}\mathbf{F}_{I}^{T}\}$.
+
+When data are rank deficient (i.e., $n < P$ or $n << P$) we cannot compute unique values for $\mathbf{m}_{I}$ -- they are all identical. However, if we supplement PCA with SHR, we can compute *predicted* estimates for both $\mathbf{m}_{I}$ and $\mathbf{c}_{I}$. With SHR we end up with distributions of predicted values for $\mathbf{m}_{I}$ and $\mathbf{c}_{I}$. Furthermore, with SHR, we can keep track of similarity of components between splits over all iterations (i.e., reproducible components). The reproducible components identify a robust subspace.
+
+
+### Low dimensional example
+
+First we perform PCA+SHR on the `philips` data and compare some of the estimates against the robust Mahalanobis distances from the MCD. While there are many estimates we could make from PCA+SHR, we focus these particular results on the distributions of predicted distances; specifically, we use the inter-quartile range. We use the interval here because large intervals reflect poor predictive estimates.
+
+```{r,echo=F}
 
 pca_shr.low.dim.results <- split.half.pca(philips,center = T,iters = 500)
 
 mahal.d <- apply(pca_shr.low.dim.results$pred.u.array^2,c(1,3),sum,na.rm=T)
-mahal.median <- apply(mahal.d,1,median)
 mahal.iqr <- apply(mahal.d,1,function(x){ IQR(x) })
-
-chi.d <- apply(pca_shr.low.dim.results$pred.fi.array^2,c(1,3),sum,na.rm=T)
-chi.median <- apply(chi.d,1,median)
-chi.iqr <- apply(chi.d,1,function(x){ IQR(x) })
-
+score.d <- apply(pca_shr.low.dim.results$pred.fi.array^2,c(1,3),sum,na.rm=T)
+score.iqr <- apply(score.d,1,function(x){ IQR(x) })
 
 ## identify reproducible subspace
-# apply(abs(pca_shr.low.dim.results$loadings.cors),c(1,2),mean)
+diag(apply(abs(pca_shr.low.dim.results$loadings.cors),c(1,2),mean))
 
-## maybe 2, maybe 4; try both
-# mahal.d_12 <- apply(pca_shr.low.dim.results$pred.u.array[,1:2,]^2,c(1,3),sum,na.rm=T)
-# mahal.median_12 <- apply(mahal.d_12,1,median)
-# mahal.iqr_12 <- apply(mahal.d_12,1,function(x){ IQR(x) })
-# 
-# chi.d_12 <- apply(pca_shr.low.dim.results$pred.fi.array[,1:2,]^2,c(1,3),sum,na.rm=T)
-# chi.median_12 <- apply(chi.d_12,1,median)
-# chi.iqr_12 <- apply(chi.d_12,1,function(x){ IQR(x) })
-
+## it looks as though there are 4 reproducible components. so we'll compute distance estimates with just those 4
 mahal.d_14 <- apply(pca_shr.low.dim.results$pred.u.array[,1:4,]^2,c(1,3),sum,na.rm=T)
-mahal.median_14 <- apply(mahal.d_14,1,median)
 mahal.iqr_14 <- apply(mahal.d_14,1,function(x){ IQR(x) })
+score.d_14 <- apply(pca_shr.low.dim.results$pred.fi.array[,1:4,]^2,c(1,3),sum,na.rm=T)
+score.iqr_14 <- apply(score.d_14,1,function(x){ IQR(x) })
 
-chi.d_14 <- apply(pca_shr.low.dim.results$pred.fi.array[,1:4,]^2,c(1,3),sum,na.rm=T)
-chi.median_14 <- apply(chi.d_14,1,median)
-chi.iqr_14 <- apply(chi.d_14,1,function(x){ IQR(x) })
+  ## these.cols will color observations by their "unmasking" in the MCD.
+these.cols <- rep("white",nrow(philips))
+these.cols[which(mcd.results$dists$rob.md>.8)] <- "mediumorchid4"
 
-these.cols <- rep("grey80",nrow(philips))
-these.cols[which(mcd.results$dists$rob.md>.6)] <- "mediumorchid4"
-plot(mahal.median,chi.median,col=these.cols)
-plot(mahal.iqr,chi.iqr,col=these.cols)
 
-plot(mahal.median_14,chi.median_14,col=these.cols)
-plot(mahal.iqr_14,chi.iqr_14,col=these.cols)
+par.opts <- par(mfrow=c(2,2))
+plot(mcd.results$dists$md,mahal.iqr_14,bg=these.cols,pch=21,xlab="MCD Mahalanobis",ylab="PCA+SHR IQR of Mahalanobis")
+plot(mcd.results$dists$md,score.iqr_14,bg=these.cols,pch=21,xlab="MCD Mahalanobis",ylab="PCA+SHR IQR of Score")
+plot(mcd.results$dists$rob.md,mahal.iqr_14,bg=these.cols,pch=21,xlab="MCD Robust Mahalanobis",ylab="PCA+SHR IQR of Mahalanobis")
+plot(mcd.results$dists$rob.md,score.iqr_14,bg=these.cols,pch=21,xlab="MCD Robust Mahalanobis",ylab="PCA+SHR IQR of Score")
+par(par.opts)
 
-plot(chi.median,chi.iqr,col=these.cols)
-plot(chi.median_14,chi.iqr_14,col=these.cols)
-#plot(chi.median_12,chi.iqr_12,col=these.cols)
+par.opts <- par(mfrow=c(1,2))
+plot(mahal.iqr,score.iqr,bg=these.cols,pch=21)
+plot(mahal.iqr_14,score.iqr_14,bg=these.cols,pch=21)
+par(par.opts)
+
+tolEllipsePlot(cbind(mahal.iqr_14,score.iqr_14),classic = T)
+points(cbind(mahal.iqr_14,score.iqr_14),pch=21,cex=1,bg=these.cols)
+
 ```
 
 ```{r,echo=F,include=F,eval=F}

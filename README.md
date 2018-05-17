@@ -27,7 +27,7 @@ devtools::install_github("derekbeaton/OuRS", subdir = "/OuRS")
 Set up
 ======
 
-Prior to running the examples, we require several packages to be loaded. Some packages---such as `OuRS` and `GSVD`---are used here, but other packages such as `golubEsets`, and `cellWise` have data that we use in these examples.
+Prior to running the examples, we require several packages to be loaded. The analyses are all performed in `OuRS`, which depends on `GSVD`. We also require `golubEsets` and `cellWise` to access data, and `robustbase` for the `tolEllipsePlot()` function.
 
 Examples
 ========
@@ -98,4 +98,23 @@ plot(sqrt(catmcd.results$dists$md), sqrt(catmcd.results$dists$rob.md),
 PCA+SHR
 -------
 
-<!-- [[Needs updates]].[Gives point and interval estimates. Can be done on data of any dimensionality. First we'll do `philips` and compare against the MCD results. Then we'll do the data from `golubEsets`. PCA+SHR is a large framework that provides many ways to identify outliers of different types. We illustrate a few of those here.] -->
+The MCD algorithm works only for full (column) rank data with a sufficient ratio of observations to variables (i.e., *n* &gt; *P*). However sometimes data are rank deficient with many more variables than observations (i.e., *n* &lt; *P* or *n* &lt; &lt;*P*). While several options exist for high dimensional data, most are computationally expensive or otherwise restricted in their goals or even what they can estimate. Thus we have [proposed](http://ww2.amstat.org/meetings/jsm/2018/onlineprogram/AbstractDetails.cfm?abstractid=330168), and implemented here, a framework to help identify outliers and make predictive distance estimates regardless of dimensionality. This framework uses principal components analysis (PCA) an split-half resampling (SHR). The PCA+SHR framework allows for us to estimate a variety of distances, as well as identify reproducible and thus robust subspaces (i.e., sets of components).
+
+### PCA
+
+PCA can be expressed as follows. Given some matrix **X** with *I* rows and *J* columns, and assuming that **X** is column-wise centered (and possibly scaled), PCA decomposes **X** into three matrices: **X** = **U****Δ****V**<sup>*T*</sup>, where the observations are represented on the rows of the left singular vectors **U**, or with the component scores as **F**<sub>*I*</sub> = **U****Δ**, which are the columns (components) of the left singular vectors scaled by the singular values (**Δ**). From PCA we can compute two distances:
+
+1.  Squared Mahalanobis distance where **m**<sub>*I*</sub> = diag{**U****U**<sup>*T*</sup>}, and
+
+2.  Squared score distance where **c**<sub>*I*</sub> = diag{**F**<sub>*I*</sub>**F**<sub>*I*</sub><sup>*T*</sup>}.
+
+When data are rank deficient (i.e., *n* &lt; *P* or *n* &lt; &lt;*P*) we cannot compute unique values for **m**<sub>*I*</sub> -- they are all identical. However, if we supplement PCA with SHR, we can compute *predicted* estimates for both **m**<sub>*I*</sub> and **c**<sub>*I*</sub>. With SHR we end up with distributions of predicted values for **m**<sub>*I*</sub> and **c**<sub>*I*</sub>. Furthermore, with SHR, we can keep track of similarity of components between splits over all iterations (i.e., reproducible components). The reproducible components identify a robust subspace.
+
+### Low dimensional example
+
+First we perform PCA+SHR on the `philips` data and compare some of the estimates against the robust Mahalanobis distances from the MCD. While there are many estimates we could make from PCA+SHR, we focus these particular results on the distributions of predicted distances; specifically, we use the inter-quartile range. We use the interval here because large intervals reflect poor predictive estimates.
+
+    ## [1] 0.9846602 0.9871411 0.9847023 0.9778422 0.9101951 0.8755883 0.8994238
+    ## [8] 0.9581681 0.9969907
+
+![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)![](README_files/figure-markdown_github/unnamed-chunk-5-2.png)![](README_files/figure-markdown_github/unnamed-chunk-5-3.png)
