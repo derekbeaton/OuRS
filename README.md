@@ -117,4 +117,23 @@ First we perform PCA+SHR on the `philips` data and compare some of the estimates
     ## [1] 0.9846602 0.9871411 0.9847023 0.9778422 0.9101951 0.8755883 0.8994238
     ## [8] 0.9581681 0.9969907
 
-![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)![](README_files/figure-markdown_github/unnamed-chunk-5-2.png)![](README_files/figure-markdown_github/unnamed-chunk-5-3.png)
+![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)![](README_files/figure-markdown_github/unnamed-chunk-5-2.png)![](README_files/figure-markdown_github/unnamed-chunk-5-3.png) We can also apply the C-step from the MCD to the results from SHR in order to obtain robust Mahalanobis distances like the MCD.
+
+``` r
+min.shr.det <- which(pca_shr.low.dim.results$sh.dets == min(pca_shr.low.dim.results$sh.dets), 
+    arr.ind = T)
+if (min.shr.det[2] == 1) {
+    shr.min.det.sample <- pca_shr.low.dim.results$sh1.orders[min.shr.det[1], 
+        ]
+} else {
+    shr.min.det.sample <- pca_shr.low.dim.results$sh2.orders[min.shr.det[1], 
+        ]
+}
+shr.c.step <- cont.c.step(data = philips, obs.order = shr.min.det.sample, 
+    center = T, max.iters = 100)
+shr.c.step.mahal <- mahalanobis(philips, colMeans(philips[shr.c.step$obs.order, 
+    ]), cov(philips[shr.c.step$obs.order, ]))
+plot(shr.c.step.mahal, mcd.results$dists$rob.md)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-6-1.png)

@@ -139,7 +139,6 @@ score.iqr_14 <- apply(score.d_14,1,function(x){ IQR(x) })
 these.cols <- rep("white",nrow(philips))
 these.cols[which(mcd.results$dists$rob.md>.8)] <- "mediumorchid4"
 
-
 par.opts <- par(mfrow=c(2,2))
 plot(mcd.results$dists$md,mahal.iqr_14,bg=these.cols,pch=21,xlab="MCD Mahalanobis",ylab="PCA+SHR IQR of Mahalanobis")
 plot(mcd.results$dists$md,score.iqr_14,bg=these.cols,pch=21,xlab="MCD Mahalanobis",ylab="PCA+SHR IQR of Score")
@@ -156,6 +155,22 @@ tolEllipsePlot(cbind(mahal.iqr_14,score.iqr_14),classic = T)
 points(cbind(mahal.iqr_14,score.iqr_14),pch=21,cex=1,bg=these.cols)
 
 ```
+
+We can also apply the C-step from the MCD to the results from SHR in order to obtain robust Mahalanobis distances like the MCD.
+
+```{r}
+min.shr.det <- which(pca_shr.low.dim.results$sh.dets==min(pca_shr.low.dim.results$sh.dets),arr.ind=T)
+if(min.shr.det[2]==1){
+  shr.min.det.sample <- pca_shr.low.dim.results$sh1.orders[min.shr.det[1],]
+}else{
+  shr.min.det.sample <- pca_shr.low.dim.results$sh2.orders[min.shr.det[1],]
+}
+
+shr.c.step <- cont.c.step(data = philips,obs.order = shr.min.det.sample,center = T,max.iters = 100)
+shr.c.step.mahal <- mahalanobis(philips,colMeans(philips[shr.c.step$obs.order,]),cov(philips[shr.c.step$obs.order,]))
+plot(shr.c.step.mahal,mcd.results$dists$rob.md)
+```
+
 
 ```{r,echo=F,include=F,eval=F}
 data("Golub_Merge")
