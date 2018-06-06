@@ -36,7 +36,7 @@ mcd.outliers.plot <- function(
   contrib_prop <- t(apply(corrmax.res,1,function(i){i/sum(i)}))
   idcontrib <- apply(contrib_prop,1,function(i){sort(i[which(i >= corrmax.threshold)],decreasing=T)})
 
-  topcontribs <- t(sapply(idcontrib,function(i){names(i)[1:3]}))
+  topcontribs <- t(sapply(idcontrib,function(i){names(i)[1:3]})) # limited to 3 here...
   colnames(topcontribs) <- paste0("VAR",1:3)
 
   mapdat <- merge(as.data.frame(MD_prop),data.frame(topcontribs),by=0)
@@ -57,38 +57,40 @@ mcd.outliers.plot <- function(
 
 
   for(i in outliers){ # or outliers and inbetweeniers
-    print(i)
-    if(nvars == 2){
-      tmpvars <- c(as.matrix(mapdat[which(mapdat$ID == i),paste0("VAR",1:2)]))
-      tmpdat <- data.frame(target.data[,tmpvars])
-      colnames(tmpdat) <- paste0("VAR",1:2)
+
+    tmpvars <- c(as.matrix(mapdat[which(mapdat$ID == i),grep("VAR",colnames(mapdat))]))
+    tmpvars <- tmpvars[which(!is.na(tmpvars))]
+    tmpdat <- data.frame(target.data[,tmpvars])
+    colnames(tmpdat) <- paste0("VAR",1:length(tmpvars))
+    
+    tmpdat <- merge(tmpdat,mapdat[,c("ID","FLAG")],by.x=0,by.y=1)
+    tmpdat$PART_d <- ifelse(tmpdat$Row.names == i,"FLAG","")
+    tmpdat$PART_c <- ifelse(tmpdat$Row.names == i,1,0)
+    
+    plotvars <- ifelse(nvars > length(tmpvars), length(tmpvars),nvars) # the number of variables desired/able to plot
+
+    if(plotvars == 1){
       
-      tmpdat <- merge(tmpdat,mapdat[,c("ID","FLAG")],by.x=0,by.y=1)
-      tmpdat$PART_d <- ifelse(tmpdat$Row.names == i,"FLAG","")
-      tmpdat$PART_c <- ifelse(tmpdat$Row.names == i,1,0)
+      listplots[[i]] <- ggplot(tmpdat,aes(x=tmpvars,y=VAR1,col=FLAG,shape=PART_d,size=PART_c)) + geom_jitter() +
+        labs(title=i,x="",y=tmpvars[1],color=element_blank()) + scale_shape_discrete(guide=F) + scale_size(guide=F,range=c(3,5)) +
+        scale_color_manual(breaks=c("I","B","O"),labels=c("Inlier","In-betweenlier","Outlier"),values=c("blue","grey","red")) +
+        theme_classic()
       
+    }else if(plotvars == 2){
+
       listplots[[i]] <- ggplot(tmpdat,aes(x=VAR1,y=VAR2,col=FLAG,shape=PART_d,size=PART_c)) + geom_point() +
         labs(title=i,x=tmpvars[1],y=tmpvars[2],color=element_blank()) + scale_shape_discrete(guide=F) + scale_size(guide=F,range=c(3,5)) +
         scale_color_manual(breaks=c("I","B","O"),labels=c("Inlier","In-betweenlier","Outlier"),values=c("blue","grey","red")) +
         theme_classic()
       
-    }else if(nvars == 3){
+    }else if(plotvars == 3){
 
-      tmpvars <- c(as.matrix(mapdat[which(mapdat$ID == i),paste0("VAR",1:3)]))
-      tmpvars <- tmpvars[which(!is.na(tmpvars))]
-      tmpdat <- data.frame(target.data[,tmpvars])
-      colnames(tmpdat) <- paste0("VAR",1:length(tmpvars))
-      
-      tmpdat <- merge(tmpdat,mapdat[,c("ID","FLAG")],by.x=0,by.y=1)
-      tmpdat$PART_d <- ifelse(tmpdat$Row.names == i,"FLAG","")
-      tmpdat$PART_c <- ifelse(tmpdat$Row.names == i,1,0)
-      
       listplots[[i]] <- ggplot(tmpdat,aes(x=VAR1,y=VAR2,col=VAR3,shape=PART_d,size=PART_c)) + geom_point() +
         labs(title=i,x=tmpvars[1],y=tmpvars[2],color=tmpvars[3]) + scale_shape_discrete(guide=F) + scale_size(guide=F,range=c(3,5)) +
         theme_classic()
       
     }else{
-      cat("Not set up for nvars != 2,3"); stop()
+      cat("Problem: Either not set up or unexpected result"); stop()
     }
   }
 
