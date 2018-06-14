@@ -4,34 +4,34 @@
 thermometer.coding <- function(DATA, mins, maxs, norm.to.one = T){
 
   if(missing(mins)){
-    mins <- apply(DATA,2,min)
+    mins <- apply(DATA,2,min,na.rm=T)
   }else{
 
     if(length(mins)==ncol(DATA)){
-      min.test <- mins > apply(DATA,2,min)
+      min.test <- mins > apply(DATA,2,min,na.rm=T)
       if(any(min.test)){
         warning("Some inputted minimums are greater than minimums in the data. We will replace those 'mins' with their respective minimum in the data")
-        mins[which(min.test)] <- apply(DATA[,which(min.test)],2,min)
+        mins[which(min.test)] <- apply(DATA[,which(min.test)],2,min,na.rm=T)
       }
     }else{
-      mins <- apply(DATA,2,min)
+      mins <- apply(DATA,2,min,na.rm=T)
     }
 
   }
 
 
   if(missing(maxs)){
-    maxs <- apply(DATA,2,max)
+    maxs <- apply(DATA,2,max,na.rm=T)
   }else{
 
     if(length(maxs)==ncol(DATA)){
-      max.test <- maxs < apply(DATA,2,max)
+      max.test <- maxs < apply(DATA,2,max,na.rm=T)
       if(any(max.test)){
         warning("Some inputted maximums are smaller than maximums in the data. We will replace those 'maxs' with their respective maximum in the data")
-        maxs[which(max.test)] <- apply(DATA[,which(max.test)],2,max)
+        maxs[which(max.test)] <- apply(DATA[,which(max.test)],2,max,na.rm=T)
       }
     }else{
-      maxs <- apply(DATA,2,max)
+      maxs <- apply(DATA,2,max,na.rm=T)
     }
 
   }
