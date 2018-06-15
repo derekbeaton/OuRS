@@ -3,7 +3,7 @@
 ### the point of this function is to strictly return the best sample(s) for MCD.
   ## however, this is the heavy-duty part of MCD.
 
-cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05){
+cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
 
   if(alpha<.5){
@@ -23,7 +23,7 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
 
       init.samp <- sort(sample(nrow(data),init.size))
       init.norm <- expo.scale(data[init.samp,],center,scale)
-      init.svd <- tolerance.svd(init.norm)
+      init.svd <- tolerance.svd(init.norm,tol = tol)
       init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round? ### I should probably use a tol parameter here...
 
       if(length(unique(init.mds)) < 2){

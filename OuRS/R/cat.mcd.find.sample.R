@@ -3,7 +3,7 @@
 ### the point of this function is to strictly return the best sample(s) for MCD.
   ## however, this is the heavy-duty part of MCD.
 
-cat.mcd.find.sample <- function(data, make.data.disjunctive=F,alpha=.75,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05){
+cat.mcd.find.sample <- function(data, make.data.disjunctive=F,alpha=.75,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05,tol=.Machine$double.eps){
   if(make.data.disjunctive){
     data <- make.data.nominal(data)
   }
@@ -28,7 +28,7 @@ cat.mcd.find.sample <- function(data, make.data.disjunctive=F,alpha=.75,num.subs
 
       init.samp <- sort(sample(nrow(data),init.size))
 
-      init.svd <- tolerance.svd(preproc.data$weightedZx[init.samp,])
+      init.svd <- tolerance.svd(preproc.data$weightedZx[init.samp,],tol=tol)
       init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round? ### I should probably use a tol parameter here...
 
       if(length(unique(init.mds)) < 2){

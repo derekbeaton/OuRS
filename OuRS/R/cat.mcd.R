@@ -26,7 +26,7 @@ cat.mcd <- function(data, make.data.disjunctive=F, alpha=.75, num.subsets=500, m
 
   ## get robust mean & cov (loadings)
   rob.sample <- preproc.data$weightedZx[best.sample,]
-  robust.tsvd.res <- tolerance.svd(rob.sample)
+  robust.tsvd.res <- tolerance.svd(rob.sample,tol=tol)
 
   ## call to function that computes robust mahal
   robust.dists <- cat.sup.fi.u(profiles, preproc.data$m, preproc.data$w, robust.tsvd.res$v, robust.tsvd.res$d)
