@@ -36,7 +36,7 @@ thermometer.coding <- function(DATA, mins, maxs, norm.to.one = T){
 
   }
 
-  dat.col.names <- c(paste0(colnames(DATA),"-"),paste0(colnames(DATA),"+"))
+  dat.col.names <- c(paste0(colnames(DATA),"+"),paste0(colnames(DATA),"-"))
 
 
   from.mins <- sweep(DATA,2,mins,"-")
