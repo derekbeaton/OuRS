@@ -11,8 +11,11 @@ ca <- function(DATA, k = 0, compact = T){
   res <- gsvd( sweep(sweep(DATA,1,rowSums.data,"/"),2,wj), wi, 1/wj, k = k )
   res$fi <- sweep(res$fi,1,wi,"/")
 
+  res$type <- "ca"
+  
   if(compact){
-    res <- list(fi=res$fi, fj=res$fj, d.orig=res$d.orig, u=res$u, v=res$v)
+    res <- list(fi=res$fi, fj=res$fj, d.orig=res$d.orig, u=res$u, v=res$v, type=res$type)
   }
+  
   return(res)
 }
