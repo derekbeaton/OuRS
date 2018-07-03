@@ -37,15 +37,15 @@ thermometer.coding <- function(DATA, mins, maxs, norm.to.one = T){
   
   
   from.mins <- sweep(DATA,2,mins,"-")
-  if(norm.to.one){
+  
+  if(norm.to.one){ ## these should be normed so that the variables = 1.
     DATA <- cbind(sweep( from.mins ,2,maxs,"/"), sweep( sweep(from.mins,2,maxs,"-") * -1,2,maxs,"/"))
   }else{
     DATA <- cbind( from.mins ,  sweep(from.mins,2,maxs,"-") * -1)
   }
   colnames(DATA) <- dat.col.names
   
-  ## these should be normed so that the variables = 1.
-  print(dim(DATA))
+  
   DATA <- as.matrix(DATA)
   attributes(DATA)$variable.map <- gsub("\\-","",gsub("\\+","",dat.col.names))
   
