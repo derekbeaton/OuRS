@@ -48,8 +48,8 @@ thermometer.coding <- function(DATA, mins, maxs, norm.to.one = T){
   colnames(DATA) <- dat.col.names
 
   ## these should be normed so that the variables = 1.
-  #class(DATA) <- "matrix"
-  attributes(DATA)$variable.map <- gsub("\\-","",gsub("\\+","",dat.col.names))
+  class(DATA) <- "matrix"
+  attributes(DATA)$variable.map <- dat.col.names #gsub("\\-","",gsub("\\+","",dat.col.names))
     
   return(as.matrix(DATA))
 }
