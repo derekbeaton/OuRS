@@ -10,6 +10,8 @@ escofier.coding <- function(DATA, center=T, scale="SS1"){
   colnames(DATA) <- dat.col.names
 
   ## these should (typcally) be normed so that the variables = 1.
-
+  attributes(DATA)$variable.map <- gsub("\\-","",gsub("\\+","",dat.col.names))
+  class(DATA) <- "matrix"
+  
   return(DATA)
 }
