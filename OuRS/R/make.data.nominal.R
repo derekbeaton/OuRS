@@ -39,7 +39,7 @@ make.data.nominal <- function(datain,impute.NA.to.mean=T){
   }
   colnames(dataout) <- c(new_colnames)
   rownames(dataout) <- ind_names
-  class(dataout) <- "matrix"
+  dataout <- as.matrix(dataout)
   attributes(dataout)$variable.map <- c(variable.map)
   
 
