@@ -3,8 +3,10 @@
 sp.pca <- function(DATA, center = T, scale = "SS1", k = 0, compact = T, graphs = F){
 
   res <- gsvd(expo.scale(DATA, center = center, scale = scale), k = k)
+  res$type <- "pca"
+  
   if(compact){
-    res <- list(fi=res$fi, fj=res$fj, d.orig=res$d.orig, u=res$u, v=res$v)
+    res <- list(fi=res$fi, fj=res$fj, d.orig=res$d.orig, u=res$u, v=res$v, type=res$type)
   }
   
   return(res)
