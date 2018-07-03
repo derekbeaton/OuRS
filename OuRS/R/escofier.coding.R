@@ -9,9 +9,8 @@ escofier.coding <- function(DATA, center=T, scale="SS1"){
   DATA <- cbind( (1-DATA)/2, (1+DATA)/2 )
   colnames(DATA) <- dat.col.names
 
-  ## these should (typcally) be normed so that the variables = 1.
+  DATA <- as.matrix(DATA)
   attributes(DATA)$variable.map <- gsub("\\-","",gsub("\\+","",dat.col.names))
-  class(DATA) <- "matrix"
   
   return(DATA)
 }
