@@ -42,5 +42,5 @@ make.data.nominal <- function(datain,impute.NA.to.mean=T){
   attributes(dataout)$variable.map <- c(variable.map)
   class(dataout) <- "matrix"
 
-  return(as.matrix(dataout))
+  return(dataout)
 }
