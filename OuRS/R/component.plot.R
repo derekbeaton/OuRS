@@ -29,8 +29,9 @@ component.plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4", lin
   # test if display_names is all logical else set to length of vector as false
   
     ## this might get weird if there is only 1.
-  if(sum(display_names)>0){
-    text(scores[which(display_names),axes],labels=rownames(scores)[which(display_names)],pos=pos,col=col,cex=text.cex)
+  if (sum(display_names) > 0) {
+    text(scores[which(display_names), axes], labels = rownames(scores)[which(display_names)], 
+         pos = pos, col = col[which(display_names)], cex = text.cex[which(display_names)])
   }
 
 }
