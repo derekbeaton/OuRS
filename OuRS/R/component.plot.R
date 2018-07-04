@@ -22,7 +22,7 @@ component.plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4", lin
     display_names <- rep(T,nrow(scores))
   }
     
-  if( !all(lapply(display_names,is.logical)) | any(is.na(display_names)) ){
+  if( !all(unlist(lapply(display_names,is.logical))) | any(is.na(display_names)) ){
     warning("Not all items in 'display_names' were TRUE or FALSE")
     display_names <- rep(T,nrow(scores))
   }
