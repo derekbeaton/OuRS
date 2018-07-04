@@ -1,7 +1,7 @@
 
 ## update to CA. stolen primarily from SlimPosition (https://github.com/derekbeaton/ExPosition-Family/blob/master/ExPosition2/SlimPosition/Package/R/sp.ca.R)
 
-ca <- function(DATA, k = 0, compact = T){
+ca <- function(DATA, k = 0, compact = F){
 
   sum.data <- sum(DATA)
   rowSums.data <- rowSums(DATA)
