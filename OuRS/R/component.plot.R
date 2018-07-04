@@ -12,8 +12,23 @@ component.plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4", lin
   abline(v=0,lty=2,lwd=2, col="grey60")
   points(scores[,axes], col=col, pch=pch, cex=cex, ...)
     ## will try to employ a "repel" later.
-  if(display_names){
-    text(scores[,axes],labels=rownames(scores),pos=pos,col=col,cex=text.cex)
+  ### actually, display names should be a vector
+  if(length(display_names)==1){
+    display_names <- rep(display_names,nrow(scores))
+  }else if(length(display_names)==nrow(scores)){
+    ## it's good.
+  }else{
+      ## a default.
+    display_names <- rep(display_names,nrow(scores))
+  }
+  if(all(lapply(display_names,is.logical))){
+  }else{
+    display_names <- rep(T,nrow(scores))
+  }
+  # test if display_names is all logical else set to length of vector as false
+  
+  if(sum(display_names)>0){
+    text(scores[which(display_names),axes],labels=rownames(scores)[which(display_names)],pos=pos,col=col,cex=text.cex)
   }
 
 }
