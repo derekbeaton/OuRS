@@ -14,24 +14,25 @@ component.plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4", lin
     ## will try to employ a "repel" later.
   
   ### actually, display names should be a vector
-  if(length(display_names)==1){
-    display_names <- rep(display_names,nrow(scores))
-  }else if(length(display_names)!=nrow(scores)){
-    ## a default.
-    warning("length(display_names) is not 1 or nrow(scores). Setting to default.")
-    display_names <- rep(T,nrow(scores))
-  }
+  # if(length(display_names)==1){
+  #  display_names <- rep(display_names,nrow(scores))
+  # }else if(length(display_names)!=nrow(scores)){
+  #  ## a default.
+  #  warning("length(display_names) is not 1 or nrow(scores). Setting to default.")
+  #  display_names <- rep(T,nrow(scores))
+  # }
     
-  if( !all(unlist(lapply(display_names,is.logical))) | any(is.na(display_names)) ){
-    warning("Not all items in 'display_names' were TRUE or FALSE")
-    display_names <- rep(T,nrow(scores))
-  }
+  # if( !all(unlist(lapply(display_names,is.logical))) | any(is.na(display_names)) ){
+  #  warning("Not all items in 'display_names' were TRUE or FALSE")
+  #  display_names <- rep(T,nrow(scores))
+  # }
   # test if display_names is all logical else set to length of vector as false
   
     ## this might get weird if there is only 1.
-  if (sum(display_names) > 0) {
-    text(scores[which(display_names), axes], labels = rownames(scores)[which(display_names)], 
-         pos = pos, col = col[which(display_names)], cex = text.cex[which(display_names)])
+  #if (sum(display_names) > 0) {
+  if (display_names) {
+    text(scores[, axes], labels = rownames(scores), 
+         pos = pos, col = col, cex = text.cex)
   }
 
 }
