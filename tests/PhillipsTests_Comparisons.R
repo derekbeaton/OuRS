@@ -8,7 +8,7 @@ library(rrcov)
 library(robustbase)
 library(cellWise)
 library(golubEsets)
-
+library(corrplot)
 
 data("philips")
 
@@ -87,20 +87,71 @@ sh.dist.res_low.var <- sh.dist.battery(philips,ours.sh.philips,center=T,scale=F,
 
 
 ## OK so here, let's use the number of components and the sample for the min det to compute a new V matrix & center.
+full.svd.res <- tolerance.svd(expo.scale(philips,center=T,scale=F))
+full.fi <- full.svd.res$u %*% diag(full.svd.res$d)
+
+
 
 small.philips <- expo.scale(philips[shr.min.det.sample,],center=T,scale=F)
-svd.res <- tolerance.svd(small.philips,nu=4,nv=4)
 rob.center <- attributes(small.philips)$`scaled:center`
 
+svd.res <- tolerance.svd(small.philips,nu=4,nv=4)
+svd.res2 <- tolerance.svd(small.philips)
+
 t.scores <- expo.scale(philips,center=rob.center,scale=F) %*% svd.res$v
+t.scores2 <- expo.scale(philips,center=rob.center,scale=F) %*% svd.res2$v
+
 test.this <- t.scores %*% t(svd.res$v)
+test.this2 <- t.scores2 %*% t(svd.res2$v)
+
 test.od <- rowSums((expo.scale(philips,center=rob.center,scale=F) - test.this)^2)
+test.od2 <- rowSums((expo.scale(philips,center=rob.center,scale=F) - test.this2)^2)
+
 test.sd <- rowSums(t.scores^2)
 test.md <- rowSums(scale(t.scores)^2)
 test.md.2 <- rowSums((t.scores %*% diag(1/svd.res$d[1:4]))^2)
 
-test.dists <- cbind(test.od,test.sd,test.md,test.md.2)
-  colnames(test.dists) <- c("t.OD","t.SD","t.MD","t.MD2")
+test.dists <- cbind(test.od,test.sd,test.md,test.md.2,test.od2)
+  colnames(test.dists) <- c("t.OD","t.SD","t.MD","t.MD2","t.OD2")
+
+# from https://github.com/cran/rospca/blob/master/R/Robpca.R
+  # XRc <- X - matrix(rep(Xh.svd$center, times=n), nrow=n, byrow=TRUE)
+  #
+  # Xtilde <- XRc %*% Xh.svd$loadings[,1:k] %*% t(Xh.svd$loadings[,1:k])
+  # Rdiff <- XRc - Xtilde
+  # odh <- apply(Rdiff, 1, vecnorm)
+
+## so robust centered data - robust centered based on components.
+  DAT <- expo.scale(philips,scale=F)
+  ROB.DAT <- expo.scale(philips,center=rob.center,scale=F)
+  SUB.PROJ.ROB.DAT <- ROB.DAT %*% svd.res$v %*% t(svd.res$v)
+  PROJ.ROB.DAT <- ROB.DAT %*% svd.res2$v %*% t(svd.res2$v)
+  SUB.PROJ.DAT <- DAT %*% svd.res$v %*% t(svd.res$v)
+  PROJ.DAT <- DAT %*% svd.res2$v %*% t(svd.res2$v)
+
+  #apply(DAT-ROB.DAT,1,vecnorm) / rowSums((DAT-ROB.DAT)^2)
+
+  # # apply(DAT - ROB.DAT,1,vecnorm) # dumb
+  # od.1 <- apply(DAT - SUB.PROJ.ROB.DAT,1,vecnorm)
+  # # apply(DAT - PROJ.ROB.DAT,1,vecnorm) # dumb
+  # od.2 <- apply(DAT - SUB.PROJ.DAT,1,vecnorm)
+  # # apply(DAT - PROJ.DAT,1,vecnorm) # dumb
+
+  od.3 <- apply(ROB.DAT - SUB.PROJ.ROB.DAT,1,vecnorm)
+  # apply(ROB.DAT - PROJ.ROB.DAT,1,vecnorm) # dumb
+  od.4 <- apply(ROB.DAT - SUB.PROJ.DAT,1,vecnorm)
+  # apply(ROB.DAT - PROJ.DAT,1,vecnorm) #dumb
+
+  # od.5 <- apply(SUB.PROJ.ROB.DAT - PROJ.ROB.DAT,1,vecnorm)
+  # # apply(SUB.PROJ.ROB.DAT - SUB.PROJ.DAT,1,vecnorm) # dumb
+  # od.6 <- apply(SUB.PROJ.ROB.DAT - PROJ.DAT,1,vecnorm)
+  #
+  # od.7 <- apply(PROJ.ROB.DAT - SUB.PROJ.DAT,1,vecnorm)
+  # # apply(PROJ.ROB.DAT - PROJ.DAT,1,vecnorm) # dumb
+  #
+  # od.8 <- apply(SUB.PROJ.DAT - PROJ.DAT,1,vecnorm)
+  #
+  # test.ods <- cbind(od.1,od.2,od.3,od.4,od.5,od.6,od.7,od.8)
 
 
 philips.dists <- cbind(rrcov.mcd.philips@raw.mah,rrcov.mcd.philips@mah,ours.mcd.philips$dists$rob.md,ours.mcd.philips$dists$md,rrcov.hubert.philips@sd,rrcov.hubert.philips@od)
@@ -111,14 +162,104 @@ colnames(philips.dists) <- c("rrcov.mcd.raw.mah","rrcov.mcd.mah","ours.mcd.rob.m
 
 # all.philips.dists <- cbind(philips.dists,philips.sh.dists)
 
-  ### I want some form of a flipped OD...
+## two additional distance options:
+  ## infinity MD & score
+  infinity.sd <- rowSums(apply(ours.sh.philips$pred.fi.array^2,c(1,2),max))
+  infinity.md <- rowSums(apply(ours.sh.philips$pred.u.array^2,c(1,2),max))
+
+  ## partial OD
+    ## scores from robust center & vectors - standard scores
+      ## fill in zeros where necessary.
+  u.scores_filled <- t.scores_filled <- matrix(0,nrow(full.fi),ncol(full.fi))
+  t.scores_filled[1:nrow(t.scores),1:ncol(t.scores)] <- t.scores
+  # t.scores_filled[1:nrow(t.scores),1:ncol(t.scores)] <- t.scores
+
+  fi.strange.component.od <- rowSums((full.fi - t.scores_filled)^2)
+  fi.partial.component.od <- rowSums((full.fi[,1:ncol(t.scores)] - t.scores)^2)
+  fi.remaining.component.od <- rowSums(full.fi[,5:9]^2)
+
+  test.more.dists <- cbind(infinity.md,infinity.sd,fi.strange.component.od,fi.partial.component.od,fi.remaining.component.od)
+
+  ## I want some form of a flipped OD...
+    ## maybe an OD ratio? or inverse OD diff (sum of squared diff)?
+
+  ## also I need to be able to use the score and MDs from the two subsets of components...
+  #test.dat1 <- DAT %*% svd.res$v %*% t(svd.res$v)
+  test.dat1 <- DAT %*% full.svd.res$v[,1:4] %*% t(full.svd.res$v[,1:4])
+  test.dat2 <- full.svd.res$u[,1:4] %*% diag(full.svd.res$d[1:4]) %*% t(full.svd.res$v[,1:4])
+
+
+  last.od <- apply(DAT - test.dat2,1,vecnorm)
+
+test.res <- cont.mcd(test.dat2 + matrix(colMeans(philips),nrow(DAT),ncol(DAT),byrow=T),collinearity.stop = F)
+
 all.philips.dists <- cbind(philips.dists,
                            sh.dist.res$dists,
                            #sh.dist.res_high.var$lr.sh.dists,
                            #sh.dist.res_high.var$lr.dists,
-                           test.dists
+                           test.dists,
+                           last.od,
+                           rowSums(full.svd.res$u[,1:4]^2),rowSums(full.svd.res$u[,5:9]^2),rowSums(full.svd.res$u[,2:9]^2),rowSums(full.svd.res$u[,8:9]^2),
+                           sh.dist.res$dists[,c("pred.fi.median")] + sh.dist.res$dists[,c("pred.fi.iqr")],
+                           sh.dist.res$dists[,c("pred.u.median")] + sh.dist.res$dists[,c("pred.u.iqr")],
+                           test.res$dists$rob.md,test.res$dists$md,test.res$dists$rob.chid
                            #sh.dist.res_low.var$lr.sh.dists,
                            #sh.dist.res_low.var$lr.dists
                            )
 
-corrplot(cor(all.philips.dists),method="number")
+
+corrplot(cor(all.philips.dists,method="spearman"),method="number")
+
+
+
+### my main issue: I cannot depend on identifying a subsample that is good
+  ## I need to avoid that at almost any cost...
+    ## so maybe a OD with no sub sample but the reproducible components?
+
+
+# epPCA(all.philips.dists[,c("pred.fi.median","pred.u.median")])
+# epPCA(all.philips.dists[,c("pred.fi.median","pred.u.median","pred.fi.iqr","pred.u.iqr")])
+
+
+test.pca <- epPCA(cbind(all.philips.dists[,c("pred.fi.iqr","pred.u.iqr")],last.od),graphs=F)
+
+
+### OK I think the distances to work with are pred.fi.med or iqr, and pred.u.med or iqr , plus last.od
+  ## additionally I think we can use the full set of distances from resampling to find a natural cutoff
+
+
+score.distrs <- apply(ours.sh.philips$pred.fi.array^2,c(1,3),sum)
+u.distrs <- apply(ours.sh.philips$pred.u.array^2,c(1,3),sum)
+
+score.distrs > quantile(c(score.distrs),.95)
+u.distrs > quantile(c(u.distrs),.95)
+
+
+  ## distribution-based outliers.
+this.quant <- .9
+
+score.outs <- rowSums(score.distrs > quantile(c(score.distrs), this.quant)) > (500 * this.quant)
+m.outs <- rowSums(u.distrs > quantile(c(u.distrs), this.quant)) > (500 * this.quant)
+od.outs <- last.od > quantile(last.od, this.quant)
+
+(rowSums(score.distrs > quantile(c(score.distrs),.95)) > (500 * .95)) + (rowSums(u.distrs > quantile(c(u.distrs),.95)) > (500 * .95))
+
+which( ((rowSums(score.distrs > quantile(c(score.distrs),.95)) > (500 * .95)) + (rowSums(u.distrs > quantile(c(u.distrs),.95)) > (500 * .95))) > 0 )
+
+
+#all.outs <- cbind( (rowSums(score.distrs > quantile(c(score.distrs),.95)) > (500 * .95)) , (rowSums(u.distrs > quantile(c(u.distrs),.95)) > (500 * .95)) , (last.od > quantile(last.od,.95)) )
+
+all.outs <- cbind(score.outs,m.outs,od.outs)
+
+
+intersect(which(!rrcov.hubert.philips@flag),which(rowSums(all.outs) > 0 ))
+intersect(which(!rrcov.hubert.philips@flag),which(score.outs))
+intersect(which(!rrcov.hubert.philips@flag),which(m.outs))
+intersect(which(!rrcov.hubert.philips@flag),which(od.outs))
+
+
+setdiff(which(!rrcov.hubert.philips@flag),which(rowSums(all.outs) > 0 ))
+
+
+## OK I think I'm nearing a way to make decisions for cut-offs
+  ## it should be kept simple, but I can point out that because of this framework, we have many other options
