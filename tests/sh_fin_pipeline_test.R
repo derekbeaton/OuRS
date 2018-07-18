@@ -175,10 +175,80 @@ ours.sh.philips_toc <- toc()
 print("END")
 
 
-
 score.outlier.info <- dist.array.outliers(ours.sh.philips$pred.fi.array)
 m.outlier.info <- dist.array.outliers(ours.sh.philips$pred.u.array)
+
+score.outlier.info.sub <- dist.array.outliers(ours.sh.philips$pred.fi.array[,1:4,])
+m.outlier.info.sub <- dist.array.outliers(ours.sh.philips$pred.u.array[,1:4,])
+
 sh.outlier.info <- sh.outliers(ours.sh.philips)
+
+
+## it's clear from here that we really need to capture the wide intervals.
+boxplot(t(score.outlier.info$dists[order(apply(score.outlier.info$dists,1,median)),]))
+boxplot(t(m.outlier.info$dists[order(apply(m.outlier.info$dists,1,median)),]))
+
+boxplot(t(score.outlier.info.sub$dists[order(apply(score.outlier.info.sub$dists,1,median)),]))
+boxplot(t(m.outlier.info.sub$dists[order(apply(m.outlier.info.sub$dists,1,median)),]))
+
+plot(apply(m.outlier.info$dists,1,median), apply(m.outlier.info$dists,1,
+                                                 function(x){
+                                                   sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+                                                 }
+))
+
+# I think this is the default winner...
+plot(od, apply(m.outlier.info$dists,1,
+               function(x){
+                 sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+               }
+))
+
+
+tol.ellipse(cbind(od, apply(m.outlier.info$dists,1,
+               function(x){
+                 sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+               }
+)),graphs=T)
+
+plot(apply(m.outlier.info$dists,1,
+           function(x){
+             sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+           }
+), apply(m.outlier.info$dists,1,
+  IQR
+))
+
+
+plot(od, apply(score.outlier.info$dists,1,
+               function(x){
+                 sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+               }
+))
+
+
+plot(apply(m.outlier.info$dists,1,
+           function(x){
+             sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+           }
+), apply(score.outlier.info$dists,1,
+         function(x){
+           sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+         }
+))
+
+
+plot(apply(score.outlier.info$dists,1,median),apply(m.outlier.info$dists,1,median))
+plot(apply(score.outlier.info$dists,1,IQR),apply(m.outlier.info$dists,1,IQR))
+#plot(apply(score.outlier.info$dists,1,function(x){(sort(x)[round(length(x)*.975)]) - (sort(x)[round(length(x)*.025)])}),apply(m.outlier.info$dists,1,function(x){(sort(x)[round(length(x)*.975)]) - (sort(x)[round(length(x)*.025)])}))
+
+
+plot(apply(score.outlier.info.sub$dists,1,IQR),apply(m.outlier.info.sub$dists,1,IQR))
+plot(apply(m.outlier.info$dists,1,IQR),apply(m.outlier.info.sub$dists,1,IQR))
+
+plot(apply(m.outlier.info$dists,1,median),apply(m.outlier.info$dists,1,IQR))
+
+tol.ellipse(cbind(apply(score.outlier.info$dists,1,IQR),apply(m.outlier.info$dists,1,IQR)),graphs=T)
 
 
 all.points <- cbind(c(sh.outlier.info$score.outliers$dists),c(sh.outlier.info$mahal.outliers$dists))
@@ -214,6 +284,7 @@ for(i in 1:nrow(mean.r2.mat)){
 
 }
 
+#small.center <- colMeans(philips[ours.sh.philips$sh2.orders[96,],])
 DAT <- expo.scale(philips,center=T,scale=F)
 full.svd.res <- tolerance.svd(DAT)
 low.rank.rebuild <- full.svd.res$u[,1:4] %*% diag(full.svd.res$d[1:4]) %*% t(full.svd.res$v[,1:4])
@@ -228,3 +299,13 @@ tol.ellipse.out <- tol.ellipse(cbind(od,s.mat.mds),graphs=T)
 
 
 
+plot(rrcov.hubert.philips)
+
+
+plot(cbind(od,rrcov.hubert.philips@od))
+
+epPCA(cbind(apply(score.outlier.info$dists,1,IQR),apply(m.outlier.info$dists,1,IQR),od))
+
+
+
+tol.ellipse(cbind(rrcov.hubert.philips@od,od),graphs=T)

@@ -34,8 +34,8 @@ dist.array.outliers <- function(dist.array, total.dist.cutoff = .95, outlier.cut
 
 sh.outliers <- function(sh.out, total.dist.cutoff = .95, outlier.cutoff = .95){
 
-  score.outliers <- dist.array.outliers(sh.out$pred.fi.array)
-  mahal.outliers <- dist.array.outliers(sh.out$pred.u.array)
+  score.outliers <- dist.array.outliers(sh.out$pred.fi.array,total.dist.cutoff = total.dist.cutoff, outlier.cutoff = outlier.cutoff)
+  mahal.outliers <- dist.array.outliers(sh.out$pred.u.array,total.dist.cutoff = total.dist.cutoff, outlier.cutoff = outlier.cutoff)
 
   return(list(score.outliers=score.outliers,mahal.outliers=mahal.outliers))
 
@@ -172,7 +172,7 @@ rrcov.hubert.leukdata_toc <- toc()
 
 print("OURS SH GOLUB")
 ours.sh.leukdata_tic <- tic()
-ours.sh.leukdata <- split.half.pca(leukdata)
+ours.sh.leukdata <- split.half.pca(leukdata,iters = 1000)
 ours.sh.leukdata_toc <- toc()
 
 print("END")
@@ -182,16 +182,93 @@ print("END")
 score.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.fi.array[,1:35,])
 m.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.u.array[,1:35,])
 
-  ## it's clear from here that we really need to capture the wide intervals.
+score.outlier.info.sub <- dist.array.outliers(ours.sh.leukdata$pred.fi.array[,1:2,])
+m.outlier.info.sub <- dist.array.outliers(ours.sh.leukdata$pred.u.array[,1:2,])
+
+
+## it's clear from here that we really need to capture the wide intervals.
 boxplot(t(score.outlier.info$dists[order(apply(score.outlier.info$dists,1,median)),]))
 boxplot(t(m.outlier.info$dists[order(apply(m.outlier.info$dists,1,median)),]))
 
+boxplot(t(score.outlier.info.sub$dists[order(apply(score.outlier.info.sub$dists,1,IQR)),]))
+
+
+boxplot(t(m.outlier.info$dists[order(apply(m.outlier.info$dists,1,IQR)),]))
+boxplot(t(m.outlier.info.sub$dists[order(apply(m.outlier.info.sub$dists,1,IQR)),]))
+
+
+boxplot(t(m.outlier.info$dists[order(apply(m.outlier.info$dists,1,median)),]))
+
+
+
+boxplot(t(m.outlier.info$dists[order(apply(m.outlier.info$dists,1,
+                                           function(x){
+                                             sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+                                           }
+                                           )),]))
+
+
+plot(apply(m.outlier.info$dists,1,median),apply(m.outlier.info$dists,1,IQR))
+plot(apply(m.outlier.info.sub$dists,1,median),apply(m.outlier.info.sub$dists,1,IQR))
+
+
+
+plot(apply(m.outlier.info$dists,1,median), apply(m.outlier.info$dists,1,
+             function(x){
+               sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+             }
+))
+
+
+plot(od, apply(m.outlier.info$dists,1,
+                                                 function(x){
+                                                   sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+                                                 }
+))
+
+
+plot(od, apply(score.outlier.info$dists,1,
+               function(x){
+                 sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+               }
+))
+
+
+plot(apply(m.outlier.info$dists,1,
+           function(x){
+             sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+           }
+), apply(score.outlier.info$dists,1,
+               function(x){
+                 sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+               }
+))
+
+plot(apply(score.outlier.info$dists,1,median),apply(m.outlier.info$dists,1,median))
+plot(apply(score.outlier.info$dists,1,IQR),apply(m.outlier.info$dists,1,IQR))
+#plot(apply(score.outlier.info$dists,1,function(x){(sort(x)[round(length(x)*.975)]) - (sort(x)[round(length(x)*.025)])}),apply(m.outlier.info$dists,1,function(x){(sort(x)[round(length(x)*.975)]) - (sort(x)[round(length(x)*.025)])}))
+
+
+### these all seem very useful right now.
+plot(apply(score.outlier.info$dists,1,median),apply(m.outlier.info$dists,1,median))
+plot(apply(score.outlier.info.sub$dists,1,median),apply(m.outlier.info.sub$dists,1,median))
+plot(apply(score.outlier.info.sub$dists,1,IQR),apply(m.outlier.info.sub$dists,1,IQR))
+plot(apply(m.outlier.info$dists,1,IQR),apply(m.outlier.info.sub$dists,1,IQR))
+
+plot(apply(m.outlier.info$dists,1,median),apply(m.outlier.info$dists,1,IQR))
+plot(apply(score.outlier.info$dists,1,median),apply(score.outlier.info$dists,1,IQR))
+
+tol.ellipse(cbind(apply(score.outlier.info$dists,1,IQR),apply(m.outlier.info$dists,1,IQR)),graphs=T)
+
+
+### plot medians; plot IQRs or even quantiles; or even quantiles + median?
+    ## that gives a sense of location + scatter?
 
 ours.sh.leukdata2 <- ours.sh.leukdata
 ours.sh.leukdata2$pred.fi.array <- ours.sh.leukdata2$pred.fi.array[,1:35,]
 ours.sh.leukdata2$pred.u.array <- ours.sh.leukdata2$pred.u.array[,1:35,]
 
-sh.outlier.info <- sh.outliers(ours.sh.leukdata2)
+sh.outlier.info <- sh.outliers(ours.sh.leukdata2, total.dist.cutoff = .75)
 
 
 all.points <- cbind(c(sh.outlier.info$score.outliers$dists),c(sh.outlier.info$mahal.outliers$dists))
@@ -227,9 +304,12 @@ for(i in 1:nrow(mean.r2.mat)){
 
 }
 
+small.center <- colMeans(leukdata[ours.sh.leukdata$sh1.orders[2,],])
+
 DAT <- expo.scale(leukdata,center=T,scale=F)
 full.svd.res <- tolerance.svd(DAT)
-low.rank.rebuild <- full.svd.res$u[,1:3] %*% diag(full.svd.res$d[1:3]) %*% t(full.svd.res$v[,1:3])
+low.rank.rebuild <- full.svd.res$u[,1:4] %*% diag(full.svd.res$d[1:4]) %*% t(full.svd.res$v[,1:4])
+dumb.rank.rebuild <- full.svd.res$u[,4:length(full.svd.res$d)] %*% diag(full.svd.res$d[4:length(full.svd.res$d)]) %*% t(full.svd.res$v[,4:length(full.svd.res$d)])
 
 s.mat <- DAT - low.rank.rebuild
 s.mat.svd <- tolerance.svd(s.mat)
@@ -240,6 +320,44 @@ s.mat.mds <- rowSums(s.mat.svd$u^2)
 od <- apply(s.mat,1,vecnorm)
 
 tol.ellipse.out <- tol.ellipse(cbind(od,s.mat.mds),graphs=T)
+
+
+
+plot(rrcov.hubert.leukdata)
+
+
+plot(cbind(rrcov.hubert.leukdata@od,od))
+
+
+
+epPCA(cbind(apply(score.outlier.info$dists,1,IQR),apply(m.outlier.info$dists,1,IQR),od))
+
+
+
+
+
+good.fin.dists <- cbind(
+                        od,
+                        #apply(score.outlier.info$dists,1,median),
+                        apply(m.outlier.info$dists,1,median),
+                        #apply(score.outlier.info.sub$dists,1,median),
+                        apply(m.outlier.info.sub$dists,1,median)
+                        #apply(score.outlier.info$dists,1,IQR),            ### could replace with quantile distances.
+                        #apply(m.outlier.info$dists,1,IQR),
+                        #apply(score.outlier.info.sub$dists,1,IQR),
+                        #apply(m.outlier.info.sub$dists,1,IQR)
+                        )
+
+
+
+better.fin.dists <- cbind(od,
+                          apply(m.outlier.info$dists,1,
+                                     function(x){
+                                       sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+                                     }
+                          ), apply(m.outlier.info$dists,1,
+                                   IQR
+                          ))
 
 
 
