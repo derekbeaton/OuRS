@@ -19,8 +19,6 @@ library(golubEsets)
 library(corrplot)
 library(ExPosition)
 
-data("philips")
-
 
 dist.array.outliers <- function(dist.array, total.dist.cutoff = .95, outlier.cutoff = .95){
 
@@ -45,8 +43,8 @@ sh.outliers <- function(sh.out, total.dist.cutoff = .95, outlier.cutoff = .95){
 
 reproducible.robust.low.rank.rebuild <- function(sh.out, corr.cutoff = NULL){
 
-  # diag(apply(abs(ours.sh.philips$loadings.cors),c(1,2),mean))
-  # diag(apply(abs(ours.sh.philips$loadings.cors),c(1,2),median))
+  # diag(apply(abs(ours.sh.leukdata$loadings.cors),c(1,2),mean))
+  # diag(apply(abs(ours.sh.leukdata$loadings.cors),c(1,2),median))
   ## or an alternative would be to find out where the matrix smoothes out.
 
 }
@@ -148,37 +146,52 @@ tol.ellipse <- function(dat,ellipse.alpha=.9,mcd.alpha=.9,graphs=F){
 
 }
 
+data("Golub_Merge")
+
+
+## from the second-generation p-value paper (see: https://github.com/LucyMcGowan/sgpvalue/blob/master/figures/GolubLeukemiaGeneData.R)
+exprsDat <- exprs(Golub_Merge)
+N.tmp <- nrow(exprsDat)
+NormalizedGeneDat <-  apply(exprsDat, 2, function(z) qnorm((rank(z)-0.5)/N.tmp))
+mostExtreme <- which(abs(NormalizedGeneDat) == max(abs(NormalizedGeneDat)))[1]
+NormalizedGeneDat <- NormalizedGeneDat[-mostExtreme,]
+NormalizedGeneDat_t <- t(NormalizedGeneDat)
+N <- nrow(NormalizedGeneDat)
+LeukDat <- cbind(NormalizedGeneDat_t,pData(Golub_Merge)[,c('ALL.AML','BM.PB','T.B.cell','Gender','PS','Source')])
+hold <- LeukDat[with(LeukDat, order(LeukDat[7129])),]
+leukdata <- hold[,-(7129:7134)]
+
+
 
 print("START")
 
+print("RRCOV HUBERT GOLUB")
+rrcov.hubert.leukdata_tic <- tic()
+rrcov.hubert.leukdata <- PcaHubert(leukdata)
+rrcov.hubert.leukdata_toc <- toc()
 
-print("RRCOV MCD PHILIPS")
-rrcov.mcd.philips_tic <- tic()
-rrcov.mcd.philips <- CovMcd(philips)
-rrcov.mcd.philips_toc <- toc()
-
-print("OURS MCD PHILIPS")
-ours.mcd.philips_tic <- tic()
-ours.mcd.philips <- cont.mcd(philips)
-ours.mcd.philips_toc <- toc()
-
-print("RRCOV HUBERT PHILIPS")
-rrcov.hubert.philips_tic <- tic()
-rrcov.hubert.philips <- PcaHubert(philips)
-rrcov.hubert.philips_toc <- toc()
-
-print("OURS SH PHILIPS")
-ours.sh.philips_tic <- tic()
-ours.sh.philips <- split.half.pca(philips)
-ours.sh.philips_toc <- toc()
+print("OURS SH GOLUB")
+ours.sh.leukdata_tic <- tic()
+ours.sh.leukdata <- split.half.pca(leukdata)
+ours.sh.leukdata_toc <- toc()
 
 print("END")
 
 
 
-score.outlier.info <- dist.array.outliers(ours.sh.philips$pred.fi.array)
-m.outlier.info <- dist.array.outliers(ours.sh.philips$pred.u.array)
-sh.outlier.info <- sh.outliers(ours.sh.philips)
+score.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.fi.array[,1:35,])
+m.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.u.array[,1:35,])
+
+  ## it's clear from here that we really need to capture the wide intervals.
+boxplot(t(score.outlier.info$dists[order(apply(score.outlier.info$dists,1,median)),]))
+boxplot(t(m.outlier.info$dists[order(apply(m.outlier.info$dists,1,median)),]))
+
+
+ours.sh.leukdata2 <- ours.sh.leukdata
+ours.sh.leukdata2$pred.fi.array <- ours.sh.leukdata2$pred.fi.array[,1:35,]
+ours.sh.leukdata2$pred.u.array <- ours.sh.leukdata2$pred.u.array[,1:35,]
+
+sh.outlier.info <- sh.outliers(ours.sh.leukdata2)
 
 
 all.points <- cbind(c(sh.outlier.info$score.outliers$dists),c(sh.outlier.info$mahal.outliers$dists))
@@ -205,8 +218,8 @@ for(i in 1:nrow(sh.outlier.info$score.outliers$dists)){
 
 
 ## number of components requires inspection -- no way around it!
-mean.r2.mat <- apply(ours.sh.philips$loadings.cors^2,c(1,2),mean)
-median.r2.mat <- apply(ours.sh.philips$loadings.cors^2,c(1,2),median)
+mean.r2.mat <- apply(ours.sh.leukdata$loadings.cors^2,c(1,2),mean)
+median.r2.mat <- apply(ours.sh.leukdata$loadings.cors^2,c(1,2),median)
 block.r2 <- c()
 for(i in 1:nrow(mean.r2.mat)){
 
@@ -214,13 +227,15 @@ for(i in 1:nrow(mean.r2.mat)){
 
 }
 
-DAT <- expo.scale(philips,center=T,scale=F)
+DAT <- expo.scale(leukdata,center=T,scale=F)
 full.svd.res <- tolerance.svd(DAT)
-low.rank.rebuild <- full.svd.res$u[,1:4] %*% diag(full.svd.res$d[1:4]) %*% t(full.svd.res$v[,1:4])
+low.rank.rebuild <- full.svd.res$u[,1:3] %*% diag(full.svd.res$d[1:3]) %*% t(full.svd.res$v[,1:3])
 
 s.mat <- DAT - low.rank.rebuild
 s.mat.svd <- tolerance.svd(s.mat)
 
+  ## this one is not particularly useful...
+    ## in fact, it should just be the inverse of the rebuild from above...
 s.mat.mds <- rowSums(s.mat.svd$u^2)
 od <- apply(s.mat,1,vecnorm)
 
