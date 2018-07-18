@@ -191,18 +191,18 @@ colnames(philips.dists) <- c("rrcov.mcd.raw.mah","rrcov.mcd.mah","ours.mcd.rob.m
 
   last.od <- apply(DAT - test.dat2,1,vecnorm)
 
-test.res <- cont.mcd(test.dat2 + matrix(colMeans(philips),nrow(DAT),ncol(DAT),byrow=T),collinearity.stop = F)
+#test.res <- cont.mcd(test.dat2 + matrix(colMeans(philips),nrow(DAT),ncol(DAT),byrow=T),collinearity.stop = F)
 
 all.philips.dists <- cbind(philips.dists,
                            sh.dist.res$dists,
                            #sh.dist.res_high.var$lr.sh.dists,
                            #sh.dist.res_high.var$lr.dists,
                            test.dists,
-                           last.od,
-                           rowSums(full.svd.res$u[,1:4]^2),rowSums(full.svd.res$u[,5:9]^2),rowSums(full.svd.res$u[,2:9]^2),rowSums(full.svd.res$u[,8:9]^2),
-                           sh.dist.res$dists[,c("pred.fi.median")] + sh.dist.res$dists[,c("pred.fi.iqr")],
-                           sh.dist.res$dists[,c("pred.u.median")] + sh.dist.res$dists[,c("pred.u.iqr")],
-                           test.res$dists$rob.md,test.res$dists$md,test.res$dists$rob.chid
+                           last.od
+                           #rowSums(full.svd.res$u[,1:4]^2),rowSums(full.svd.res$u[,5:9]^2),rowSums(full.svd.res$u[,2:9]^2),rowSums(full.svd.res$u[,8:9]^2),
+                           #sh.dist.res$dists[,c("pred.fi.median")] + sh.dist.res$dists[,c("pred.fi.iqr")],
+                           #sh.dist.res$dists[,c("pred.u.median")] + sh.dist.res$dists[,c("pred.u.iqr")]
+                           #test.res$dists$rob.md,test.res$dists$md,test.res$dists$rob.chid
                            #sh.dist.res_low.var$lr.sh.dists,
                            #sh.dist.res_low.var$lr.dists
                            )
@@ -221,34 +221,89 @@ corrplot(cor(all.philips.dists,method="spearman"),method="number")
 # epPCA(all.philips.dists[,c("pred.fi.median","pred.u.median","pred.fi.iqr","pred.u.iqr")])
 
 
-test.pca <- epPCA(cbind(all.philips.dists[,c("pred.fi.iqr","pred.u.iqr")],last.od),graphs=F)
+test.pca <- epPCA(cbind(all.philips.dists[,c("pred.fi.median","pred.u.median")],last.od),graphs=F)
 
 
 ### OK I think the distances to work with are pred.fi.med or iqr, and pred.u.med or iqr , plus last.od
   ## additionally I think we can use the full set of distances from resampling to find a natural cutoff
 
 
-score.distrs <- apply(ours.sh.philips$pred.fi.array^2,c(1,3),sum)
-u.distrs <- apply(ours.sh.philips$pred.u.array^2,c(1,3),sum)
+score.distrs <- sqrt(apply(ours.sh.philips$pred.fi.array^2,c(1,3),sum))
+u.distrs <- sqrt(apply(ours.sh.philips$pred.u.array^2,c(1,3),sum))
 
-score.distrs > quantile(c(score.distrs),.95)
-u.distrs > quantile(c(u.distrs),.95)
+# score.distrs > quantile(c(score.distrs),.95)
+# u.distrs > quantile(c(u.distrs),.95)
+
+bottom.score <- length(c(score.distrs)) * .025
+top.score <- length(c(score.distrs)) * .975
+top.score2 <- length(c(score.distrs)) * .95
+up.low.95 <- sort(c(score.distrs))[round(c(bottom.score,top.score))]
+up.95 <- sort(c(score.distrs))[round(c(top.score2))]
+
+boxplot(t(score.distrs[order(apply(score.distrs,1,median)),]))
+abline(h=up.95,col="red",lty=1)
+abline(h=up.low.95[1],col="purple",lty=2)
+abline(h=up.low.95[2],col="purple",lty=2)
+
+score.cuts <- apply(score.distrs,1,function(x){sum(x < up.95) / length(x)})
+
+bottom.u <- length(c(u.distrs)) * .025
+top.u <- length(c(u.distrs)) * .975
+top.u2 <- length(c(u.distrs)) * .95
+u.up.low.95 <- sort(c(u.distrs))[round(c(bottom.u,top.u))]
+u.up.95 <- sort(c(u.distrs))[round(c(top.u2))]
+
+boxplot(t(u.distrs[order(apply(u.distrs,1,median)),]))
+abline(h=u.up.95,col="red",lty=1)
+abline(h=u.up.low.95[1],col="purple",lty=2)
+abline(h=u.up.low.95[2],col="purple",lty=2)
+
+u.cuts <- apply(u.distrs,1,function(x){sum(x < u.up.95) / length(x)})
+
+
+  ## OK so there are two OD estimates
+tolEllipsePlot(cbind(last.od,rowSums(tolerance.svd(S)$u^2)),classic=T)
+
+
+  ## outliers can be based on predictions of U, FI, or how the two ODs come out.
+
+# test.res <- apply(score.distrs,1,function(x){
+#
+#   x.sort <- sort(x)
+#   bottom.x <- floor(length(x.sort)*.025)
+#   top.x <- ceiling(length(x.sort)*.975)
+#   sgpvalue::p_delta(x.sort[bottom.x],x.sort[top.x],0,up.95)
+#
+# })
+#
+# pca.test <- epPCA(cbind(apply(score.distrs,1,median),apply(u.distrs,1,median)),graphs=F)
+
+# this.order <- order(pca.test$ExPosition.Data$fi[,1])
+
+plot( cbind(apply(score.distrs,1,median),apply(u.distrs,1,median))[this.order,] )
+
 
 
   ## distribution-based outliers.
-this.quant <- .9
+this.quant <- .95
 
 score.outs <- rowSums(score.distrs > quantile(c(score.distrs), this.quant)) > (500 * this.quant)
 m.outs <- rowSums(u.distrs > quantile(c(u.distrs), this.quant)) > (500 * this.quant)
 od.outs <- last.od > quantile(last.od, this.quant)
+fi.median.outs <- all.philips.dists[,c("pred.fi.median")] > quantile(all.philips.dists[,c("pred.fi.median")], this.quant)
+u.median.outs <- all.philips.dists[,c("pred.u.median")] > quantile(all.philips.dists[,c("pred.u.median")], this.quant)
 
-(rowSums(score.distrs > quantile(c(score.distrs),.95)) > (500 * .95)) + (rowSums(u.distrs > quantile(c(u.distrs),.95)) > (500 * .95))
 
-which( ((rowSums(score.distrs > quantile(c(score.distrs),.95)) > (500 * .95)) + (rowSums(u.distrs > quantile(c(u.distrs),.95)) > (500 * .95))) > 0 )
+score.outs + m.outs + od.outs + fi.median.outs + u.median.outs
+
+# (rowSums(score.distrs > quantile(c(score.distrs),.95)) > (500 * .95)) + (rowSums(u.distrs > quantile(c(u.distrs),.95)) > (500 * .95))
+#
+# which( ((rowSums(score.distrs > quantile(c(score.distrs),.95)) > (500 * .95)) + (rowSums(u.distrs > quantile(c(u.distrs),.95)) > (500 * .95))) > 0 )
 
 
 #all.outs <- cbind( (rowSums(score.distrs > quantile(c(score.distrs),.95)) > (500 * .95)) , (rowSums(u.distrs > quantile(c(u.distrs),.95)) > (500 * .95)) , (last.od > quantile(last.od,.95)) )
 
+#all.outs <- cbind(score.outs,m.outs,od.outs,fi.median.outs,u.median.outs)
 all.outs <- cbind(score.outs,m.outs,od.outs)
 
 
@@ -256,6 +311,9 @@ intersect(which(!rrcov.hubert.philips@flag),which(rowSums(all.outs) > 0 ))
 intersect(which(!rrcov.hubert.philips@flag),which(score.outs))
 intersect(which(!rrcov.hubert.philips@flag),which(m.outs))
 intersect(which(!rrcov.hubert.philips@flag),which(od.outs))
+intersect(which(!rrcov.hubert.philips@flag),which(od.outs))
+intersect(which(!rrcov.hubert.philips@flag),which(od.outs))
+
 
 
 setdiff(which(!rrcov.hubert.philips@flag),which(rowSums(all.outs) > 0 ))
