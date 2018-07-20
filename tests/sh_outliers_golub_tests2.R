@@ -136,39 +136,43 @@ tol.ellipse <- function(dat,ellipse.alpha=.9,mcd.alpha=.9,xlab=colnames(dat)[1],
     plot(dat, xlim = x1, ylim = y1,pch=20,col="grey80", main=paste0("Outside of ellipse.alpha = ",ellipse.alpha), xlab=xlab, ylab=ylab,cex=.5)
 
     rob.ellipse <- addEllipse(mcd.center,mcd.cov,p.interval = ellipse.alpha,col="blue",lty=2)
-    drop.rob.ellipse <- rob.ellipse[c(which(rowSums(rob.ellipse > 0)==2)),]
-    max.rob.point <- which(as.matrix(dist(rbind(cbind(0,0),drop.rob.ellipse))) == max(dist(rbind(cbind(0,0),drop.rob.ellipse))), arr.ind=T)[1,1]-1
-    abline(v=rob.ellipse[max.rob.point,1], h=rob.ellipse[max.rob.point,2],lty=1,col="blue")
+    #drop.rob.ellipse <- rob.ellipse[c(which(rowSums(rob.ellipse > 0)==2)),]
+    #max.rob.point <- which(as.matrix(dist(rbind(cbind(0,0),drop.rob.ellipse))) == max(dist(rbind(cbind(0,0),drop.rob.ellipse))), arr.ind=T)[1,1]-1
+
+    abline(v=max(rob.ellipse[,1]), h=max(rob.ellipse[,2]),lty=1,col="blue")
 
     # points(dat[!z1.outs,],bg="red",pch=21,cex=1)
     # text(dat[!z1.outs,],labels=rownames(dat[!z1.outs,]),pos=1,col="red")
     # abline(v=max(rob.ellipse[,1]), h=max(rob.ellipse[,2]),lty=1,col="red")
 
-    points(dat[which(dat[,1] >= rob.ellipse[max.rob.point,1] | dat[,2] >= rob.ellipse[max.rob.point,2]),],bg="blue",pch=21,cex=1)
+    points(dat[which(dat[,1] >= max(rob.ellipse[,1]) | dat[,2] >= max(rob.ellipse[,2])),],bg="blue",pch=21,cex=1)
+
+
 
     classic.ellipse <- addEllipse(data.center,data.cov,p.interval = ellipse.alpha,col="red",lty=2)
 
-    drop.classic.ellipse <- classic.ellipse[c(which(rowSums(classic.ellipse > 0)==2)),]
-    max.classic.point <- which(as.matrix(dist(rbind(cbind(0,0),drop.classic.ellipse))) == max(dist(rbind(cbind(0,0),drop.classic.ellipse))), arr.ind=T)[1,1]-1
-    abline(v=classic.ellipse[max.classic.point,1], h=classic.ellipse[max.classic.point,2],lty=1,col="red")
+    #drop.classic.ellipse <- classic.ellipse[c(which(rowSums(classic.ellipse > 0)==2)),]
+    #max.classic.point <- which(as.matrix(dist(rbind(cbind(0,0),drop.classic.ellipse))) == max(dist(rbind(cbind(0,0),drop.classic.ellipse))), arr.ind=T)[1,1]-1
 
-    points(dat[which(dat[,1] >= classic.ellipse[max.classic.point,1] | dat[,2] >= classic.ellipse[max.classic.point,2]),],bg="red",pch=21,cex=2)
+    abline(v=max(classic.ellipse[,1]), h=max(classic.ellipse[,2]),lty=1,col="red")
+
+    points(dat[which(dat[,1] >= max(classic.ellipse[,1]) | dat[,2] >= max(classic.ellipse[,2])),],bg="red",pch=21,cex=2)
 
     legend("bottomright",legend=c("Classic ellipse","Robust ellipse"), col=c("red","blue"), lty=c(2,1))
   }
 
   return(
     list(
-          x.robust.cutoff=rob.ellipse[max.rob.point,1],
-          x.classic.cutoff=classic.ellipse[max.classic.point,1],
-          y.robust.cutoff=rob.ellipse[max.rob.point,2],
-          y.classic.cutoff=classic.ellipse[max.classic.point,2],
+      x.robust.cutoff=max(rob.ellipse[,1]),
+      x.classic.cutoff=max(classic.ellipse[,1]),
+      y.robust.cutoff=max(rob.ellipse[,2]),
+      y.classic.cutoff=max(classic.ellipse[,2]),
 
-          x.robust.outliers = (dat[,1] >= rob.ellipse[max.rob.point,1]),
-          x.classic.outliers= (dat[,1] >= classic.ellipse[max.classic.point,1]),
-          y.robust.outliers = (dat[,2] >= rob.ellipse[max.rob.point,2]),
-          y.classic.outliers= (dat[,2] >= classic.ellipse[max.classic.point,2])
-      )
+      x.robust.outliers = (dat[,1] >= max(rob.ellipse[,1])),
+      x.classic.outliers= (dat[,1] >= max(classic.ellipse[,1])),
+      y.robust.outliers = (dat[,2] >= max(rob.ellipse[,2])),
+      y.classic.outliers= (dat[,2] >= max(classic.ellipse[,2]))
+    )
   )
 
   #return(list(robust.outs=!z1.outs,classic.outs=!z2.outs,robust.ellipse = rob.ellipse, classic.ellipse=classic.ellipse))
@@ -217,13 +221,14 @@ ours.sh.leukdata_toc <- toc()
 print("END")
 
 
-score.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.fi.array)
+#score.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.fi.array)
+score.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.fi.array[,1:35,])
 m.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.u.array[,1:35,])
 
 score.outlier.info.sub <- dist.array.outliers(ours.sh.leukdata$pred.fi.array[,1:4,])
 m.outlier.info.sub <- dist.array.outliers(ours.sh.leukdata$pred.u.array[,1:4,])
 
-sh.outlier.info <- sh.outliers(ours.sh.leukdata)
+#sh.outlier.info <- sh.outliers(ours.sh.leukdata)
 
 
 
@@ -315,6 +320,15 @@ ellipse.data <- cbind(od,md.interval.dists)
       ### this actually does a fairly good job and exists somewhere in the middle.
       ### still need to note that we have other options.
   te.res <- tol.ellipse(ellipse.data,graphs=T,ellipse.alpha = .75, mcd.alpha = .75)
+  te.res2 <- tol.ellipse(cbind(od,apply(sqrt(score.outlier.info$dists),1,
+                                        median)),graphs=T,ellipse.alpha = .75, mcd.alpha = .75)
+
+  test.pca <- epPCA(cbind(od,md.interval.dists,apply(sqrt(score.outlier.info$dists),1,
+                       median)),graphs=F)
+
+    ## why doesn't this work?
+  te.res3 <- tol.ellipse(test.pca$ExPosition.Data$fi[,1:2],ellipse.alpha = .55, mcd.alpha = .55)
+  tolEll.res <- tolEllipsePlot(test.pca$ExPosition.Data$fi[,1:2],classic = T)
 
   # mcd.cutoff <- sqrt(qchisq(0.975, ncol(rrcov.mcd.leukdata@X)))
   # all.outliers <- cbind(
@@ -336,4 +350,7 @@ ellipse.data <- cbind(od,md.interval.dists)
 
 ### I should be able to obtain the furthest point of the ellipse from 0... or just use quantiles?
 
+  vennDiagram(vennCounts(all.three.method.outliers))
 
+
+  venn.diagram(list(ROBPCA=which((!rrcov.hubert.leukdata@flag)), SHPCA=which((te.res$x.robust.outliers | te.res$y.robust.outliers))),filename="test.tiff",fill=c("firebrick3","steelblue4"),alpha=c(.5,.5),cex=2,cat.fontface=4,lty=2,fontfamily=3)
