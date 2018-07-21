@@ -22,34 +22,34 @@ library(ExPosition)
 data("philips")
 
 
-dist.array.outliers <- function(dist.array, total.dist.cutoff = .95, outlier.cutoff = .95){
-
-  dist.distrs <- sqrt(apply(dist.array^2,c(1,3),sum))
-  upper.bound <- sort(c(dist.distrs))[round( length(c(dist.distrs)) * total.dist.cutoff )]
-
-  outlier.scores <- apply(dist.distrs,1,function(x){sum(x >= upper.bound) / length(x)})
-  outlier.threshold <- outlier.scores > outlier.cutoff
-
-  return(list(dists=dist.distrs, cut.point = upper.bound, outlier.probabilities = outlier.scores, outliers = outlier.threshold))
-
-}
-
-sh.outliers <- function(sh.out, total.dist.cutoff = .95, outlier.cutoff = .95){
-
-  score.outliers <- dist.array.outliers(sh.out$pred.fi.array, total.dist.cutoff = total.dist.cutoff, outlier.cutoff = outlier.cutoff)
-  mahal.outliers <- dist.array.outliers(sh.out$pred.u.array, total.dist.cutoff = total.dist.cutoff, outlier.cutoff = outlier.cutoff)
-
-  return(list(score.outliers=score.outliers,mahal.outliers=mahal.outliers))
-
-}
-
-reproducible.robust.low.rank.rebuild <- function(sh.out, corr.cutoff = NULL){
-
-  # diag(apply(abs(ours.sh.philips$loadings.cors),c(1,2),mean))
-  # diag(apply(abs(ours.sh.philips$loadings.cors),c(1,2),median))
-  ## or an alternative would be to find out where the matrix smoothes out.
-
-}
+# dist.array.outliers <- function(dist.array, total.dist.cutoff = .95, outlier.cutoff = .95){
+#
+#   dist.distrs <- sqrt(apply(dist.array^2,c(1,3),sum))
+#   upper.bound <- sort(c(dist.distrs))[round( length(c(dist.distrs)) * total.dist.cutoff )]
+#
+#   outlier.scores <- apply(dist.distrs,1,function(x){sum(x >= upper.bound) / length(x)})
+#   outlier.threshold <- outlier.scores > outlier.cutoff
+#
+#   return(list(dists=dist.distrs, cut.point = upper.bound, outlier.probabilities = outlier.scores, outliers = outlier.threshold))
+#
+# }
+#
+# sh.outliers <- function(sh.out, total.dist.cutoff = .95, outlier.cutoff = .95){
+#
+#   score.outliers <- dist.array.outliers(sh.out$pred.fi.array, total.dist.cutoff = total.dist.cutoff, outlier.cutoff = outlier.cutoff)
+#   mahal.outliers <- dist.array.outliers(sh.out$pred.u.array, total.dist.cutoff = total.dist.cutoff, outlier.cutoff = outlier.cutoff)
+#
+#   return(list(score.outliers=score.outliers,mahal.outliers=mahal.outliers))
+#
+# }
+#
+# reproducible.robust.low.rank.rebuild <- function(sh.out, corr.cutoff = NULL){
+#
+#   # diag(apply(abs(ours.sh.philips$loadings.cors),c(1,2),mean))
+#   # diag(apply(abs(ours.sh.philips$loadings.cors),c(1,2),median))
+#   ## or an alternative would be to find out where the matrix smoothes out.
+#
+# }
 
 
 
@@ -80,14 +80,22 @@ print("END")
 score.outlier.info <- dist.array.outliers(ours.sh.philips$pred.fi.array)
 m.outlier.info <- dist.array.outliers(ours.sh.philips$pred.u.array)
 
-source('./OuRS/R/make.distance.distributions.summaries.R')
+
 score.outlier.info_new <- make.distance.distributions.summaries(ours.sh.philips$pred.fi.array)
 m.outlier.info_new <- make.distance.distributions.summaries(ours.sh.philips$pred.u.array)
+
+
 pause()
 
 ## number of components requires inspection -- no way around it!
-mean.r2.mat <- apply(ours.sh.philips$loadings.cors^2,c(1,2),mean)
-median.r2.mat <- apply(ours.sh.philips$loadings.cors^2,c(1,2),median)
+loadings.mean.r2.mat <- apply(ours.sh.philips$loadings.cors^2,c(1,2),mean)
+loadings.median.r2.mat <- apply(ours.sh.philips$loadings.cors^2,c(1,2),median)
+
+score.mean.r2.mat <- apply(ours.sh.philips$score.cors^2,c(1,2),mean)
+score.median.r2.mat <- apply(ours.sh.philips$score.cors^2,c(1,2),median)
+
+
+
 block.r2 <- c()
 for(i in 1:nrow(mean.r2.mat)){
 

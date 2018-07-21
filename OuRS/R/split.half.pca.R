@@ -51,7 +51,8 @@ split.half.pca <- function(DATA,center=T,scale=F,iters=500,k=0,sh1.k=k,sh2.k=k){
 
     ## we can have so many bells and whistles...
     loadings.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(sh1.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))])
-    score.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(rbind(sh1.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))]),pred.fi.array[,1:min(c(length(sh1.res$d),length(sh2.res$d))),i])
+
+    score.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(rbind(sh1.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))]),pred.fi.array[c(sh1,sh2),1:min(c(length(sh1.res$d),length(sh2.res$d))),i])
 
     #print(i)
   }
