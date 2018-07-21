@@ -85,8 +85,6 @@ score.outlier.info_new <- make.distance.distributions.summaries(ours.sh.philips$
 m.outlier.info_new <- make.distance.distributions.summaries(ours.sh.philips$pred.u.array)
 
 
-pause()
-
 ## number of components requires inspection -- no way around it!
 loadings.mean.r2.mat <- apply(ours.sh.philips$loadings.cors^2,c(1,2),mean)
 loadings.median.r2.mat <- apply(ours.sh.philips$loadings.cors^2,c(1,2),median)
@@ -95,13 +93,6 @@ score.mean.r2.mat <- apply(ours.sh.philips$score.cors^2,c(1,2),mean)
 score.median.r2.mat <- apply(ours.sh.philips$score.cors^2,c(1,2),median)
 
 
-
-block.r2 <- c()
-for(i in 1:nrow(mean.r2.mat)){
-
-  block.r2 <- c(block.r2,mean(c(mean.r2.mat[1:i,1:i])))
-
-}
 
 #small.center <- colMeans(philips[ours.sh.philips$sh2.orders[96,],])
 DAT <- expo.scale(philips,center=T,scale=F)
@@ -113,15 +104,9 @@ s.mat.svd <- tolerance.svd(s.mat)
 
 s.mat.mds <- rowSums(s.mat.svd$u^2)
 od <- apply(s.mat,1,vecnorm)
+my.od <- sqrt(rowSums(s.mat^2))
 
-#tol.ellipse.out <- tol.ellipse(cbind(od,s.mat.mds),graphs=T)
-
-#plot(rrcov.hubert.philips)
-#plot(cbind(od,rrcov.hubert.philips@od))
-#epPCA(cbind(apply(score.outlier.info$dists,1,IQR),apply(m.outlier.info$dists,1,IQR),od))
-#tol.ellipse(cbind(rrcov.hubert.philips@od,od),graphs=T)
-
-
+od_new <- low.rank.orthogonal.distances(philips,T,F,components=1:4)
 
 
 ## distances to aggregate
@@ -131,34 +116,37 @@ od <- apply(s.mat,1,vecnorm)
 
   ## probably should sqrt these...
 my.dists <- cbind(
-  apply(sqrt(score.outlier.info$dists),1,
+  apply(score.outlier.info$dists,1,
         median),
-  apply(sqrt(score.outlier.info$dists),1,
+  apply(score.outlier.info$dists,1,
         IQR),
-  apply(sqrt(score.outlier.info$dists),1,
+  apply(score.outlier.info$dists,1,
         function(x){
           sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
         }),
-  apply(sqrt(m.outlier.info$dists),1,
+  apply(m.outlier.info$dists,1,
         median),
-  apply(sqrt(m.outlier.info$dists),1,
+  apply(m.outlier.info$dists,1,
         IQR),
-  apply(sqrt(m.outlier.info$dists),1,
+  apply(m.outlier.info$dists,1,
                        function(x){
                          sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
                        }),
   od
 )
 
+
+
+
 all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov.mcd.philips@mah),rrcov.hubert.philips@od,rrcov.hubert.philips@sd,my.dists)
   colnames(all.fin.dists) <- c("MD","MCD Robust MD","MCD Robust corrected MD","ROBPCA OD","ROBPCA SD","SH SD median","SH SD IQR","SH SD 95%","SH MD median","SH MD IQR","SH MD 95%","SH OD")
 
-  # corrplot(cor(all.fin.dists),method="number")
-  # corrplot(cor(all.fin.dists,method = "spearman"),method="number")
-  #
-  #
-  # plot(rrcov.mcd.philips)
-  # plot(rrcov.hubert.philips)
+  corrplot(cor(all.fin.dists),method="number")
+  corrplot(cor(all.fin.dists,method = "spearman"),method="number")
+
+
+  plot(rrcov.mcd.philips)
+  plot(rrcov.hubert.philips)
   # plot(od, apply(m.outlier.info$dists,1,
   #                function(x){
   #                  sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
@@ -186,16 +174,17 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
 #
 #
 
-md.interval.dists <- apply(m.outlier.info$dists,1,
-                             function(x){
-                               sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
-                             }
-        )
+# md.interval.dists <- apply(m.outlier.info$dists,1,
+#                              function(x){
+#                                sort(x)[ceiling(length(x)*.975)] - sort(x)[floor(length(x)*.025)]
+#                              }
+#         )
 
-ellipse.data <- cbind(od,md.interval.dists)
+ellipse.data <- cbind(od_new,m.outlier.info_new$percentile.dist)
   colnames(ellipse.data) <- c("od","md.intervals")
 
-
+### now also need a simple counting cutoff, like with the original dist outliers.
+    ### just get X% of the distribution, and count how often each observation exists outside of that distribution.
 
 
   #### THIS IS THE WINNER FOR PRESENTATION.
@@ -225,4 +214,4 @@ ellipse.data <- cbind(od,md.interval.dists)
 ### I should be able to obtain the furthest point of the ellipse from 0... or just use quantiles?
 
 
-venn.diagram(list(which((sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)), which((!rrcov.hubert.philips@flag)), which((te.res$x.robust.outliers | te.res$y.robust.outliers))),filename = NULL)
+# venn.diagram(list(which((sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)), which((!rrcov.hubert.philips@flag)), which((te.res$x.robust.outliers | te.res$y.robust.outliers))),filename = NULL)
