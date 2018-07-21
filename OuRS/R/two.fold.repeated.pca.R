@@ -16,7 +16,7 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
   max.rank <- length(pca.res$d.orig)
     ## I'm not really using the original PCA much now but can later for lots of things, e.g., comparing predictions against this.
 
-  sh1.orders <- matrix(NA,iters,ceiling(nrow(DATA)/2))
+  sh1.orders <- matrix(NA,iters,ceiling(nrow(DATA)*sh1.size))
   sh2.orders <- matrix(NA,iters,nrow(DATA)-ncol(sh1.orders))
   sh.dets <- matrix(NA,iters,2)
   score.cors <- loadings.cors <- array(NA,dim=c(max.rank,max.rank,iters)) ## this is the maximum size it could be...
