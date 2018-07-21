@@ -6,6 +6,11 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
     sh1.size <- .5
   }
 
+  if(nrow(DATA) < 20){
+    warning("DATA has less than 20 rows. sh1.size will automatically be set to 50%")
+    sh1.size <- .5
+  }
+
   ## do the intitial PCA here anyways. We'll be able to use it for a lot of these things.
   pca.res <- gsvd(expo.scale(DATA,center=center,scale=scale),k=k)
   max.rank <- length(pca.res$d.orig)
@@ -28,13 +33,13 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
     sh2 <- sort(setdiff(1:nrow(DATA),sh1))
 
     sh1.data <- expo.scale(DATA[sh1,],center=center,scale=scale)
-    sh1.res <- gsvd(sh1.data,k=sh1.k)
+    sh1.res <- gsvd(sh1.data,k=min(k,max.rank))
     sh1.center <- attributes(sh1.data)$`scaled:center`
     sh1.scale <- attributes(sh1.data)$`scaled:scale`
     rm(sh1.data) # help the memory footprint
 
     sh2.data <- expo.scale(DATA[sh2,],center=center,scale=scale)
-    sh2.res <- gsvd(sh2.data,k=sh2.k)
+    sh2.res <- gsvd(sh2.data,k=min(k,max.rank))
     sh2.center <- attributes(sh2.data)$`scaled:center`
     sh2.scale <- attributes(sh2.data)$`scaled:scale`
     rm(sh2.data) # help the memory footprint
