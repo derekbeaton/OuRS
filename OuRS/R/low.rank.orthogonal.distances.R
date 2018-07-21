@@ -12,7 +12,7 @@ low.rank.orthogonal.distances <- function(DATA, center=T, scale=F, components=1:
     components <- 1:2
   }
   S <- DATA - low.rank.rebuild
-  od <- sqrt(rowSums(s.mat^2))
+  od <- sqrt(rowSums(S^2))
 
   return(list(S=S,od=od))
 
