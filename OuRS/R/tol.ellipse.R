@@ -1,4 +1,4 @@
-tol.ellipse <- function(dat,ellipse.alpha=.9,mcd.alpha=.9,xlab=colnames(dat)[1],ylab=colnames(dat)[2],graphs=F){
+tol.ellipse <- function(dat,ellipse.alpha=.75,mcd.alpha=.75,xlab=colnames(dat)[1],ylab=colnames(dat)[2],graphs=F){
 
   ## private function. STOLEN FROM SIBER 2.1.0
   pointsToEllipsoid <- function (X, Sigma, mu)
