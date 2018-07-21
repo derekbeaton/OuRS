@@ -135,10 +135,22 @@ my.dists <- cbind(
   od
 )
 
+my.dists2 <- cbind(
+  score.outlier.info_new$median.dist,
+  score.outlier.info_new$iqr.dist,
+  score.outlier.info_new$percentile.dist,
+  m.outlier.info_new$median.dist,
+  m.outlier.info_new$iqr.dist,
+  m.outlier.info_new$percentile.dist,
+  od_new$od
+)
 
 
+score.outlier.scores <- sh.distribution.outliers(score.outlier.info_new$dists)
+m.outlier.scores <- sh.distribution.outliers(m.outlier.info_new$dists)
 
-all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov.mcd.philips@mah),rrcov.hubert.philips@od,rrcov.hubert.philips@sd,my.dists)
+
+all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov.mcd.philips@mah),rrcov.hubert.philips@od,rrcov.hubert.philips@sd,my.dists2)
   colnames(all.fin.dists) <- c("MD","MCD Robust MD","MCD Robust corrected MD","ROBPCA OD","ROBPCA SD","SH SD median","SH SD IQR","SH SD 95%","SH MD median","SH MD IQR","SH MD 95%","SH OD")
 
   corrplot(cor(all.fin.dists),method="number")
@@ -180,7 +192,7 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
 #                              }
 #         )
 
-ellipse.data <- cbind(od_new,m.outlier.info_new$percentile.dist)
+ellipse.data <- cbind(od_new$od,m.outlier.info_new$percentile.dist)
   colnames(ellipse.data) <- c("od","md.intervals")
 
 ### now also need a simple counting cutoff, like with the original dist outliers.
