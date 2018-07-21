@@ -228,6 +228,10 @@ od <- apply(s.mat,1,vecnorm)
 
 
   ## probably should sqrt these...
+    ## all of these should actually come from sh.pca
+      ## and I should throw in some component-wise ODs, as well.
+      ## but for OD that can't work
+      ## and I still think there needs to be this ellipse step.
 my.dists <- cbind(
   apply(sqrt(score.outlier.info$dists),1,
         median),
@@ -275,26 +279,7 @@ ellipse.data <- cbind(od,md.interval.dists)
 
 
 
-  te.res <- tol.ellipse(ellipse.data,graphs=T,ellipse.alpha = .75, mcd.alpha = .75)
-  # te.res2 <- tol.ellipse(cbind(od,apply(sqrt(m.outlier.info$dists),1,
-  #                                       median)),graphs=T,ellipse.alpha = .75, mcd.alpha = .75)
-  #
-  # test.pca <- epPCA(cbind(od,md.interval.dists,apply(sqrt(score.outlier.info$dists),1,
-  #                      median)),graphs=F)
-  #
-  #   ## why doesn't this work?
-  # te.res3 <- tol.ellipse(sqrt(test.pca$ExPosition.Data$fi[,1:2]^2),ellipse.alpha = .75, mcd.alpha = .75,graphs = T)
-  # tolEll.res <- tolEllipsePlot(test.pca$ExPosition.Data$fi[,1:2],classic = T)
-
-  # mcd.cutoff <- sqrt(qchisq(0.975, ncol(rrcov.mcd.leukdata@X)))
-  # all.outliers <- cbind(
-  #   (sqrt(plain.md) >= mcd.cutoff)+0,
-  #   (sqrt(rrcov.mcd.leukdata@raw.mah) >= mcd.cutoff)+0,
-  #   (rrcov.hubert.leukdata@od >= rrcov.hubert.leukdata@cutoff.od)+0,
-  #   (rrcov.hubert.leukdata@sd >= rrcov.hubert.leukdata@cutoff.sd)+0,
-  #   (te.res$x.robust.outliers)+0,
-  #   (te.res$y.robust.outliers)+0
-  # )
+  te.res <- tol.ellipse(ellipse.data,graphs=T,ellipse.alpha = .5, mcd.alpha = .5)
 
 
     ## ok not bad... but also not great.
