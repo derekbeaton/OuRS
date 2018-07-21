@@ -1,7 +1,7 @@
 two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=0){
 
 
-  if(sh1.size >= .9 | sh1.size <= .1){
+  if(sh1.size > .9 | sh1.size < .1){
     warning("sh1.size is greater than or equal to 90% or less than or equal to 10%. Setting sh1.size to .5")
     sh1.size <- .5
   }

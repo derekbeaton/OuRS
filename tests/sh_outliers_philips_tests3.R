@@ -43,11 +43,28 @@ ours.sh.philips_tic <- tic()
 ours.sh.philips <- split.half.pca(philips)
 ours.sh.philips_toc <- toc()
 
+print("OURS 75% PHILIPS")
+ours.sh.philips75_tic <- tic()
+ours.sh.philips75 <- two.fold.repeated.pca(philips,sh1.size = .75)
+ours.sh.philips75_toc <- toc()
+
+
+print("OURS 90% PHILIPS")
+ours.sh.philips90_tic <- tic()
+ours.sh.philips90 <- two.fold.repeated.pca(philips,sh1.size = .9)
+ours.sh.philips90_toc <- toc()
+
 print("END")
 
 
 score.outlier.info_new <- make.distance.distributions.summaries(ours.sh.philips$pred.fi.array)
 m.outlier.info_new <- make.distance.distributions.summaries(ours.sh.philips$pred.u.array)
+
+score.outlier.info75_new <- make.distance.distributions.summaries(ours.sh.philips75$pred.fi.array)
+m.outlier.info75_new <- make.distance.distributions.summaries(ours.sh.philips75$pred.u.array)
+
+score.outlier.info90_new <- make.distance.distributions.summaries(ours.sh.philips90$pred.fi.array)
+m.outlier.info90_new <- make.distance.distributions.summaries(ours.sh.philips90$pred.u.array)
 
 
 ## number of components requires inspection -- no way around it!
