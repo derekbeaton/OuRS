@@ -18,10 +18,14 @@ library(cellWise)
 library(golubEsets)
 library(corrplot)
 library(ExPosition)
+library(venneuler)
+library(limma)
 
 
 
 dist.array.outliers <- function(dist.array, total.dist.cutoff = .95, outlier.cutoff = .95){
+
+  dist.array[is.na(dist.array)] <- 0
 
   dist.distrs <- sqrt(apply(dist.array^2,c(1,3),sum))
   upper.bound <- sort(c(dist.distrs))[round( length(c(dist.distrs)) * total.dist.cutoff )]
@@ -35,8 +39,8 @@ dist.array.outliers <- function(dist.array, total.dist.cutoff = .95, outlier.cut
 
 sh.outliers <- function(sh.out, total.dist.cutoff = .95, outlier.cutoff = .95){
 
-  score.outliers <- dist.array.outliers(sh.out$pred.fi.array)
-  mahal.outliers <- dist.array.outliers(sh.out$pred.u.array)
+  score.outliers <- dist.array.outliers(sh.out$pred.fi.array, total.dist.cutoff = total.dist.cutoff, outlier.cutoff = outlier.cutoff)
+  mahal.outliers <- dist.array.outliers(sh.out$pred.u.array, total.dist.cutoff = total.dist.cutoff, outlier.cutoff = outlier.cutoff)
 
   return(list(score.outliers=score.outliers,mahal.outliers=mahal.outliers))
 
@@ -121,44 +125,21 @@ tol.ellipse <- function(dat,ellipse.alpha=.9,mcd.alpha=.9,xlab=colnames(dat)[1],
   data.center <- colMeans(dat)
   data.cov <- cov(dat)
 
-  # z1 <- pointsToEllipsoid(dat,mcd.cov,mcd.center)
-  # z1.outs <- ellipseInOut(z1,p=ellipse.alpha)
-  #
-  # z2 <- pointsToEllipsoid(dat,data.cov,data.center)
-  # z2.outs <- ellipseInOut(z2,p=ellipse.alpha)
-
+  rob.ellipse <- addEllipse(mcd.center,mcd.cov,p.interval = ellipse.alpha,col="blue",lty=2,do.plot = graphs)
+  classic.ellipse <- addEllipse(data.center,data.cov,p.interval = ellipse.alpha,col="red",lty=2,do.plot = graphs)
 
   if(graphs){
-    x1 <- c(-max(dat[,1])*.05,max(dat[,1]))*1.1
-    y1 <- c(-max(dat[,2])*.05,max(dat[,2]))*1.1
+    x1 <- c(-max(abs(dat[,1]))*.05,max(abs(dat[,1])))*1.1
+    y1 <- c(-max(abs(dat[,2]))*.05,max(abs(dat[,2])))*1.1
 
 
-    plot(dat, xlim = x1, ylim = y1,pch=20,col="grey80", main=paste0("Outside of ellipse.alpha = ",ellipse.alpha), xlab=xlab, ylab=ylab,cex=.5)
-
-    rob.ellipse <- addEllipse(mcd.center,mcd.cov,p.interval = ellipse.alpha,col="blue",lty=2)
-    #drop.rob.ellipse <- rob.ellipse[c(which(rowSums(rob.ellipse > 0)==2)),]
-    #max.rob.point <- which(as.matrix(dist(rbind(cbind(0,0),drop.rob.ellipse))) == max(dist(rbind(cbind(0,0),drop.rob.ellipse))), arr.ind=T)[1,1]-1
+    plot(dat, xlim = x1, ylim = y1,pch=20,col="grey80", main="", xlab=xlab, ylab=ylab,cex=.5)
 
     abline(v=max(rob.ellipse[,1]), h=max(rob.ellipse[,2]),lty=1,col="blue")
-
-    # points(dat[!z1.outs,],bg="red",pch=21,cex=1)
-    # text(dat[!z1.outs,],labels=rownames(dat[!z1.outs,]),pos=1,col="red")
-    # abline(v=max(rob.ellipse[,1]), h=max(rob.ellipse[,2]),lty=1,col="red")
-
     points(dat[which(dat[,1] >= max(rob.ellipse[,1]) | dat[,2] >= max(rob.ellipse[,2])),],bg="blue",pch=21,cex=1)
-
-
-
-    classic.ellipse <- addEllipse(data.center,data.cov,p.interval = ellipse.alpha,col="red",lty=2)
-
-    #drop.classic.ellipse <- classic.ellipse[c(which(rowSums(classic.ellipse > 0)==2)),]
-    #max.classic.point <- which(as.matrix(dist(rbind(cbind(0,0),drop.classic.ellipse))) == max(dist(rbind(cbind(0,0),drop.classic.ellipse))), arr.ind=T)[1,1]-1
-
     abline(v=max(classic.ellipse[,1]), h=max(classic.ellipse[,2]),lty=1,col="red")
-
     points(dat[which(dat[,1] >= max(classic.ellipse[,1]) | dat[,2] >= max(classic.ellipse[,2])),],bg="red",pch=21,cex=2)
-
-    legend("bottomright",legend=c("Classic ellipse","Robust ellipse"), col=c("red","blue"), lty=c(2,1))
+    legend("bottomright",legend=c(paste0("Classic ellipse alpha = ", ellipse.alpha),paste0("Robust ellipse alpha = ", mcd.alpha)), col=c("red","blue"), lty=c(2,1))
   }
 
   return(
@@ -174,8 +155,6 @@ tol.ellipse <- function(dat,ellipse.alpha=.9,mcd.alpha=.9,xlab=colnames(dat)[1],
       y.classic.outliers= (dat[,2] >= max(classic.ellipse[,2]))
     )
   )
-
-  #return(list(robust.outs=!z1.outs,classic.outs=!z2.outs,robust.ellipse = rob.ellipse, classic.ellipse=classic.ellipse))
 
 }
 
@@ -196,18 +175,6 @@ leukdata <- hold[,-(7129:7134)]
 print("START")
 
 
-#plain.md <- mahalanobis(leukdata,colMeans(leukdata),cov(leukdata))
-
-# print("RRCOV MCD leukdata")
-# rrcov.mcd.leukdata_tic <- tic()
-# rrcov.mcd.leukdata <- CovMcd(leukdata)
-# rrcov.mcd.leukdata_toc <- toc()
-
-# print("OURS MCD leukdata")
-# ours.mcd.leukdata_tic <- tic()
-# ours.mcd.leukdata <- cont.mcd(leukdata)
-# ours.mcd.leukdata_toc <- toc()
-
 print("RRCOV HUBERT leukdata")
 rrcov.hubert.leukdata_tic <- tic()
 rrcov.hubert.leukdata <- PcaHubert(leukdata)
@@ -220,15 +187,13 @@ ours.sh.leukdata_toc <- toc()
 
 print("END")
 
-
-#score.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.fi.array)
-score.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.fi.array[,1:35,])
-m.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.u.array[,1:35,])
+score.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.fi.array)
+m.outlier.info <- dist.array.outliers(ours.sh.leukdata$pred.u.array)
 
 score.outlier.info.sub <- dist.array.outliers(ours.sh.leukdata$pred.fi.array[,1:4,])
 m.outlier.info.sub <- dist.array.outliers(ours.sh.leukdata$pred.u.array[,1:4,])
 
-#sh.outlier.info <- sh.outliers(ours.sh.leukdata)
+sh.outlier.info <- sh.outliers(ours.sh.leukdata)
 
 
 
@@ -288,9 +253,8 @@ all.fin.dists <- cbind(rrcov.hubert.leukdata@od,rrcov.hubert.leukdata@sd,my.dist
 
   corrplot(cor(all.fin.dists),method="number")
   corrplot(cor(all.fin.dists,method = "spearman"),method="number")
-  #
-  #
-  # plot(rrcov.mcd.leukdata)
+
+
   plot(rrcov.hubert.leukdata)
   plot(od, apply(m.outlier.info$dists,1,
                  function(x){
@@ -311,24 +275,16 @@ ellipse.data <- cbind(od,md.interval.dists)
 
 
 
-
-  ####### !!!!!!
-    ## this needs adjustment to be the maximum upper and right points, not the maximum dot from 0...
-  ####### !!!!!!
-
-  #### THIS IS THE WINNER FOR PRESENTATION.
-      ### this actually does a fairly good job and exists somewhere in the middle.
-      ### still need to note that we have other options.
   te.res <- tol.ellipse(ellipse.data,graphs=T,ellipse.alpha = .75, mcd.alpha = .75)
-  te.res2 <- tol.ellipse(cbind(od,apply(sqrt(score.outlier.info$dists),1,
-                                        median)),graphs=T,ellipse.alpha = .75, mcd.alpha = .75)
-
-  test.pca <- epPCA(cbind(od,md.interval.dists,apply(sqrt(score.outlier.info$dists),1,
-                       median)),graphs=F)
-
-    ## why doesn't this work?
-  te.res3 <- tol.ellipse(test.pca$ExPosition.Data$fi[,1:2],ellipse.alpha = .55, mcd.alpha = .55)
-  tolEll.res <- tolEllipsePlot(test.pca$ExPosition.Data$fi[,1:2],classic = T)
+  # te.res2 <- tol.ellipse(cbind(od,apply(sqrt(m.outlier.info$dists),1,
+  #                                       median)),graphs=T,ellipse.alpha = .75, mcd.alpha = .75)
+  #
+  # test.pca <- epPCA(cbind(od,md.interval.dists,apply(sqrt(score.outlier.info$dists),1,
+  #                      median)),graphs=F)
+  #
+  #   ## why doesn't this work?
+  # te.res3 <- tol.ellipse(sqrt(test.pca$ExPosition.Data$fi[,1:2]^2),ellipse.alpha = .75, mcd.alpha = .75,graphs = T)
+  # tolEll.res <- tolEllipsePlot(test.pca$ExPosition.Data$fi[,1:2],classic = T)
 
   # mcd.cutoff <- sqrt(qchisq(0.975, ncol(rrcov.mcd.leukdata@X)))
   # all.outliers <- cbind(
@@ -353,4 +309,4 @@ ellipse.data <- cbind(od,md.interval.dists)
   vennDiagram(vennCounts(all.three.method.outliers))
 
 
-  venn.diagram(list(ROBPCA=which((!rrcov.hubert.leukdata@flag)), SHPCA=which((te.res$x.robust.outliers | te.res$y.robust.outliers))),filename="test.tiff",fill=c("firebrick3","steelblue4"),alpha=c(.5,.5),cex=2,cat.fontface=4,lty=2,fontfamily=3)
+  #venn.diagram(list(ROBPCA=which((!rrcov.hubert.leukdata@flag)), SHPCA=which((te.res$x.robust.outliers | te.res$y.robust.outliers))),filename="test.tiff",fill=c("firebrick3","steelblue4"),alpha=c(.5,.5),cex=2,cat.fontface=4,lty=2,fontfamily=3)
