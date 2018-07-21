@@ -1,9 +1,15 @@
-split.half.pca <- function(DATA,center=T,scale=F,iters=500,sh1.k=0,sh2.k=0){
+split.half.pca <- function(DATA,center=T,scale=F,iters=500,k=0,sh1.k=k,sh2.k=k){
+
+
+  ## do the intitial PCA here anyways. We'll be able to use it for a lot of these things.
+  pca.res <- gsvd(expo.scale(DATA,center=center,scale=scale),k=k)
+  max.rank <- length(pca.res$d.orig)
+    ## I'm not really using the original PCA much now but can later for lots of things, e.g., comparing predictions against this.
 
   sh1.orders <- matrix(NA,iters,ceiling(nrow(DATA)/2))
   sh2.orders <- matrix(NA,iters,nrow(DATA)-ncol(sh1.orders))
   sh.dets <- matrix(NA,iters,2)
-  loadings.cors <- array(NA,dim=c(min(dim(DATA)),min(dim(DATA)),iters)) ## this is the maximum size it could be...
+  score.cors <- loadings.cors <- array(NA,dim=c(max.rank,max.rank,iters)) ## this is the maximum size it could be...
 
 
   pred.fi.array <- pred.u.array <- array(NA,dim=c(nrow(DATA),min(dim(DATA)),iters))
@@ -28,8 +34,6 @@ split.half.pca <- function(DATA,center=T,scale=F,iters=500,sh1.k=0,sh2.k=0){
     sh2.scale <- attributes(sh2.data)$`scaled:scale`
     rm(sh2.data) # help the memory footprint
 
-    ## we can have so many bells and whistles...
-    loadings.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(sh1.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))])
 
     sh.dets[i,] <- c(geometric.mean(sh1.res$d^2),geometric.mean(sh2.res$d^2))
     sh1.orders[i,] <- sh1
@@ -42,9 +46,17 @@ split.half.pca <- function(DATA,center=T,scale=F,iters=500,sh1.k=0,sh2.k=0){
     pred.fi.array[sh2,1:length(sh1.res$d),i] <- expo.scale(DATA[sh2,],center=sh1.center,scale=sh1.scale) %*% sh1.res$v
     pred.u.array[sh2,1:length(sh1.res$d),i] <- sweep(pred.fi.array[sh2,1:length(sh1.res$d),i],2,sh1.res$d,"/")
 
+    # the ODs can be brought back here by projecting onto each others subspaces.
+
+
+    ## we can have so many bells and whistles...
+    loadings.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(sh1.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))])
+    score.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(rbind(sh1.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))]),pred.fi.array[,1:min(c(length(sh1.res$d),length(sh2.res$d))),i])
+
     #print(i)
   }
 
+  ## all those distances can be computed here.
 
-  return( list(pred.fi.array=pred.fi.array,pred.u.array=pred.u.array,sh1.orders=sh1.orders,sh2.orders=sh2.orders,sh.dets=sh.dets,loadings.cors=loadings.cors) )
+  return( list(pred.fi.array=pred.fi.array,pred.u.array=pred.u.array,sh1.orders=sh1.orders,sh2.orders=sh2.orders,sh.dets=sh.dets,loadings.cors=loadings.cors,score.cors=score.cors) )
 }
