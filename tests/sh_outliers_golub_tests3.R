@@ -107,8 +107,9 @@ all.fin.dists <- cbind(rrcov.hubert.leukdata@od,rrcov.hubert.leukdata@sd,my.dist
     #(sqrt(rrcov.mcd.leukdata@raw.mah) >= mcd.cutoff)+0,
     (!rrcov.hubert.leukdata@flag)+0,
     (te.res$x.robust.outliers | te.res$y.robust.outliers)+0,
-    (score.outlier.scores$outlier.scores > .95 | m.outlier.scores$outlier.scores > .95)+0
+    (score.outlier.scores$outlier.scores > .75 | m.outlier.scores$outlier.scores > .75)+0
   )
+  colnames(all.three.method.outliers) <- c("ROBPCA outliers","SH PCA ellipse outliers","SH PCA distribution outliers")
 
 ### I should be able to obtain the furthest point of the ellipse from 0... or just use quantiles?
 
