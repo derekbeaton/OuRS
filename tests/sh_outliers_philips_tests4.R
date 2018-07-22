@@ -78,7 +78,7 @@ score.median.r2.mat <- apply(ours.sh.philips$score.cors^2,c(1,2),median)
 score.median75.r2.mat <- apply(ours.sh.philips75$score.cors^2,c(1,2),median)
 score.median90.r2.mat <- apply(ours.sh.philips90$score.cors^2,c(1,2),median)
 
-od_new <- low.rank.orthogonal.distances(philips,T,F,components=1:4)
+od_new <- low.rank.orthogonal.distances.test(philips,T,F,components=1:4, bootstrap.iters = 1000, alpha = .75, bootstrap.shortcut = T)
 
 
 my.dists2 <- cbind(
@@ -121,33 +121,10 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
   corrplot(cor(all.fin.dists),method="number")
   corrplot(cor(all.fin.dists,method = "spearman"),method="number")
 
-
-  plot(rrcov.mcd.philips)
-  plot(rrcov.hubert.philips)
-
-
-  ellipse.data <- cbind(od_new$od,m.outlier.info_new$percentile.dist)
-  colnames(ellipse.data) <- c("od","md.intervals")
-
-  ellipse.data75 <- cbind(od_new$od,m.outlier.info75_new$percentile.dist)
-  colnames(ellipse.data75) <- c("od","md.intervals")
-
-  ellipse.data90 <- cbind(od_new$od,m.outlier.info90_new$percentile.dist)
-  colnames(ellipse.data90) <- c("od","md.intervals")
-
-### now also need a simple counting cutoff, like with the original dist outliers.
-    ### just get X% of the distribution, and count how often each observation exists outside of that distribution.
+  # plot(rrcov.mcd.philips)
+  # plot(rrcov.hubert.philips)
 
 
-  #### THIS IS THE WINNER FOR PRESENTATION.
-      ### this actually does a fairly good job and exists somewhere in the middle.
-      ### still need to note that we have other options.
-  te.res <- tol.ellipse(ellipse.data,graphs=T)
-
-  te.res_test <- tol.ellipse(sqrt(expo.scale(ellipse.data)^2),graphs=T)
-
-  te.res75 <- tol.ellipse(ellipse.data75,graphs=T)
-  te.res90 <- tol.ellipse(ellipse.data90,graphs=T)
 
   mcd.cutoff <- sqrt(qchisq(0.975, ncol(rrcov.mcd.philips@X)))
   all.outliers <- cbind(
@@ -155,19 +132,19 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
     (sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)+0,
     (rrcov.hubert.philips@od >= rrcov.hubert.philips@cutoff.od)+0,
     (rrcov.hubert.philips@sd >= rrcov.hubert.philips@cutoff.sd)+0,
-    (te.res$x.robust.outliers)+0,
-    (te.res$y.robust.outliers)+0,
-    (te.res75$x.robust.outliers)+0,
-    (te.res75$y.robust.outliers)+0,
-    (te.res90$x.robust.outliers)+0,
-    (te.res90$y.robust.outliers)+0,
-    (score.outlier.scores$outlier.scores > .95) + 0,
-    (m.outlier.scores$outlier.scores > .95) + 0,
-    (score.outlier.scores75$outlier.scores > .95) + 0,
-    (m.outlier.scores75$outlier.scores > .95) + 0,
-    (score.outlier.scores90$outlier.scores > .95) + 0,
-    (m.outlier.scores90$outlier.scores > .95) + 0
-
+    # (te.res$x.robust.outliers)+0,
+    # (te.res$y.robust.outliers)+0,
+    # (te.res75$x.robust.outliers)+0,
+    # (te.res75$y.robust.outliers)+0,
+    # (te.res90$x.robust.outliers)+0,
+    # (te.res90$y.robust.outliers)+0,
+    (score.outlier.scores$outliers) + 0,
+    (m.outlier.scores$outliers) + 0,
+    (score.outlier.scores75$outliers) + 0,
+    (m.outlier.scores75$outliers) + 0,
+    (score.outlier.scores90$outliers) + 0,
+    (m.outlier.scores90$outliers) + 0,
+    od_new$outliers
   )
   crossprod(all.outliers)
 
@@ -176,32 +153,23 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
   all.three.method.outliers <- cbind(
     (sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)+0,
     (!rrcov.hubert.philips@flag)+0,
-    (te.res$x.robust.outliers | te.res$y.robust.outliers)+0,
-    (te.res_test$x.robust.outliers | te.res_test$y.robust.outliers)+0,
-    (score.outlier.scores$outlier.scores > .75 | m.outlier.scores$outlier.scores > .75)+0
+    (score.outlier.scores$outliers  | m.outlier.scores$outliers | od_new$outliers)+0
   )
   colnames(all.three.method.outliers) <- c("MCD outliers","ROBPCA outliers","SH PCA ellipse outliers","SH PCA ellipse test outliers","SH PCA distribution outliers")
 
   crossprod(all.three.method.outliers)
   vennDiagram(vennCounts(all.three.method.outliers))
 
-  all.outliers.truncated <- cbind(
-    (sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)+0,
-    (!rrcov.hubert.philips@flag)+0,
-    (te.res$x.robust.outliers | te.res$y.robust.outliers | score.outlier.scores$outlier.scores > .95 | m.outlier.scores$outlier.scores > .95)+0
-  )
-  colnames(all.outliers.truncated) <- c("MCD outliers","ROBPCA outliers","SH PCA ellipse + distribution outliers")
-  crossprod(all.outliers.truncated)
-  vennDiagram(vennCounts(all.outliers.truncated))
-
-
-  ### ok so this is a good time to plot the MCD results and color them by (1) their outliers, (2) our outliers, and (3) overlap
-  pt.cols <- rep("grey80",nrow(philips))
-  pt.cols[(sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)] <- "olivedrab3"
-  pt.cols[(te.res$x.robust.outliers | te.res$y.robust.outliers | score.outlier.scores$outlier.scores > .95 | m.outlier.scores$outlier.scores > .95)] <- "mediumorchid4"
-  pt.cols[(te.res$x.robust.outliers | te.res$y.robust.outliers | score.outlier.scores$outlier.scores > .95 | m.outlier.scores$outlier.scores > .95) & (sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)] <- "firebrick3"
-  plot(rrcov.mcd.philips,col=pt.cols,pch=20,labels="")
-    ## will need to re-do this plot.
+#
+#
+#
+#   ### ok so this is a good time to plot the MCD results and color them by (1) their outliers, (2) our outliers, and (3) overlap
+#   pt.cols <- rep("grey80",nrow(philips))
+#   pt.cols[(sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)] <- "olivedrab3"
+#   pt.cols[(te.res$x.robust.outliers | te.res$y.robust.outliers | score.outlier.scores$outlier.scores > .95 | m.outlier.scores$outlier.scores > .95)] <- "mediumorchid4"
+#   pt.cols[(te.res$x.robust.outliers | te.res$y.robust.outliers | score.outlier.scores$outlier.scores > .95 | m.outlier.scores$outlier.scores > .95) & (sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)] <- "firebrick3"
+#   plot(rrcov.mcd.philips,col=pt.cols,pch=20,labels="")
+#     ## will need to re-do this plot.
 
   ## clearly the outlier cutoffs happen because of the 4
       ## I think I can simplify the ellipse approach but it is convenient and easy.
@@ -209,24 +177,4 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
 ### I should be able to obtain the furthest point of the ellipse from 0... or just use quantiles?
 
 
-
-  all.approaches.outliers <- cbind(
-    (sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)+0,
-    (!rrcov.hubert.philips@flag)+0,
-    (te.res$x.robust.outliers | te.res$y.robust.outliers)+0,
-    (te.res75$x.robust.outliers | te.res75$y.robust.outliers)+0,
-    (te.res90$x.robust.outliers | te.res90$y.robust.outliers)+0
-  )
-  crossprod(all.approaches.outliers)
-
-# venn.diagram(list(which((sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)), which((!rrcov.hubert.philips@flag)), which((te.res$x.robust.outliers | te.res$y.robust.outliers))),filename = NULL)
-
-
-
-  vennDiagram(vennCounts(all.approaches.outliers))
-  vennDiagram(vennCounts(all.approaches.outliers[,-1]))
-
-
-  epPCA(cbind(od_new$od,score.outlier.info_new2$median.dist,m.outlier.info_new2$median.dist), DESIGN = make.data.nominal(as.matrix(((od_new$od > sort(c(all.ods))[ceiling(length(c(all.ods)) * .75)]) |
-                                                                                                                                      (score.outlier.scores$outlier.scores > .75) + 0 |
-                                                                                                                                      (m.outlier.scores$outlier.scores > .75)))), make_design_nominal = F)
+  pca.res <- epPCA(cbind(od_new$od,score.outlier.info_new$median.dist,m.outlier.info_new$median.dist), DESIGN = (score.outlier.scores$outliers  | m.outlier.scores$outliers | od_new$outliers), make_design_nominal = T, graphs=F)
