@@ -160,9 +160,7 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
   crossprod(all.three.method.outliers)
   vennDiagram(vennCounts(all.three.method.outliers))
 
-#
-#
-#
+
 #   ### ok so this is a good time to plot the MCD results and color them by (1) their outliers, (2) our outliers, and (3) overlap
 #   pt.cols <- rep("grey80",nrow(philips))
 #   pt.cols[(sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)] <- "olivedrab3"

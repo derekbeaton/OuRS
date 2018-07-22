@@ -43,12 +43,12 @@ low.rank.orthogonal.distances.test <- function(DATA, center=T, scale=F, componen
 
 
     }
-    bootstrap.cutoff <- all.ods[ceiling(length(all.ods)*alpha)]
-    outliers <- od >= cutoff
-    return(list(od=od, outliers=outliers, bootstrap.cutoff=bootstrap.cutoff))
+    outlier.threshold <- all.ods[ceiling(length(all.ods)*alpha)]
+    outliers <- od >= outlier.threshold
+    return(list(od=od, outliers=outliers, outlier.threshold=outlier.threshold))
   }
 
-  return(list(od=od, outliers=rep(FALSE,length(od)), bootstrap.cutoff=0))
+  return(list(od=od, outliers=rep(FALSE,length(od)), outlier.threshold=0))
 
 
 }
