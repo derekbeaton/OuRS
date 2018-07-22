@@ -78,7 +78,8 @@ score.median.r2.mat <- apply(ours.sh.philips$score.cors^2,c(1,2),median)
 score.median75.r2.mat <- apply(ours.sh.philips75$score.cors^2,c(1,2),median)
 score.median90.r2.mat <- apply(ours.sh.philips90$score.cors^2,c(1,2),median)
 
-od_new <- low.rank.orthogonal.distances.test(philips,T,F,components=1:4, bootstrap.iters = 1000, alpha = .75, bootstrap.shortcut = T)
+od_new <- low.rank.orthogonal.distances.test(philips,T,F,components=1:4, bootstrap.iters = 1000, alpha = .95, bootstrap.shortcut = F)
+od_new2 <- low.rank.orthogonal.distances.test(philips,T,F,components=1:4, bootstrap.iters = 1000, alpha = .95, bootstrap.shortcut = T)
 
 
 my.dists2 <- cbind(
@@ -155,7 +156,7 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
     (!rrcov.hubert.philips@flag)+0,
     (score.outlier.scores$outliers  | m.outlier.scores$outliers | od_new$outliers)+0
   )
-  colnames(all.three.method.outliers) <- c("MCD outliers","ROBPCA outliers","SH PCA ellipse outliers","SH PCA ellipse test outliers","SH PCA distribution outliers")
+  colnames(all.three.method.outliers) <- c("MCD outliers","ROBPCA outliers","SH PCA distribution outliers")
 
   crossprod(all.three.method.outliers)
   vennDiagram(vennCounts(all.three.method.outliers))

@@ -26,7 +26,7 @@ low.rank.orthogonal.distances.test <- function(DATA, center=T, scale=F, componen
       all.ods.mat <- matrix(NA,length(od),bootstrap.iters)
       for(i in 1:bootstrap.iters){
         boot.samp <- sample(length(od), length(od), replace=T)
-        boot.DATA <- expo.scale(DATA[boot.samp,],center=center,scale=scale)
+        boot.DATA <- expo.scale(DATA[boot.samp,],center=attributes(DATA)$`scaled:center`,scale=attributes(DATA)$`scaled:scale`)
 
 
           if(length(components>1)){
@@ -43,7 +43,7 @@ low.rank.orthogonal.distances.test <- function(DATA, center=T, scale=F, componen
 
 
     }
-    outlier.threshold <- all.ods[ceiling(length(all.ods)*alpha)]
+    outlier.threshold <- sort(all.ods)[ceiling(length(all.ods)*alpha)]
     outliers <- od >= outlier.threshold
     return(list(od=od, outliers=outliers, outlier.threshold=outlier.threshold))
   }
