@@ -23,10 +23,12 @@ low.rank.orthogonal.distances.test <- function(DATA, center=T, scale=F, componen
 
     }else{
 
+        ## something is still wonky in here and I have no idea what... it's not behaving the same in this function vs. outside.
       all.ods.mat <- matrix(NA,length(od),bootstrap.iters)
       for(i in 1:bootstrap.iters){
         boot.samp <- sample(length(od), length(od), replace=T)
-        boot.DATA <- expo.scale(DATA[boot.samp,],center=attributes(DATA)$`scaled:center`,scale=attributes(DATA)$`scaled:scale`)
+        #boot.DATA <- expo.scale(DATA[boot.samp,],center=attributes(DATA)$`scaled:center`,scale=attributes(DATA)$`scaled:scale`)
+        boot.DATA <- expo.scale(DATA[boot.samp,],center=center,scale=scale)
 
 
           if(length(components>1)){
@@ -48,7 +50,7 @@ low.rank.orthogonal.distances.test <- function(DATA, center=T, scale=F, componen
     return(list(od=od, outliers=outliers, outlier.threshold=outlier.threshold))
   }
 
-  return(list(od=od, outliers=rep(FALSE,length(od)), outlier.threshold=0))
+  return(list(od=od, outliers=od >= quantile(od,alpha), outlier.threshold=quantile(od,alpha)))
 
 
 }

@@ -79,7 +79,6 @@ score.median75.r2.mat <- apply(ours.sh.philips75$score.cors^2,c(1,2),median)
 score.median90.r2.mat <- apply(ours.sh.philips90$score.cors^2,c(1,2),median)
 
 od_new <- low.rank.orthogonal.distances.test(philips,T,F,components=1:4, bootstrap.iters = 1000, alpha = .95, bootstrap.shortcut = F)
-od_new2 <- low.rank.orthogonal.distances.test(philips,T,F,components=1:4, bootstrap.iters = 1000, alpha = .95, bootstrap.shortcut = T)
 
 
 my.dists2 <- cbind(
@@ -125,29 +124,19 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
   # plot(rrcov.mcd.philips)
   # plot(rrcov.hubert.philips)
 
-
-
   mcd.cutoff <- sqrt(qchisq(0.975, ncol(rrcov.mcd.philips@X)))
+
+
+
   all.outliers <- cbind(
-    (sqrt(plain.md) >= mcd.cutoff)+0,
     (sqrt(rrcov.mcd.philips@raw.mah) >= mcd.cutoff)+0,
-    (rrcov.hubert.philips@od >= rrcov.hubert.philips@cutoff.od)+0,
     (rrcov.hubert.philips@sd >= rrcov.hubert.philips@cutoff.sd)+0,
-    # (te.res$x.robust.outliers)+0,
-    # (te.res$y.robust.outliers)+0,
-    # (te.res75$x.robust.outliers)+0,
-    # (te.res75$y.robust.outliers)+0,
-    # (te.res90$x.robust.outliers)+0,
-    # (te.res90$y.robust.outliers)+0,
-    (score.outlier.scores$outliers) + 0,
-    (m.outlier.scores$outliers) + 0,
-    (score.outlier.scores75$outliers) + 0,
-    (m.outlier.scores75$outliers) + 0,
-    (score.outlier.scores90$outliers) + 0,
-    (m.outlier.scores90$outliers) + 0,
-    od_new$outliers
+    (rrcov.hubert.philips@od >= rrcov.hubert.philips@cutoff.od)+0,
+    (score.outlier.scores$outliers)+0,
+    (m.outlier.scores$outliers)+0,
+    (od_new$outliers)+0
   )
-  crossprod(all.outliers)
+  colnames(all.three.method.outliers) <- c("MCD outliers","ROBPCA SD outliers","ROBPCA OD outliers","SH SD outliers","SH MD outliers","SH OD outliers")
 
   ### this is what we want/need. the distribution ones catch all the ROBPCA, substantial overlaps with MCD
       ### ok so both sets are important... we can catch all that exist in ROBPCA + a lot from MCD + others...
@@ -175,5 +164,8 @@ all.fin.dists <- cbind(sqrt(plain.md),sqrt(rrcov.mcd.philips@raw.mah),sqrt(rrcov
 
 ### I should be able to obtain the furthest point of the ellipse from 0... or just use quantiles?
 
+  dist.mat <- cbind(od_new$od,score.outlier.info_new$median.dist,m.outlier.info_new$median.dist)
+  colnames(dist.mat) <- c("SH OD","SH median SD","SH median MD")
+  pca.res <- epPCA(dist.mat, DESIGN = (score.outlier.scores$outliers  | m.outlier.scores$outliers | od_new$outliers), make_design_nominal = T, graphs=F)
+  epGraphs(pca.res,contributionPlots = F,correlationPlotter = F)
 
-  pca.res <- epPCA(cbind(od_new$od,score.outlier.info_new$median.dist,m.outlier.info_new$median.dist), DESIGN = (score.outlier.scores$outliers  | m.outlier.scores$outliers | od_new$outliers), make_design_nominal = T, graphs=F)
