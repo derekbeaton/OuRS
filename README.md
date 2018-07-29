@@ -68,7 +68,7 @@ As can be seen in the above figure, there are observations with a large robust M
 GenMCD
 ------
 
-One of the primary motivations behind the creation of the `OuRS` package was the development of an extension to the MCD. [We have extended the MCD](https://www.biorxiv.org/content/early/2018/06/11/333005) so that it could be applied to categorical (and similar data). However, our extension of the MCD can incorporate data of almost any data type (categorical, ordinal, continuous, counts), either as a homogeneous set or heterogeneous variables (i.e., mixed data).
+One of the primary motivations behind the creation of the `OuRS` package was the development of an extension to the MCD. We initially extended the MCD so that it could be applied to categorical (and similar data). However, our extension of the MCD can incorporate data of almost any data type (categorical, ordinal, continuous, counts), either as a homogeneous set or heterogeneous variables (i.e., mixed data).
 
 The example we provide here is strictly categorical data. The data here are a re-coded version of a survey that asked opinions of [different beers brewed in the Dallas-Fort Worth area](http://www.dallasobserver.com/restaurants/dfws-favorite-local-beer-as-proven-by-an-actual-scientist-7024953). Each person's response to each beer is categorized as "LIKE", "DO.NOT.LIKE", or "NO.OPINION".
 
@@ -104,9 +104,9 @@ We first illustrate PCA+SHR here with the same data (`philips`) as in the MCD ex
 
 ### PCA
 
-PCA can be expressed as follows. Given some matrix **X** with *I* rows and *J* columns, and assuming that **X** is column-wise centered (and possibly scaled), PCA decomposes **X** into three matrices: **X** = **UΔV**<sup>*T*</sup>, where the observations are represented on the rows of the left singular vectors **U**, or with the component scores as **F**<sub>*I*</sub> = **UΔ**, which are the columns (components) of the left singular vectors scaled by the singular values (**Δ**). From PCA we can compute two distances:
+PCA can be expressed as follows. Given some matrix **X** with *I* rows and *J* columns, and assuming that **X** is column-wise centered (and possibly scaled), PCA decomposes **X** into three matrices: **X** = **U****Δ****V**<sup>*T*</sup>, where the observations are represented on the rows of the left singular vectors **U**, or with the component scores as **F**<sub>*I*</sub> = **U****Δ**, which are the columns (components) of the left singular vectors scaled by the singular values (**Δ**). From PCA we can compute two distances:
 
-1.  Squared Mahalanobis distance where **m**<sub>*I*</sub> = diag{**UU**<sup>*T*</sup>}, and
+1.  Squared Mahalanobis distance where **m**<sub>*I*</sub> = diag{**U****U**<sup>*T*</sup>}, and
 
 2.  Squared score distance where **c**<sub>*I*</sub> = diag{**F**<sub>*I*</sub>**F**<sub>*I*</sub><sup>*T*</sup>}.
 
@@ -114,130 +114,71 @@ When data are rank deficient (i.e., *n* &lt; *P* or *n* &lt; &lt;*P*) we
 
 ### Low dimensional example
 
-First we perform PCA+SHR on the `philips` data and compare some of the estimates against the robust Mahalanobis distances from the MCD. While there are many estimates we could make from PCA+SHR, we focus these particular results on the distributions of predicted distances; specifically, we use the inter-quartile range. We use the interval here because large intervals reflect poor predictive estimates. Here we show the individuals "unmasked" by the MCD with purple dots.
+First we perform PCA+SHR on the `philips` data and compare some of the estimates against the robust Mahalanobis distances from the MCD. While there are many estimates we could make from PCA+SHR, we focus on the defaults we provide for Mahalanobis distances (MD), score distances (SD), and orthogonal distances (OD). But because there are multiple distances with distributions, there are a variety of ways to inspect for outliers.
 
 ``` r
-pca_shr.low.dim.results <- split.half.pca(philips, center = T, 
-    iters = 500)
-mahal.d <- apply(pca_shr.low.dim.results$pred.u.array^2, c(1, 
-    3), sum, na.rm = T)
-mahal.iqr <- apply(mahal.d, 1, function(x) {
-    IQR(x)
-})
-score.d <- apply(pca_shr.low.dim.results$pred.fi.array^2, c(1, 
-    3), sum, na.rm = T)
-score.iqr <- apply(score.d, 1, function(x) {
-    IQR(x)
-})
+pca_shr.low.dim.results <- split.half.pca(philips)
+score.outlier.info <- make.distance.distributions.summaries(pca_shr.low.dim.results$pred.fi.array)
+score.outlier.scores <- sh.distribution.outliers(score.outlier.info$dists)
+m.outlier.info <- make.distance.distributions.summaries(pca_shr.low.dim.results$pred.u.array)
+m.outlier.scores <- sh.distribution.outliers(m.outlier.info$dists)
+```
+
+``` r
 ## identify reproducible subspace
-diag(apply(abs(pca_shr.low.dim.results$loadings.cors), c(1, 2), 
-    mean))
+loadings.median.r2.mat <- apply(pca_shr.low.dim.results$loadings.cors^2, 
+    c(1, 2), median)
+score.median.r2.mat <- apply(pca_shr.low.dim.results$score.cors^2, 
+    c(1, 2), median)
+diag(loadings.median.r2.mat)
 ```
 
-    ## [1] 0.9846602 0.9871411 0.9847023 0.9778422 0.9101951 0.8755883 0.8994238
-    ## [8] 0.9581681 0.9969907
+    ## [1] 0.9872371 0.9855465 0.9805701 0.9704823 0.8713689 0.8230474 0.8579337
+    ## [8] 0.9363803 0.9948620
 
 ``` r
-## it looks as though there are 4 reproducible components. so
-## we'll compute distance estimates with just those 4
-mahal.d_14 <- apply(pca_shr.low.dim.results$pred.u.array[, 1:4, 
-    ]^2, c(1, 3), sum, na.rm = T)
-mahal.iqr_14 <- apply(mahal.d_14, 1, function(x) {
-    IQR(x)
-})
-score.d_14 <- apply(pca_shr.low.dim.results$pred.fi.array[, 1:4, 
-    ]^2, c(1, 3), sum, na.rm = T)
-score.iqr_14 <- apply(score.d_14, 1, function(x) {
-    IQR(x)
-})
+diag(score.median.r2.mat)
 ```
 
+    ## [1] 0.9843644 0.9754271 0.9748316 0.9484558 0.8814581 0.7879147 0.8148359
+    ## [8] 0.8447019 0.9357541
+
 ``` r
-## these.cols will color observations by their 'unmasking' in
-## the MCD.
-these.cols <- rep("white", nrow(philips))
-these.cols[which(mcd.results$dists$rob.md > 0.8)] <- "mediumorchid4"
-par.opts <- par(mfrow = c(1, 2))
-plot(mahal.iqr, score.iqr, bg = these.cols, pch = 21, xlab = "PCA+SHR IQR of Mahalanobis (all components)", 
-    ylab = "PCA+SHR IQR of Score (all components)")
-plot(mahal.iqr_14, score.iqr_14, bg = these.cols, pch = 21, xlab = "PCA+SHR IQR of Mahalanobis (4 components)", 
-    ylab = "PCA+SHR IQR of Score (4 components)")
+## use reproducible subspace for OD; it looks like 4.
+od.info <- low.rank.orthogonal.distances.test(philips, T, F, 
+    components = 1:4, bootstrap.iters = 1000, bootstrap.shortcut = F)
+## put it all together.
+pca_shr.low.dim_outliers <- (score.outlier.scores$outliers | 
+    m.outlier.scores$outliers | od.info$outliers)
+vennDiagram(vennCounts(cbind(score.outlier.scores$outliers + 
+    0, m.outlier.scores$outliers + 0, od.info$outliers)))
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-6-1.png)
 
-``` r
-par(par.opts)
-tolEllipsePlot(cbind(mahal.iqr_14, score.iqr_14), classic = T)
-points(cbind(mahal.iqr_14, score.iqr_14), pch = 21, cex = 1, 
-    bg = these.cols)
-```
-
-![](README_files/figure-markdown_github/unnamed-chunk-6-2.png)
+We provide default parameters for outlier thresholds in their respective functions. The above Venn Diagram shows the overlap of outliers from PCA+SHR for MD, SD, and OD. Next we show the median MD, median SD, and OD plotted against one another.
 
 ``` r
-par.opts <- par(mfrow = c(2, 2))
-plot(mcd.results$dists$md, mahal.iqr_14, bg = these.cols, pch = 21, 
-    xlab = "MCD Mahalanobis", ylab = "PCA+SHR IQR of Mahalanobis (4 components)")
-plot(mcd.results$dists$md, score.iqr_14, bg = these.cols, pch = 21, 
-    xlab = "MCD Mahalanobis", ylab = "PCA+SHR IQR of Score (4 components)")
-plot(mcd.results$dists$rob.md, mahal.iqr_14, bg = these.cols, 
-    pch = 21, xlab = "MCD Robust Mahalanobis", ylab = "PCA+SHR IQR of Mahalanobis (4 components)")
-plot(mcd.results$dists$rob.md, score.iqr_14, bg = these.cols, 
-    pch = 21, xlab = "MCD Robust Mahalanobis", ylab = "PCA+SHR IQR of Score (4 components)")
+pca_shr.three.dists <- cbind(score.outlier.info$median.dist, 
+    m.outlier.info$median.dist, od.info$od)
+pca_shr.low.dim_outliers_colors <- ifelse(pca_shr.low.dim_outliers == 
+    FALSE, "grey80", "mediumorchid4")
+par.opts <- par(mfrow = c(1, 2))
+plot(pca_shr.three.dists[, 2], pca_shr.three.dists[, 1], xlab = "Median MD", 
+    ylab = "Median SD", main = "Median MD vs. Median SD", col = pca_shr.low.dim_outliers_colors, 
+    pch = 20)
+plot(pca_shr.three.dists[, 2], pca_shr.three.dists[, 3], xlab = "Median MD", 
+    ylab = "OD", main = "Median MD vs. OD", col = pca_shr.low.dim_outliers_colors, 
+    pch = 20)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-6-3.png)
+![](README_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
 ``` r
 par(par.opts)
 ```
 
-#### PCA+SHR and the C-step from MCD.
-
-We can also apply the "c-step"" (concentration step) from the MCD to the results from SHR in order to obtain robust Mahalanobis distances like the MCD. In the SHR steps, we can keep track of the determinant for each split-half. Because we know which sub-sample generated the smallest determinant, we can use the "c-step" (concentration step) from the MCD algorithm to help identify the same type of structure as in MCD. The "c-step" can be applied to the data or a lower rank (i.e., 4 component) version of the data. To note, the PCA+SHR with a "c-step" procedure takes fewer overall iterations than the standard MCD algorithm.
-
-``` r
-min.shr.det <- which(pca_shr.low.dim.results$sh.dets == min(pca_shr.low.dim.results$sh.dets), 
-    arr.ind = T)
-if (min.shr.det[2] == 1) {
-    shr.min.det.sample <- pca_shr.low.dim.results$sh1.orders[min.shr.det[1], 
-        ]
-} else {
-    shr.min.det.sample <- pca_shr.low.dim.results$sh2.orders[min.shr.det[1], 
-        ]
-}
-shr.c.step <- cont.c.step(data = philips, obs.order = shr.min.det.sample, 
-    center = T, max.iters = 100)
-shr.c.step.pca <- tolerance.svd(scale(philips[shr.c.step$obs.order, 
-    ], scale = F))
-shr.c.step.pred.u <- scale(philips, center = colMeans(philips[shr.c.step$obs.order, 
-    ]), scale = F) %*% shr.c.step.pca$v %*% diag(1/shr.c.step.pca$d)
-shr.c.step.mahal <- rowSums(shr.c.step.pred.u^2)
-# shr.c.step.mahal <-
-# mahalanobis(philips,colMeans(philips[shr.c.step$obs.order,]),cov(philips[shr.c.step$obs.order,]))
-svd.res <- tolerance.svd(scale(philips, scale = F))
-low.rank.philips <- svd.res$u[, 1:4] %*% diag(svd.res$d[1:4]) %*% 
-    t(svd.res$v[, 1:4])
-low.rank.philips <- low.rank.philips + matrix(colMeans(philips), 
-    nrow(low.rank.philips), ncol(low.rank.philips), byrow = T)
-lr.shr.c.step <- cont.c.step(data = low.rank.philips, obs.order = shr.min.det.sample, 
-    center = T, max.iters = 100)
-# lr.shr.c.step.mahal_standard <-
-# mahalanobis(low.rank.philips,colMeans(philips[lr.shr.c.step$obs.order,]),cov(philips[lr.shr.c.step$obs.order,]))
-# lr.shr.c.step.mahal <-
-# mahalanobis(philips,colMeans(low.rank.philips[lr.shr.c.step$obs.order,]),cov(low.rank.philips[lr.shr.c.step$obs.order,])
-# %^% -1,inverted = T)
-lr.shr.c.step.pca <- tolerance.svd(scale(low.rank.philips[lr.shr.c.step$obs.order, 
-    ], scale = F))
-lr.shr.c.step.pred.u <- scale(philips, center = colMeans(low.rank.philips[lr.shr.c.step$obs.order, 
-    ]), scale = F) %*% lr.shr.c.step.pca$v %*% diag(1/lr.shr.c.step.pca$d)
-lr.shr.c.step.mahal <- rowSums(lr.shr.c.step.pred.u^2)
-```
-
-![](README_files/figure-markdown_github/unnamed-chunk-8-1.png)
-
-With PCA+SHR we have many more types of estimates we can use to detect outliers. In the previous low dimensional example, we've provided ways to identify outliers through predicted distance distributions, and even low rank or reproducible subspace based distances. In sum, we generally recommend using the Mahalanobis and Score interval values (e.g., here we used IQR) for the full and reproducible subspace.
+With PCA+SHR we have many more types of estimates we can use to detect outliers. For example we can use points (medians), spread (distributions), or thresholds over the entire sample as we've done. In the previous low dimensional example, we've provided ways to identify outliers through predicted distance distributions, and even low rank or reproducible subspace based distances.
 
 ### High dimensional example
 
@@ -250,61 +191,38 @@ golub.data.log10 <- log10(abs(golub.data)) * sign(golub.data)
 golub.data.log10[is.nan(golub.data.log10)] <- 0
 pca_shr.high.dim.results <- split.half.pca(golub.data.log10, 
     center = T, scale = T, iters = 500)
-## identify reproducible subspace
-## diag(apply(abs(pca_shr.high.dim.results$loadings.cors),c(1,2),mean,na.rm=T))
-## it looks like 2.
-hd.mahal.d <- apply(pca_shr.high.dim.results$pred.u.array^2, 
-    c(1, 3), sum, na.rm = T)
-hd.mahal.iqr <- apply(hd.mahal.d, 1, function(x) {
-    IQR(x)
-})
-hd.score.d <- apply(pca_shr.high.dim.results$pred.fi.array^2, 
-    c(1, 3), sum, na.rm = T)
-hd.score.iqr <- apply(hd.score.d, 1, function(x) {
-    IQR(x)
-})
-hd.mahal.d_12 <- apply(pca_shr.high.dim.results$pred.u.array[, 
-    1:2, ]^2, c(1, 3), sum, na.rm = T)
-hd.mahal.iqr_12 <- apply(hd.mahal.d_12, 1, function(x) {
-    IQR(x)
-})
-hd.score.d_12 <- apply(pca_shr.high.dim.results$pred.fi.array[, 
-    1:2, ]^2, c(1, 3), sum, na.rm = T)
-hd.score.iqr_12 <- apply(hd.score.d_12, 1, function(x) {
-    IQR(x)
-})
-hd.svd.res <- tolerance.svd(scale(golub.data.log10))
-low.rank.golub <- hd.svd.res$u[, 1:2] %*% diag(hd.svd.res$d[1:2]) %*% 
-    t(hd.svd.res$v[, 1:2])
-low.rank.golub <- sweep(sweep(low.rank.golub, 2, apply(golub.data.log10, 
-    2, sd), "*"), 2, apply(golub.data.log10, 2, mean), "+")
-hd.min.shr.det <- which(pca_shr.high.dim.results$sh.dets == min(pca_shr.high.dim.results$sh.dets), 
-    arr.ind = T)
-if (hd.min.shr.det[2] == 1) {
-    hd.shr.min.det.sample <- pca_shr.high.dim.results$sh1.orders[hd.min.shr.det[1], 
-        ]
-} else {
-    hd.shr.min.det.sample <- pca_shr.high.dim.results$sh2.orders[hd.min.shr.det[1], 
-        ]
-}
-hd.lr.shr.c.step <- cont.c.step(data = low.rank.golub, obs.order = hd.shr.min.det.sample, 
-    center = T, scale = T, max.iters = 100)
-hd.lr.shr.c.step.pca <- tolerance.svd(scale(low.rank.golub[hd.lr.shr.c.step$obs.order, 
-    ]))
-hd.lr.shr.c.step.pred.u <- scale(golub.data.log10, center = colMeans(low.rank.golub[hd.lr.shr.c.step$obs.order, 
-    ]), scale = apply(low.rank.golub[hd.lr.shr.c.step$obs.order, 
-    ], 2, sd)) %*% hd.lr.shr.c.step.pca$v %*% diag(1/hd.lr.shr.c.step.pca$d)
-hd.lr.shr.c.step.mahal <- rowSums(hd.lr.shr.c.step.pred.u^2)
+score.outlier.info <- make.distance.distributions.summaries(pca_shr.high.dim.results$pred.fi.array)
+score.outlier.scores <- sh.distribution.outliers(score.outlier.info$dists)
+m.outlier.info <- make.distance.distributions.summaries(pca_shr.high.dim.results$pred.u.array)
+m.outlier.scores <- sh.distribution.outliers(m.outlier.info$dists)
+## use reproducible subspace for OD; it looks like 1, maybe 2.
+od.info <- low.rank.orthogonal.distances.test(golub.data.log10, 
+    T, F, components = 1:2, bootstrap.iters = 500, bootstrap.shortcut = T)
+## put it all together.
+pca_shr.high.dim_outliers <- (score.outlier.scores$outliers | 
+    m.outlier.scores$outliers | od.info$outliers)
+vennDiagram(vennCounts(cbind(score.outlier.scores$outliers + 
+    0, m.outlier.scores$outliers + 0, od.info$outliers)))
 ```
 
-First we show boxplots of the predicted distance distributions. These help highlight which individuals have (1) overall large predicted distances and (2) poor predictability (i.e., large distributions).
+![](README_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
-![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
+``` r
+pca_shr.three.dists <- cbind(score.outlier.info$median.dist, 
+    m.outlier.info$median.dist, od.info$od)
+pca_shr.high.dim_outliers_colors <- ifelse(pca_shr.high.dim_outliers == 
+    FALSE, "grey80", "mediumorchid4")
+par.opts <- par(mfrow = c(1, 2))
+plot(pca_shr.three.dists[, 2], pca_shr.three.dists[, 1], xlab = "Median MD", 
+    ylab = "Median SD", main = "Median MD vs. Median SD", col = pca_shr.high.dim_outliers_colors, 
+    pch = 20)
+plot(pca_shr.three.dists[, 2], pca_shr.three.dists[, 3], xlab = "Median MD", 
+    ylab = "OD", main = "Median MD vs. OD", col = pca_shr.high.dim_outliers_colors, 
+    pch = 20)
+```
 
-![](README_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-8-2.png)
 
-Finally, we show the IQR for Mahalanobis and Score distances, for both the full set of components and only two components (i.e., reproducible components). We also provide "robust Mahalanobis" estimates from the "c-step" with a low rank version of the data rebuilt from only the first two components.
-
-![](README_files/figure-markdown_github/unnamed-chunk-12-1.png)
-
-We can see several inividuals that vary considerably over their predicted distances. The inividuals with large prediction distributions, or a large predicted distance estimate, are those that are likely to be outliers.
+``` r
+par(par.opts)
+```
