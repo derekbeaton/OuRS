@@ -12,7 +12,8 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
   }
 
   ## do the intitial PCA here anyways. We'll be able to use it for a lot of these things.
-  pca.res <- gsvd(expo.scale(DATA,center=center,scale=scale),k=k)
+  #pca.res <- gsvd(expo.scale(DATA,center=center,scale=scale),k=k)
+  pca.res <- pca(DATA,center=center,scale=scale,k=k,compact=F)
   max.rank <- length(pca.res$d.orig)
     ## I'm not really using the original PCA much now but can later for lots of things, e.g., comparing predictions against this.
 
@@ -62,7 +63,8 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
     ## we can have so many bells and whistles...
     loadings.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(sh1.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))])
 
-    score.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(rbind(sh1.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))]),pred.fi.array[c(sh1,sh2),1:min(c(length(sh1.res$d),length(sh2.res$d))),i])
+
+    score.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(rbind(sh1.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))]),pred.u.array[c(sh1,sh2),1:min(c(length(sh1.res$d),length(sh2.res$d))),i])
 
     #print(i)
   }
