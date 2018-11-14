@@ -20,7 +20,7 @@ Installation
 Because `OuRS` is under development it is not yet available as a complete package, though it can still be installed. `OuRS` depends on the `GSVD` package ([GSVD](https://github.com/derekbeaton/ExPosition-Family/tree/master/ExPosition2/GSVD)). For now, the simplest approach to installation is through the `devtools` package:
 
 ``` r
-devtools::install_github("derekbeaton/ExPosition-Family", subdir = "/ExPosition2/GSVD/Package")
+devtools::install_github("derekbeaton/GSVD")
 devtools::install_github("derekbeaton/OuRS", subdir = "/OuRS")
 ```
 
