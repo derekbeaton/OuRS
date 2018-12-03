@@ -8,6 +8,7 @@
   ### DATA must be a data.frame for things to work generally, else it explodes.
   ### I generally discourage the use of this function---so much so that I may remove it entirely.
     ### each column must be correctly formed.
+
 mixed.data.coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA.to.mean=F){
 
   if(class(DATA) != "data.frame"){
@@ -41,12 +42,13 @@ mixed.data.coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
 
 
   variable.map <- type.map <- c() #I'm lazy.
-  DATA.out <- matrix(NULL,nrow(DATA),0) #I'm so lazy.
+  DATA.out <- matrix(NA,nrow(DATA),0) #I'm so lazy.
       # I guess as I go through these I could use a flag, and then allocate the necessary amount of columns..?.
 
   if(any(map.types$n)){
     n.mat <- as.matrix(DATA[,which(map.types$n)])
       ## for safety...
+    rownames(n.mat) <- rownames(DATA)
     colnames(n.mat) <- colnames(DATA[,which(map.types$n)])
     n.mat <- make.data.nominal(n.mat,impute.NA.to.mean=impute.NA.to.mean)
     type.map <- c(type.map,rep("n",ncol(n.mat)))
@@ -56,6 +58,7 @@ mixed.data.coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
   if(any(map.types$z)){
     z.mat <- as.matrix(DATA[,which(map.types$z)])
     ## for safety...
+    rownames(z.mat) <- rownames(DATA)
     colnames(z.mat) <- colnames(DATA[,which(map.types$z)])
     z.mat <- escofier.coding(z.mat)
     type.map <- c(type.map,rep("z",ncol(z.mat)))
@@ -65,6 +68,7 @@ mixed.data.coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
   if(any(map.types$o)){
     o.mat <- as.matrix(DATA[,which(map.types$o)])
     ## for safety...
+    rownames(o.mat) <- rownames(DATA)
     colnames(o.mat) <- colnames(DATA[,which(map.types$o)])
     o.mat <- thermometer.coding(o.mat)
     type.map <- c(type.map,rep("o",ncol(o.mat)))
@@ -74,6 +78,7 @@ mixed.data.coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
   if(any(map.types$f1)){
     f1.mat <- as.matrix(DATA[,which(map.types$f1)])
     ## for safety...
+    rownames(f1.mat) <- rownames(DATA)
     colnames(f1.mat) <- colnames(DATA[,which(map.types$f1)])
     f1.mat <- sweep(f1.mat,2,colSums(f1.mat),"/")
     #attributes(f1.mat)$variable.map <- colnames(f1.mat)
@@ -84,6 +89,7 @@ mixed.data.coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
   if(any(map.types$f)){
     f.mat <- as.matrix(DATA[,which(map.types$f)])
     ## for safety...
+    rownames(f.mat) <- rownames(DATA)
     colnames(f.mat) <- colnames(DATA[,which(map.types$f)])
     type.map <- c(type.map,rep("f",ncol(f.mat)))
     variable.map <- c(variable.map,colnames(f.mat))
@@ -92,6 +98,7 @@ mixed.data.coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
   if(any(map.types$x)){
     x.mat <- as.matrix(DATA[,which(map.types$x)])
     ## for safety...
+    rownames(x.mat) <- rownames(DATA)
     colnames(x.mat) <- colnames(DATA[,which(map.types$x)])
     attributes(x.mat)$variable.map <- colnames(x.mat)
     type.map <- c(type.map,rep("x",ncol(x.mat)))
