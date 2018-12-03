@@ -4,6 +4,15 @@
   ## this one is real easy.
 escofier.coding <- function(DATA, center=T, scale="SS1"){
 
+  if(is.null(colnames(DATA))){
+    warning("'colnames(DATA)' were NULL. Setting to 1:ncol(DATA).")
+    colnames(DATA) <- as.character(1:ncol(DATA))
+  }
+  if(is.null(rownames(DATA))){
+    warning("'rownames(DATA)' were NULL. Setting to 1:nrow(DATA).")
+    rownames(DATA) <- as.character(1:nrow(DATA))
+  }
+
   DATA <- expo.scale(DATA,center=center,scale=scale)
   dat.col.names <- c(paste0(colnames(DATA),"-"),paste0(colnames(DATA),"+"))
   DATA <- cbind( (1-DATA)/2, (1+DATA)/2 )
@@ -11,6 +20,6 @@ escofier.coding <- function(DATA, center=T, scale="SS1"){
 
   DATA <- as.matrix(DATA)
   attributes(DATA)$variable.map <- gsub("\\-","",gsub("\\+","",dat.col.names))
-  
+
   return(DATA)
 }

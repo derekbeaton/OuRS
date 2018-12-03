@@ -33,6 +33,14 @@ thermometer.coding <- function(DATA, mins, maxs, norm.to.one = T){
 
   }
 
+  if(is.null(colnames(DATA))){
+    warning("'colnames(DATA)' were NULL. Setting to 1:ncol(DATA).")
+    colnames(DATA) <- as.character(1:ncol(DATA))
+  }
+  if(is.null(rownames(DATA))){
+    warning("'rownames(DATA)' were NULL. Setting to 1:nrow(DATA).")
+    rownames(DATA) <- as.character(1:nrow(DATA))
+  }
 
   dat.col.names <- c(paste0(colnames(DATA),"-"),paste0(colnames(DATA),"+"))
   DATA <- cbind( sweep(DATA,2,maxs,"-")*-1 , sweep(DATA,2,mins,"-"))

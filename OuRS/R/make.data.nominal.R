@@ -3,6 +3,14 @@
   ### that should not be the default.
 make.data.nominal <- function(datain,impute.NA.to.mean=T){
 
+  if(is.null(colnames(datain))){
+    warning("'colnames(datain)' were NULL. Setting to 1:ncol(datain).")
+    colnames(datain) <- as.character(1:ncol(datain))
+  }
+  if(is.null(rownames(datain))){
+    warning("'rownames(datain)' were NULL. Setting to 1:nrow(datain).")
+    rownames(datain) <- as.character(1:nrow(datain))
+  }
 
   data_dims <- dim(datain)
   var_names <- colnames(datain)
@@ -41,7 +49,7 @@ make.data.nominal <- function(datain,impute.NA.to.mean=T){
   rownames(dataout) <- ind_names
   dataout <- as.matrix(dataout)
   attributes(dataout)$variable.map <- c(variable.map)
-  
+
 
   return(dataout)
 }
