@@ -65,9 +65,10 @@ cont.multi.boxplot <- function(
   mydat.merged <- merge(mydat.long,outliers.formatted,all=T)
 
   # reformatting outliers.formatted for output
-  outliers.formatted <- outliers.formatted[order(as.character(outliers.formatted$SUBJECT),-outliers.formatted$OUT.VALUE),c("VARIABLE","OUT.VALUE")]
+  outliers.formatted <- outliers.formatted[order(as.character(outliers.formatted$SUBJECT),-outliers.formatted$OUT.VALUE),c("SUBJECT","VARIABLE","OUT.VALUE")]
 
-  outliers.out <- list(set.outliers = outliers.formatted,
+  outliers.out <- list(input.parameters = list(center=center, scale=scale, IQR = IQR),
+                       set.outliers = outliers.formatted,
                        outliers.by.subject = outliers.by.subject,
                        data.with.outliers = mydat.merged)
 
