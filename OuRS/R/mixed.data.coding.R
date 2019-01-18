@@ -19,10 +19,10 @@ mixed.data.coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
     warning("'colnames(DATA)' were NULL. Setting to 1:ncol(DATA).")
     colnames(DATA) <- as.character(1:ncol(DATA))
   }
-  if(is.null(rownames(DATA))){
-    warning("'rownames(DATA)' were NULL. Setting to 1:nrow(DATA).")
-    rownames(DATA) <- as.character(1:nrow(DATA))
-  }
+  # if(is.null(rownames(DATA))){
+  #   warning("'rownames(DATA)' were NULL. Setting to 1:nrow(DATA).")
+  #   rownames(DATA) <- as.character(1:nrow(DATA))
+  # }
 
   # orig.colnames <- names(column.type) <- colnames(DATA)
   names(column.type) <- colnames(DATA)
