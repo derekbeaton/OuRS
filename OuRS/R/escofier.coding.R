@@ -8,10 +8,10 @@ escofier.coding <- function(DATA, center=T, scale="SS1"){
     warning("'colnames(DATA)' were NULL. Setting to 1:ncol(DATA).")
     colnames(DATA) <- as.character(1:ncol(DATA))
   }
-  if(is.null(rownames(DATA))){
-    warning("'rownames(DATA)' were NULL. Setting to 1:nrow(DATA).")
-    rownames(DATA) <- as.character(1:nrow(DATA))
-  }
+  # if(is.null(rownames(DATA))){
+  #   warning("'rownames(DATA)' were NULL. Setting to 1:nrow(DATA).")
+  #   rownames(DATA) <- as.character(1:nrow(DATA))
+  # }
 
   DATA <- expo.scale(DATA,center=center,scale=scale)
   dat.col.names <- c(paste0(colnames(DATA),"-"),paste0(colnames(DATA),"+"))
