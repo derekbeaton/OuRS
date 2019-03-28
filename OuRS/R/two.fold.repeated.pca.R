@@ -23,8 +23,9 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
   score.cors <- loadings.cors <- array(NA,dim=c(max.rank,max.rank,iters)) ## this is the maximum size it could be...
 
 
-  pred.fi.array <- pred.u.array <- array(NA,dim=c(nrow(DATA),min(dim(DATA)),iters))
-  rownames(pred.fi.array) <- rownames(pred.u.array) <- rownames(DATA)
+  # pred.fi.array <- pred.u.array <- array(NA,dim=c(nrow(DATA),min(dim(DATA)),iters))
+  pred.sds <- pred.mds <- matrix(NA,nrow(DATA),iters)
+  rownames(pred.sds) <- rownames(pred.mds) <- rownames(DATA)
 
 
   for(i in 1:iters){
@@ -50,26 +51,49 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
     sh1.orders[i,] <- sh1
     sh2.orders[i,] <- sh2
 
+    loadings.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <-
+      cor(
+        sh1.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],
+        sh2.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))]
+      )
+
+
+    ##### THIS BLOCK NEEDS FIXIN'
+
     ## predict based on the center/scale of the OTHER half.
-    pred.fi.array[sh1,1:length(sh2.res$d),i] <- expo.scale(DATA[sh1,],center=sh2.center,scale=sh2.scale) %*% sh2.res$v
-    pred.u.array[sh1,1:length(sh2.res$d),i] <- sweep(pred.fi.array[sh1,1:length(sh2.res$d),i],2,sh2.res$d,"/")
+      ### this should be fixed here, too...
 
-    pred.fi.array[sh2,1:length(sh1.res$d),i] <- expo.scale(DATA[sh2,],center=sh1.center,scale=sh1.scale) %*% sh1.res$v
-    pred.u.array[sh2,1:length(sh1.res$d),i] <- sweep(pred.fi.array[sh2,1:length(sh1.res$d),i],2,sh1.res$d,"/")
+        ## this block should only produce the eventual distances, we don't need the actual scores; just correlations and MD & SD.
 
-    # the ODs can be brought back here by projecting onto each others subspaces.
+    sh1.pred.fi <- expo.scale(DATA[sh1,],center=sh2.center,scale=sh2.scale) %*% sh2.res$v
+    sh1.pred.u <- sweep(sh1.pred.fi,2,sh2.res$d,"/")
 
+    sh2.pred.fi <- expo.scale(DATA[sh2,],center=sh1.center,scale=sh1.scale) %*% sh1.res$v
+    sh2.pred.u <- sweep(sh2.pred.fi,2,sh1.res$d,"/")
 
-    ## we can have so many bells and whistles...
-    loadings.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(sh1.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$v[,1:min(c(length(sh1.res$d),length(sh2.res$d)))])
+    score.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <-
+      (
+        (cor(
+          sh1.res$u[,1:min(ncol(sh1.res$u), ncol(sh1.pred.u))],
+          sh1.pred.u[,1:min(ncol(sh1.res$u), ncol(sh1.pred.u))]
+      )^2)[,1: min(ncol(sh1.res$u), ncol(sh1.pred.u),ncol(sh2.res$u), ncol(sh2.pred.u)) ] +
+        (cor(
+          sh2.res$u[,1:min(ncol(sh2.res$u), ncol(sh2.pred.u))],
+          sh2.pred.u[,1:min(ncol(sh2.res$u), ncol(sh2.pred.u))]
+      )^2)[,1: min(ncol(sh1.res$u), ncol(sh1.pred.u),ncol(sh2.res$u), ncol(sh2.pred.u)) ]
+      ) /2
 
+    pred.sds[sh1, i] <- rowSums(sh1.pred.fi^2)
+    pred.sds[sh2, i] <- rowSums(sh2.pred.fi^2)
+    pred.mds[sh1, i] <- rowSums(sh1.pred.u^2)
+    pred.mds[sh2, i] <- rowSums(sh2.pred.u^2)
 
-    score.cors[1:min(c(length(sh1.res$d),length(sh2.res$d))),1:min(c(length(sh1.res$d),length(sh2.res$d))),i] <- cor(rbind(sh1.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))],sh2.res$u[,1:min(c(length(sh1.res$d),length(sh2.res$d)))]),pred.u.array[c(sh1,sh2),1:min(c(length(sh1.res$d),length(sh2.res$d))),i])
+    ##### THIS BLOCK NEEDS FIXIN'
 
     #print(i)
   }
 
   ## all those distances can be computed here.
 
-  return( list(pred.fi.array=pred.fi.array,pred.u.array=pred.u.array,sh1.orders=sh1.orders,sh2.orders=sh2.orders,sh.dets=sh.dets,loadings.cors=loadings.cors,score.cors=score.cors) )
+  return( list(pred.sds=pred.sds,pred.mds=pred.mds,sh1.orders=sh1.orders,sh2.orders=sh2.orders,sh.dets=sh.dets,loadings.cors=loadings.cors,score.cors=score.cors) )
 }
