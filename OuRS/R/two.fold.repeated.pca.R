@@ -23,7 +23,7 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
   score.cors <- loadings.cors <- array(NA,dim=c(max.rank,max.rank,iters)) ## this is the maximum size it could be...
 
 
-  # pred.fi.array <- pred.u.array <- array(NA,dim=c(nrow(DATA),min(dim(DATA)),iters))
+  pred.fi.array <- pred.u.array <- array(NA,dim=c(nrow(DATA),min(dim(DATA)),iters))
   pred.sds <- pred.mds <- matrix(NA,nrow(DATA),iters)
   rownames(pred.sds) <- rownames(pred.mds) <- rownames(DATA)
 
@@ -83,10 +83,20 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
       )^2)[,1: min(ncol(sh1.res$u), ncol(sh1.pred.u),ncol(sh2.res$u), ncol(sh2.pred.u)) ]
       ) /2
 
+
+
     pred.sds[sh1, i] <- rowSums(sh1.pred.fi^2)
     pred.sds[sh2, i] <- rowSums(sh2.pred.fi^2)
+
     pred.mds[sh1, i] <- rowSums(sh1.pred.u^2)
     pred.mds[sh2, i] <- rowSums(sh2.pred.u^2)
+
+      ## these could be used for distances derived from subspaces...
+      pred.fi.array[sh1, 1:min(c(ncol(pred.fi.array), ncol(sh1.pred.fi))) ,i] <- sh1.pred.fi
+      pred.fi.array[sh2, 1:min(c(ncol(pred.fi.array), ncol(sh2.pred.fi))) ,i] <- sh2.pred.fi
+
+      pred.u.array[sh1, 1:min(c(ncol(pred.u.array), ncol(sh1.pred.u))) ,i] <- sh1.pred.u
+      pred.u.array[sh2, 1:min(c(ncol(pred.u.array), ncol(sh2.pred.u))) ,i] <- sh2.pred.u
 
     ##### THIS BLOCK NEEDS FIXIN'
 
@@ -95,5 +105,5 @@ two.fold.repeated.pca <- function(DATA,center=T,scale=F,iters=500,sh1.size=.5,k=
 
   ## all those distances can be computed here.
 
-  return( list(pred.sds=pred.sds,pred.mds=pred.mds,sh1.orders=sh1.orders,sh2.orders=sh2.orders,sh.dets=sh.dets,loadings.cors=loadings.cors,score.cors=score.cors) )
+  return( list(pred.sds=pred.sds,pred.mds=pred.mds, pred.fi.array=pred.fi.array,pred.u.array=pred.u.array,sh1.orders=sh1.orders,sh2.orders=sh2.orders,sh.dets=sh.dets,loadings.cors=loadings.cors,score.cors=score.cors) )
 }
