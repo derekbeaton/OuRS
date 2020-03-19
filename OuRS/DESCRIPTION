@@ -9,6 +9,4 @@ Description: Identification of outliers (observations), their sources, and robus
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: GSVD,
-    ggplot2,
-    gridExtra
+Imports: GSVD
