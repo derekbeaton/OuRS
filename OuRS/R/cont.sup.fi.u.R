@@ -1,4 +1,4 @@
-
+## this should also directly return scores.
 
 cont.sup.fi.u <- function(data,center=F,scale=F,loadings,singular.values){
 

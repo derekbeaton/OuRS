@@ -1,13 +1,19 @@
 
-##
+## I think maybe I do not want people to interface directly with this function.
+## that way I don't need to perform the checks here, just the checks in continuous_mcd
+## or I can make this available but I'll need tests here, too...
+### minimal tests here.. but those only override stupid things. also if you use this, you're committed to being OK with singular matrices
 #'
 #'  @export
 
-cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+cont_mcd_find_sample <- function(data, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
+  ## rudimentary data checks, or no?
 
+  ## check alpha and change it if it's a problem.
   if(alpha<.5){
-    h.size <- floor((nrow(data)+1)/2)
+    # h.size <- floor((nrow(data)+1)/2)
+    alpha <- .5
   }
   h.size <- h.alpha.n(alpha,nrow(data),ncol(data))
   max.det.iters <- round(max.total.iters / num.subsets)
@@ -23,8 +29,8 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
 
       init.samp <- sort(sample(nrow(data),init.size))
       init.norm <- ours_scale(data[init.samp,],center,scale)
-      init.svd <- tolerance_svd(init.norm,tol = tol)
-      init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round? ### I should probably use a tol parameter here...
+      init.svd <- tolerance_svd(init.norm, tol = tol)
+      init.mds <- round(rowSums(init.svd$u^2),digits=8)
 
       if(length(unique(init.mds)) < 2){
         init.size <- init.size + 1

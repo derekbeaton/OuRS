@@ -173,7 +173,7 @@ ca_preproc <- function(DATA){
 
 
 
-#### need to revisit this one...
+#### need to revisit this one... perhaps just limit this to cat, continuous, and ordinal
 # categorical = "n"
 # continuous= "z"
 # ordinal = "o"

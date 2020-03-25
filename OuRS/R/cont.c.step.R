@@ -7,9 +7,10 @@ cont.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sq
   new.order <- old.order <- obs.order
 
   for(i in 1:max.iters){
+
     sub.data <- data[new.order,]
     sub.data.normed <- ours_scale(sub.data,center=center,scale=scale)
-    svd.res <- tolerance_svd(sub.data.normed)
+    svd.res <- tolerance_svd(sub.data.normed, tol = tol)
 
     new.center <- attributes(sub.data.normed)$`scaled:center`
     new.scale <- attributes(sub.data.normed)$`scaled:scale`
