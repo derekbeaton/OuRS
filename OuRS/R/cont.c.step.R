@@ -1,3 +1,4 @@
+
 cont.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sqrt(.Machine$double.eps)){
 
   old.det <- Inf
@@ -7,8 +8,8 @@ cont.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sq
 
   for(i in 1:max.iters){
     sub.data <- data[new.order,]
-    sub.data.normed <- expo.scale(sub.data,center=center,scale=scale)
-    svd.res <- tolerance.svd(sub.data.normed)
+    sub.data.normed <- ours_scale(sub.data,center=center,scale=scale)
+    svd.res <- tolerance_svd(sub.data.normed)
 
     new.center <- attributes(sub.data.normed)$`scaled:center`
     new.scale <- attributes(sub.data.normed)$`scaled:scale`
@@ -37,6 +38,6 @@ cont.c.step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sq
       return( list(obs.order = old.order, min.det = old.det) )
     }
   }
-  ## this is basically the max out which implies the most recent is the best.
-  return( list(obs.order = new.order, min.det= new.det) )	## it may have been the first one, so just send it back.
+
+  return( list(obs.order = new.order, min.det= new.det) )
 }

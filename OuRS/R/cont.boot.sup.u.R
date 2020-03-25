@@ -6,7 +6,7 @@ cont.boot.sup.u <- function(target.data,center=T,scale=F,loadings,singular.value
 
     boot.distrs[,i] <- rowSums(
 
-      sweep( (expo.scale(target.data[sample(nrow(target.data),replace=T),],center=center,scale=scale) %*% loadings) , 2, singular.values, "/")^2
+      sweep( (ours_scale(target.data[sample(nrow(target.data),replace=T),],center=center,scale=scale) %*% loadings) , 2, singular.values, "/")^2
 
       )
 

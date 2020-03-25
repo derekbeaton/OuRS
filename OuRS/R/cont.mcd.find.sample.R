@@ -1,7 +1,7 @@
 
-
-### the point of this function is to strictly return the best sample(s) for MCD.
-  ## however, this is the heavy-duty part of MCD.
+##
+#'
+#'  @export
 
 cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
@@ -22,8 +22,8 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
     while( findInit ){
 
       init.samp <- sort(sample(nrow(data),init.size))
-      init.norm <- expo.scale(data[init.samp,],center,scale)
-      init.svd <- tolerance.svd(init.norm,tol = tol)
+      init.norm <- ours_scale(data[init.samp,],center,scale)
+      init.svd <- tolerance_svd(init.norm,tol = tol)
       init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round? ### I should probably use a tol parameter here...
 
       if(length(unique(init.mds)) < 2){
@@ -36,12 +36,12 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
       }
     }
 
-    min.info <- cont.c.step(data, samp.config, center, scale, max.det.iters)	## set to some threshold to not go for a long time
+    min.info <- cont.c.step(data, samp.config, center, scale, max.det.iters)
     dets[i] <- min.info$min.det
     orders[i,] <- min.info$obs.order
   }
 
-  perc.cut <- round(num.subsets * top.sets.percent)	## they take "top 10" -- I will allow our search to be broader
+  perc.cut <- round(num.subsets * top.sets.percent)
   unique.min.configs <- unique(orders[order(dets),])
   final.configs <- unique(unique.min.configs[1:min(nrow(unique.min.configs), perc.cut),])
 
@@ -49,10 +49,10 @@ cont.mcd.find.sample <- function(data, center=T, scale=F, alpha=.75, num.subsets
   final.orders <- matrix(NA,nrow(final.configs),h.size)
   for( i in 1:nrow(final.configs)){
 
-    ## RETURN TO THIS. I NEED INF to work.
     min.info <- cont.c.step(data, final.configs[i,], center, scale, 100)	## set to Inf so that this converges on its own; need to make this settable & have a real max embedded in c.step
     final.dets[i] <- min.info$min.det
     final.orders[i,] <- min.info$obs.order
+
   }
 
   best.order <- order(final.dets)

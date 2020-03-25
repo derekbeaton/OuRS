@@ -1,6 +1,7 @@
-## THIS NEEDS TESTING.
+### this too needs a full analog compared to cont.corrmax
+  ## right now it's only a "reference" version
 
-  ## here target.data has to be the weighted deviations (weightedZx)
+
 cat.corrmax <- function(target.data,loadings,singular.values,tol=.Machine$double.eps){
 
   ## if we want to do a correction for sample size in this case, all we need to do is scale up the sv/eigen values.
