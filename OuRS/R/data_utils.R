@@ -77,6 +77,9 @@ thermometer_coding <- function (DATA, mins, maxs, impute_NA_to_mean=T)
   if(length(maxs)!=ncol(DATA)){
     maxs <- apply(DATA, 2, max, na.rm = T)
   }
+  if( any(is.na(maxs)) | any(is.infinite(maxs)) | any(is.nan(maxs)) | any(is.null(maxs)) ){
+    maxs <- apply(DATA, 2, max, na.rm = T)
+  }
   if(any( maxs < apply(DATA, 2, max, na.rm = T))){
     maxs <- apply(DATA, 2, max, na.rm = T)
   }
@@ -85,6 +88,9 @@ thermometer_coding <- function (DATA, mins, maxs, impute_NA_to_mean=T)
     mins <- apply(DATA, 2, min, na.rm = T)
   }
   if(length(mins)!=ncol(DATA)){
+    mins <- apply(DATA, 2, min, na.rm = T)
+  }
+  if( any(is.na(mins)) | any(is.infinite(mins)) | any(is.nan(mins)) | any(is.null(mins)) ){
     mins <- apply(DATA, 2, min, na.rm = T)
   }
   if(any( mins > apply(DATA, 2, min, na.rm = T))){

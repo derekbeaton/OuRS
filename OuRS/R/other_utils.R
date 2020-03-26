@@ -1,12 +1,11 @@
-### a utils file.
-## help keep the file structure clean and to emphasize the methods
+## don't export any of these, but do document them?
 
 
 ## stolen from 'psych' package
 #' @export
 #'
 
-geometric.mean <- function (x, na.rm = TRUE)
+geometric_mean <- function (x, na.rm = TRUE)
 {
   if (is.null(nrow(x))) {
     exp(mean(log(x), na.rm = TRUE))

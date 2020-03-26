@@ -4,7 +4,7 @@
 #' @export
 #'
 
-continuous_mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+continuous_mcd <- function(data, center=T, scale=F, allow_collinearity=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
   ## data size check
   if(ncol(data) > (nrow(data)*.9)){
@@ -12,9 +12,10 @@ continuous_mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.
   }
 
   ## collinearity check
+    ## NOTE: the DetMCD.m does exactly this via classSVD.m
   svd.res <- tolerance_svd(ours_scale(data,center=center,scale=scale), tol = NULL)
   if( any(svd.res$d^2 < tol) ) {
-    if(collinearity.stop){
+    if(!allow_collinearity){
       stop("continuous_mcd: Matrix is singular. It is likely that data are collinear where some variables are combinations of other variables.")
     }
   }
@@ -39,10 +40,9 @@ continuous_mcd <- function(data, center=T, scale=F, collinearity.stop=T, alpha=.
 
   ## get robust distances
   robust.vectors.and.scores <- continuous_scores_dists(data,center=rob.center,scale=rob.scale,robust.tsvd.res$v,robust.tsvd.res$d)
-  # robust.mahals <- rowSums(robust.vectors.and.scores$sup.u^2)
-  # robust.chis <- rowSums(robust.vectors.and.scores$sup.fi^2)
 
 
+  ## I should also return the actual scores, too
   res <- list(
     cov = list(loadings = robust.tsvd.res$v,
                singular.values = robust.tsvd.res$d,
@@ -77,7 +77,7 @@ continuous_mcd_find_sample <- function(data, center=T, scale=F, alpha=.75, num.s
 
   ## data size check
   if(ncol(data) > (nrow(data)*.9)){
-    stop("continuous_mcd: the column-to-row ratio is too high so 'mcd' cannot be performed")
+    stop("continuous_mcd_find_sample: the column-to-row ratio is too high so 'mcd' cannot be performed")
   }
   ## alpha check
   if(alpha < .5){
@@ -94,6 +94,9 @@ continuous_mcd_find_sample <- function(data, center=T, scale=F, alpha=.75, num.s
     findInit <- T
     init.size <- min(dim(data))+1
 
+    ## this step isn't necessary, it's just in the spirit of the MCD algorithm
+      ## we start with the minimum possible set size and work from there
+      ## we could just dive into the c_step here (but that's for later)
     while( findInit ){
 
       init.samp <- sort(sample(nrow(data),init.size))
@@ -158,10 +161,9 @@ continuous_scores_dists <- function(data,center=F,scale=F,loadings,singular.valu
 
 
 
-#'
-#' @export
-#'
 
+### maybe don't export this one?
+### still document it maybe?
 
 continuous_c_step <- function(data, obs.order, center=T, scale=F, max.iters=25, tol=sqrt(.Machine$double.eps)){
 
@@ -178,7 +180,7 @@ continuous_c_step <- function(data, obs.order, center=T, scale=F, max.iters=25, 
 
     new.center <- attributes(sub.data.normed)$`scaled:center`
     new.scale <- attributes(sub.data.normed)$`scaled:scale`
-    new.det <- geometric.mean(svd.res$d^2)
+    new.det <- geometric_mean(svd.res$d^2)
 
     if( (new.det <= old.det) & (!isTRUE(all.equal(new.det,0,tolerance=tol))) ){
       if( center.sigma_checker(old.center, new.center, old.v, svd.res$v,tol=tol) & isTRUE(all.equal(new.det, old.det, tolerance= tol)) ){
