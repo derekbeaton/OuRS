@@ -3,9 +3,9 @@
 #' @title Principal components analysis
 #'
 #' @description
-#' \code{pca} performs principal components analysis of a data matrix \code{X}.
+#' \code{pca} performs principal components analysis of a data matrix \code{DATA}.
 #'
-#' @param X a data matrix to decompose
+#' @param DATA a data matrix to decompose
 #' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
 #' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
 #' @param k total number of components to return (see \code{\link{gsvd}}).
@@ -17,12 +17,12 @@
 #' \item{tau}{A vector that contains the (original) explained variance per component (via eigenvalues: \code{$l.orig}).}
 #' \item{d}{A vector of length \code{min(length(d.orig), k)} containing the retained singular values of X}
 #' \item{l}{A vector of length \code{min(length(l.orig), k)} containing the retained eigen values of X}
-#' \item{u}{Left (rows) singular vectors. Dimensions are \code{nrow(X)} by k.}
-#' \item{p}{Left (rows) generalized singular vectors. Dimensions are \code{nrow(X)} by k.}
-#' \item{fi}{Left (rows) component scores. Dimensions are \code{nrow(X)} by k.}
-#' \item{v}{Right (columns) singular vectors. Dimensions are \code{ncol(X)} by k.}
-#' \item{q}{Right (columns) generalized singular vectors. Dimensions are \code{ncol(X)} by k.}
-#' \item{fj}{Right (columns) component scores. Dimensions are \code{ncol(X)} by k.}
+#' \item{u}{Left (rows) singular vectors. Dimensions are \code{nrow(DATA)} by k.}
+#' \item{p}{Left (rows) generalized singular vectors. Dimensions are \code{nrow(DATA)} by k.}
+#' \item{fi}{Left (rows) component scores. Dimensions are \code{nrow(DATA)} by k.}
+#' \item{v}{Right (columns) singular vectors. Dimensions are \code{ncol(DATA)} by k.}
+#' \item{q}{Right (columns) generalized singular vectors. Dimensions are \code{ncol(DATA)} by k.}
+#' \item{fj}{Right (columns) component scores. Dimensions are \code{ncol(DATA)} by k.}
 #'
 #' @seealso \code{\link{gsvd}}
 #'
@@ -47,7 +47,7 @@ pca <- function(DATA, center = T, scale = T, k = 0, tol = sqrt(.Machine$double.e
 #' @title Correspondence analysis
 #'
 #' @description
-#' \code{ca} performs correspondence analysis of a data matrix \code{X}.
+#' \code{ca} performs correspondence analysis of a data matrix \code{DATA}.
 #'
 #' @param X a data matrix to decompose
 #' @param k total number of components to return (see \code{\link{gsvd}}).
@@ -59,12 +59,12 @@ pca <- function(DATA, center = T, scale = T, k = 0, tol = sqrt(.Machine$double.e
 #' \item{tau}{A vector that contains the (original) explained variance per component (via eigenvalues: \code{$l.orig}).}
 #' \item{d}{A vector of length \code{min(length(d.orig), k)} containing the retained singular values of X}
 #' \item{l}{A vector of length \code{min(length(l.orig), k)} containing the retained eigen values of X}
-#' \item{u}{Left (rows) singular vectors. Dimensions are \code{nrow(X)} by k.}
-#' \item{p}{Left (rows) generalized singular vectors. Dimensions are \code{nrow(X)} by k.}
-#' \item{fi}{Left (rows) component scores. Dimensions are \code{nrow(X)} by k.}
-#' \item{v}{Right (columns) singular vectors. Dimensions are \code{ncol(X)} by k.}
-#' \item{q}{Right (columns) generalized singular vectors. Dimensions are \code{ncol(X)} by k.}
-#' \item{fj}{Right (columns) component scores. Dimensions are \code{ncol(X)} by k.}
+#' \item{u}{Left (rows) singular vectors. Dimensions are \code{nrow(DATA)} by k.}
+#' \item{p}{Left (rows) generalized singular vectors. Dimensions are \code{nrow(DATA)} by k.}
+#' \item{fi}{Left (rows) component scores. Dimensions are \code{nrow(DATA)} by k.}
+#' \item{v}{Right (columns) singular vectors. Dimensions are \code{ncol(DATA)} by k.}
+#' \item{q}{Right (columns) generalized singular vectors. Dimensions are \code{ncol(DATA)} by k.}
+#' \item{fj}{Right (columns) component scores. Dimensions are \code{ncol(DATA)} by k.}
 #'
 #' @seealso \code{\link{gsvd}}
 #'
