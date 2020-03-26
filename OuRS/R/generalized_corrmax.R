@@ -1,8 +1,12 @@
 ### this too needs a full analog compared to cont.corrmax
   ## right now it's only a "reference" version
 
+### all of this needs a major overhaul so that it has a single core
+  ### but then the respective calls handle the data processing
+  ### and also this needs to be able to just compute corrmax from data itself
 
-cat.corrmax <- function(target.data,loadings,singular.values,tol=.Machine$double.eps){
+
+categorical_corrmax <- function(target.data,loadings,singular.values,tol=.Machine$double.eps){
 
   ## if we want to do a correction for sample size in this case, all we need to do is scale up the sv/eigen values.
 
@@ -20,3 +24,9 @@ cat.corrmax <- function(target.data,loadings,singular.values,tol=.Machine$double
   ## I believe that the contributions (i.e., W^2) could actually be used by CA in some clever way. I just don't know it yet!
 
 }
+
+
+
+# generalized_corrmax <- function(){
+#
+# }

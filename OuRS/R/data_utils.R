@@ -48,6 +48,10 @@ escofier.coding <- function(DATA, center=TRUE, scale=TRUE, impute_NA_to_mean=T){
 
 
   ### impute mean here
+  if(impute_NA_to_mean){
+    DATA <- apply(DATA, 2, function(x){ x[is.na(x)] <- mean(x, na.rm = T); x })
+  }
+
   DATA
 
 }
@@ -94,6 +98,10 @@ thermometer_coding <- function (DATA, mins, maxs, impute_NA_to_mean=T)
 
 
   ### impute mean here
+  if(impute_NA_to_mean){
+    DATA <- apply(DATA, 2, function(x){ x[is.na(x)] <- mean(x, na.rm = T); x })
+  }
+
   DATA
 
 }
@@ -175,17 +183,16 @@ ca_preproc <- function(DATA){
 
 #### need to revisit this one... perhaps just limit this to cat, continuous, and ordinal
 # categorical = "n"
-# continuous= "z"
+# continuous, centered only = "c"
+# continuous, centered and scaled = "z"
 # ordinal = "o"
-# counts/non-negatives = "f"; this effectively does nothing...
-# counts/non-negatives to be normalized to 1 by column = "f1"
-# do nothing - "x"
+# do nothing = "x"
 
 ### DATA must be a data.frame for things to work generally, else it explodes.
 ### I generally discourage the use of this function---so much so that I may remove it entirely.
 ### each column must be correctly formed.
 
-mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA.to.mean=F){
+mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute_NA_to_mean=F){
 
   if(class(DATA) != "data.frame"){
     stop("'DATA' must be a data.frame. To recode various types of data see make.data.nominal(), thermometer.coding(), and escofier.coding().")
@@ -203,7 +210,7 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
   # orig.colnames <- names(column.type) <- colnames(DATA)
   names(column.type) <- colnames(DATA)
 
-  possible.types <- c("n","z","o","f","f1","x")
+  possible.types <- c("n","z","o","x")
   if(any(!(column.type %in% possible.types))){
     warning("Unrecognized 'column.type'. Changing unrecognized types to 'x'")
     column.type[which(!(column.type %in% possible.types))] <-"x"
@@ -216,7 +223,6 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
   ## may not be necessary.
   names(map.types) <- possible.types
 
-
   variable.map <- type.map <- c() #I'm lazy.
   DATA.out <- matrix(NA,nrow(DATA),0) #I'm so lazy.
   # I guess as I go through these I could use a flag, and then allocate the necessary amount of columns..?.
@@ -226,17 +232,27 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
     ## for safety...
     rownames(n.mat) <- rownames(DATA)
     colnames(n.mat) <- colnames(DATA[,which(map.types$n)])
-    n.mat <- make.data.nominal(n.mat,impute.NA.to.mean=impute.NA.to.mean)
+    n.mat <- make.data.nominal(n.mat,impute_NA_to_mean=impute_NA_to_mean)
     type.map <- c(type.map,rep("n",ncol(n.mat)))
     variable.map <- c(variable.map,attributes(n.mat)$variable.map)
     DATA.out <- cbind(DATA.out,n.mat)
+  }
+  if(any(map.types$c)){
+    c.mat <- as.matrix(DATA[,which(map.types$z)])
+    ## for safety...
+    rownames(c.mat) <- rownames(DATA)
+    colnames(c.mat) <- colnames(DATA[,which(map.types$c)])
+    c.mat <- escofier_coding(c.mat, TRUE, FALSE, impute_NA_to_mean = impute_NA_to_mean)
+    type.map <- c(type.map,rep("c",ncol(c.mat)))
+    variable.map <- c(variable.map,attributes(c.mat)$variable.map)
+    DATA.out <- cbind(DATA.out,c.mat)
   }
   if(any(map.types$z)){
     z.mat <- as.matrix(DATA[,which(map.types$z)])
     ## for safety...
     rownames(z.mat) <- rownames(DATA)
     colnames(z.mat) <- colnames(DATA[,which(map.types$z)])
-    z.mat <- escofier.coding(z.mat)
+    z.mat <- escofier_coding(z.mat, TRUE, TRUE, impute_NA_to_mean = impute_NA_to_mean)
     type.map <- c(type.map,rep("z",ncol(z.mat)))
     variable.map <- c(variable.map,attributes(z.mat)$variable.map)
     DATA.out <- cbind(DATA.out,z.mat)
@@ -246,30 +262,10 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute.NA
     ## for safety...
     rownames(o.mat) <- rownames(DATA)
     colnames(o.mat) <- colnames(DATA[,which(map.types$o)])
-    o.mat <- thermometer.coding(o.mat)
+    o.mat <- thermometer_coding(o.mat, impute_NA_to_mean = impute_NA_to_mean)
     type.map <- c(type.map,rep("o",ncol(o.mat)))
     variable.map <- c(variable.map,attributes(o.mat)$variable.map)
     DATA.out <- cbind(DATA.out,o.mat)
-  }
-  if(any(map.types$f1)){
-    f1.mat <- as.matrix(DATA[,which(map.types$f1)])
-    ## for safety...
-    rownames(f1.mat) <- rownames(DATA)
-    colnames(f1.mat) <- colnames(DATA[,which(map.types$f1)])
-    f1.mat <- sweep(f1.mat,2,colSums(f1.mat),"/")
-    #attributes(f1.mat)$variable.map <- colnames(f1.mat)
-    type.map <- c(type.map,rep("f1",ncol(f1.mat)))
-    variable.map <- c(variable.map,colnames(f1.mat))
-    DATA.out <- cbind(DATA.out,f1.mat)
-  }
-  if(any(map.types$f)){
-    f.mat <- as.matrix(DATA[,which(map.types$f)])
-    ## for safety...
-    rownames(f.mat) <- rownames(DATA)
-    colnames(f.mat) <- colnames(DATA[,which(map.types$f)])
-    type.map <- c(type.map,rep("f",ncol(f.mat)))
-    variable.map <- c(variable.map,colnames(f.mat))
-    DATA.out <- cbind(DATA.out,f.mat)
   }
   if(any(map.types$x)){
     x.mat <- as.matrix(DATA[,which(map.types$x)])
