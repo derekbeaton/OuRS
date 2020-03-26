@@ -5,7 +5,7 @@
 
 
 #cont.corrmax <- function(population.data,sample.data){
-cont.corrmax <- function(target.data,rob.center=T,rob.scale=F,loadings,singular.values,tol=.Machine$double.eps){
+continous_corrmax <- function(target.data,rob.center=T,rob.scale=F,loadings,singular.values,tol=.Machine$double.eps){
 
   ## if we want to do a correction for sample size in this case, all we need to do is scale up the sv/eigen values.
 

@@ -1,8 +1,7 @@
-  ## a bunch of these go to NaN... why?
-
 cat.sup.fi.u <- function(profiles, row.weights, col.weights, loadings, singular.values){
 
   ## NOT EFFICIENT. MAKE MORE EFFICIENT
+  ## also this can handle the profiles here...
 
   #sup.fi <- (profiles %*% (diag(sqrt(col.weights)*(1/col.weights)) %*% loadings))
   sup.fi <- profiles %*% sweep(loadings,1,sqrt(col.weights)/col.weights,"*")
