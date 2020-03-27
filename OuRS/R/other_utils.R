@@ -2,8 +2,13 @@
 
 
 ## stolen from 'psych' package
+#' @title Geometric mean
+#' @description Compute the geometric mean of the vector \code{x}
+#' @details This function is copied from \code{\link{psych::geometric.mean}}
+#' @param x a numeric vector
+#' @param na.rm a logical value indicating whether NA values should be stripped before the computation proceeds.
+#' @author William Revelle
 #' @export
-#'
 
 geometric_mean <- function (x, na.rm = TRUE)
 {
