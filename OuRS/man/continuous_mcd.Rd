@@ -9,35 +9,54 @@ continuous_mcd(DATA, center = T, scale = F, allow_collinearity = F,
   20, top.sets.percent = 0.05, tol = .Machine$double.eps)
 }
 \arguments{
-\item{DATA}{a data matrix to decompose}
+\item{DATA}{a data matrix (of presumably all continuous data)}
 
 \item{center}{logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)}
 
 \item{scale}{logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)}
 
+\item{allow_collinearity}{logical (boolean). Default is \code{FALSE} which does not allow a matrix to be singular (i.e., all eigenvalues must be > 0).}
+
+\item{alpha}{numeric. A value between .5 and 1 to select the size of the subsample based on a breakdown point}
+
+\item{num.subsets}{numeric. The number of initial subsamples to start the MCD algorithm with}
+
+\item{max.total.iters}{numeric. The total number of iterations allowed for the MCD search}
+
+\item{top.sets.percent}{numeric. A value within (0,1] for the number of samples and determinants to return. Returned results are in ascending order of determinants (minimum is the first element)}
+
 \item{tol}{default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).}
 }
 \value{
-A list of three lists:
+The 'OuRS MCD' object: a list of three lists:
 \item \strong{cov:} a list for the robust covariance structure items
 \itemize{
-  \item{loadings} {a matrix of loadings via PCA from the robust covariance matrix}
-  \item{singular.values} {a vector of singular values via PCA from the robust covariance matrix}
-  \item{center} {a vector of the column-wise centers for the final subsample that produces the robust covariance matrix}
-  \item{scale} {a vector of the column-wise scale for the final subsample that produces the robust covariance matrix}
+  \item{loadings:} {a matrix of loadings via PCA from the robust covariance matrix}
+  \item{singular.values:} {a vector of singular values via PCA from the robust covariance matrix}
+  \item{center:} {a vector of the column-wise centers for the final subsample that produces the robust covariance matrix}
+  \item{scale:} {a vector of the column-wise scale for the final subsample that produces the robust covariance matrix}
 }
-\item{dists}{A vector containing the eigen values of X above the tolerance threshold (\code{tol}).}
-\item{det.samps}{A vector that contains the (original) explained variance per component (via eigenvalues: \code{$l.orig}).}
+\item \strong{dists}
+\itemize{
+  \item{rob.md} {a matrix of loadings via PCA from the robust covariance matrix}
+  \item{rob.chid} {a vector of singular values via PCA from the robust covariance matrix}
+  \item{md} {a vector of the column-wise centers for the final subsample that produces the robust covariance matrix}
+  \item{chid} {a vector of the column-wise scale for the final subsample that produces the robust covariance matrix}
+}
+\item \strong{det.samps}
+\itemize{
+  \item{dets:} {a matrix of loadings via PCA from the robust covariance matrix}
+  \item{samples:} {a vector of singular values via PCA from the robust covariance matrix}
+}
 }
 \description{
 \code{continuous_mcd} performs the MCD of a data matrix \code{DATA}.
 }
 \examples{
 
-
 }
 \seealso{
-\code{\link{continuous_mcd_find_sample}}, \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
+\code{\link{continuous_mcd_search_for_sample}}, \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
 }
 \author{
 Derek Beaton

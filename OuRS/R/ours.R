@@ -1,13 +1,12 @@
-#' OuRS
+#' @title OuRS
 #'
 #' @description Outliers and Robust Structures
-#' @details
+#' @details Some level of detail!
 #' @seealso \code{\link{gsvd}}
 #'
 #' @aliases ours OuRS
 #'
 #' @references
 #'
-#' @keywords internal
 #'
 "_PACKAGE"

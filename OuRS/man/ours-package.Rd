@@ -10,6 +10,9 @@
 \description{
 Outliers and Robust Structures
 }
+\details{
+Some level of detail!
+}
 \references{
 
 }
@@ -25,4 +28,3 @@ Authors:
 }
 
 }
-\keyword{internal}

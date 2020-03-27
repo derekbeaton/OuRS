@@ -1,18 +1,17 @@
-#' @export
-#'
 #' @title Minimum covariance determinant (MCD) for continuous data
 #'
 #' @description
 #' \code{continuous_mcd} performs the MCD of a data matrix \code{DATA}.
+#' 
 #'
-#' @param DATA a data matrix to decompose
+#' @param DATA a data matrix (of presumably all continuous data)
 #' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
 #' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
-#' @param allow_collinearity
-#' @param alpha
-#' @param num.subsets
-#' @param max.total.iters
-#' @param top.sets.percent
+#' @param allow_collinearity logical (boolean). Default is \code{FALSE} which does not allow a matrix to be singular (i.e., all eigenvalues must be > 0).
+#' @param alpha numeric. A value between .5 and 1 to select the size of the subsample based on a breakdown point
+#' @param num.subsets numeric. The number of initial subsamples to start the MCD algorithm with
+#' @param max.total.iters numeric. The total number of iterations allowed for the MCD search
+#' @param top.sets.percent numeric. A value within (0,1] for the number of samples and determinants to return. Returned results are in ascending order of determinants (minimum is the first element)
 #' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
 #'
 #' @return The 'OuRS MCD' object: a list of three lists:
@@ -36,12 +35,12 @@
 #'   \item{samples:} {a vector of singular values via PCA from the robust covariance matrix}
 #' }
 #'
-#' @seealso \code{\link{continuous_mcd_find_sample}}, \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
+#' @seealso \code{\link{continuous_mcd_search_for_sample}}, \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
 #'
 #' @examples
 #'
-#'
 #' @author Derek Beaton
+#' @export
 
 
 continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
@@ -73,7 +72,7 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
   
   
   ## sample finder
-  mcd.samples <- continuous_mcd_find_sample(DATA, center=center, scale=scale, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent,tol=tol)
+  mcd.samples <- continuous_mcd_search_for_sample(DATA, center=center, scale=scale, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent,tol=tol)
 
   ## get sample distances
   tsvd.res <- tolerance_svd(ours_scale(DATA, center=center, scale=scale),tol = tol)
@@ -81,7 +80,7 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
   chis <- rowSums( (tsvd.res$u  * matrix(tsvd.res$d,nrow(tsvd.res$u),ncol(tsvd.res$u),byrow=T))^2 )
 
   ## get robust mean & cov (loadings)
-  rob.sample <- ours_scale(DATA[mcd.samples$final.orders[1,],],center=center,scale=scale)
+  rob.sample <- ours_scale(DATA[mcd.samples$final_subsamples[1,],],center=center,scale=scale)
   rob.center <- attributes(rob.sample)$`scaled:center`
   rob.scale <- attributes(rob.sample)$`scaled:scale`
   robust.tsvd.res <- tolerance_svd(rob.sample,tol = tol)
@@ -101,87 +100,82 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
                  rob.chid = robust.vectors.and.scores$chis,
                  md = mahals,
                  chid = chis),
-    det.samps = list(dets = mcd.samples$final.dets,
-                     samples = mcd.samples$final.orders)
+    det.samps = list(dets = mcd.samples$final_determinants,
+                     samples = mcd.samples$final_subsamples)
   )
   class(res) <- c("list", "contMCD")
 
-
-  res
+  return(res)
 }
 
 
-### do export this one because it's useful, but it has limited usage.
+### eventually, these things should be class based
+#### I have accepted the fact that all of this will be completely re-written some day
+##### perhaps for ExPo2?
+
+#' @title Compute scores and distances with projection
 #'
+#' @description Computes projected: singular vectors, Mahalanobis distance, component scores, and score distances. 
+#' 
+#' @details This approach uses loadings (singular vectors) and singular values to compute scores and distances for \code{DATA}. For use with the MCD, \code{loadings} and \code{singular.values} come from a robust covariance matrix.
+#'
+#' @param DATA a data matrix (of presumably all continuous data)
+#' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
+#' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
+#' @param loadings a
+#' @param singular.values a
+#'
+#' @return a list with four items. All items are for the rows of \code{DATA} and computed through projection (via \code{loadings} and \code{singular.vectors})
+#' \item{projected_u:} {Projected singular vectors}
+#' \item{projected_fi:} {Projected component scores}
+#' \item{projected_mahal_dists:} {Mahalanobis distances (computed as \code{rowSums(projected_u^2)})}
+#' \item{projected_score_dists:} {Score distances (computed as \code{rowSums(projected_fi^2)})}
+#'
+#' @seealso \code{\link{continuous_mcd}} and \code{\link{generalized_scores_dists}}
+#'
+#' @examples
+#'
+#' @author Derek Beaton
 #' @export
 
 continuous_scores_dists <- function(DATA, center=T, scale=F, loadings, singular.values){
 
-  sup.fi <- (ours_scale(DATA,center=center,scale=scale) %*% loadings)
-  sup.u <- sweep(sup.fi,2,singular.values,"/")
+  projected_fi <- (ours_scale(DATA,center=center,scale=scale) %*% loadings)
+  projected_u <- sweep(projected_fi,2,singular.values,"/")
 
-  mahals <- rowSums(sup.u^2)
-  chis <- rowSums(sup.fi^2)
+  projected_mahal_dists <- rowSums(projected_u^2)
+  projected_score_dists <- rowSums(projected_fi^2)
 
-  return( list(mahals = mahals, chis = chis, sup.u=sup.u, sup.fi=sup.fi) )
+  return( list(projected_mahal_dists = projected_mahal_dists, projected_score_dists = projected_score_dists, projected_u = projected_u, projected_fi = projected_fi) )
 
 }
 
 
-
-###### don't export the ones below because we should keep the user focused
-  ### this way they only have a few options
-  ### and the search mechanisms themselves are not available to them
-
-### maybe don't export this one?
-### still document it maybe?
-
-#' @export
-#'
 #' @title Minimum covariance determinant (MCD) search for subsample in continuous data
 #'
-#' @description
-#' \code{continuous_mcd_find_sample} performs the search for the subsample for MCD of a data matrix \code{DATA}.
+#' @description Performs the search for the subsample for MCD of a data matrix \code{DATA}.
 #'
-#' @param DATA a data matrix to decompose
+#' @param DATA a data matrix (of presumably all continuous data)
 #' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
 #' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
-#' @param allow_collinearity
-#' @param alpha
-#' @param num.subsets
-#' @param max.total.iters
-#' @param top.sets.percent
+#' @param allow_collinearity a
+#' @param alpha a
+#' @param num.subsets a
+#' @param max.total.iters a
+#' @param top.sets.percent a
 #' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
 #'
-#' @return The 'OuRS MCD' object: a list of three lists:
-#' \item \strong{cov:} a list for the robust covariance structure items
-#' \itemize{
-#'   \item{loadings:} {a matrix of loadings via PCA from the robust covariance matrix}
-#'   \item{singular.values:} {a vector of singular values via PCA from the robust covariance matrix}
-#'   \item{center:} {a vector of the column-wise centers for the final subsample that produces the robust covariance matrix}
-#'   \item{scale:} {a vector of the column-wise scale for the final subsample that produces the robust covariance matrix}
-#' }
-#' \item \strong{dists}
-#' \itemize{
-#'   \item{rob.md} {a matrix of loadings via PCA from the robust covariance matrix}
-#'   \item{rob.chid} {a vector of singular values via PCA from the robust covariance matrix}
-#'   \item{md} {a vector of the column-wise centers for the final subsample that produces the robust covariance matrix}
-#'   \item{chid} {a vector of the column-wise scale for the final subsample that produces the robust covariance matrix}
-#' }
-#' \item \strong{det.samps}
-#' \itemize{
-#'   \item{dets:} {a matrix of loadings via PCA from the robust covariance matrix}
-#'   \item{samples:} {a vector of singular values via PCA from the robust covariance matrix}
-#' }
-#'
-#' @seealso \code{\link{continuous_mcd_find_sample}}, \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
-#'
-#' @examples
+#' @return a list with a vector and a matrix
+#' \item{final_determinants: }{a vector of length \code{round(num.subsets * top.sets.percent)} with determinants produced from the search. Listed in ascending order, so the first element is the minimum determinant}
+#' \item{final_subsamples: }{a matrix \code{round(num.subsets * top.sets.percent)} rows with subsamples produced from the search that produce the \code{final_determinants}. Listed in descending order, so the first row is the subsample that produces the minimum determinant}
 #'
 #'
 #' @author Derek Beaton
+#' 
+#' @noRd
 
-continuous_mcd_find_sample <- function(DATA, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+
+continuous_mcd_search_for_sample <- function(DATA, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
   
   h.size <- h.alpha.n(alpha,nrow(DATA),ncol(DATA))
@@ -214,75 +208,91 @@ continuous_mcd_find_sample <- function(DATA, center=T, scale=F, alpha=.75, num.s
     }
     
     min.info <- continuous_c_step(DATA, samp.config, center, scale, max.det.iters)
-    dets[i] <- min.info$min.det
-    orders[i,] <- min.info$obs.order
+    dets[i] <- min.info$minimum_determinant
+    orders[i,] <- min.info$observations_subsample
   }
   
   perc.cut <- round(num.subsets * top.sets.percent)
   unique.min.configs <- unique(orders[order(dets),])
   final.configs <- unique(unique.min.configs[1:min(nrow(unique.min.configs), perc.cut),])
   
-  final.dets <- vector("numeric", nrow(final.configs))
-  final.orders <- matrix(NA,nrow(final.configs),h.size)
+  final_determinants <- vector("numeric", nrow(final.configs))
+  final_subsamples <- matrix(NA,nrow(final.configs),h.size)
   for( i in 1:nrow(final.configs)){
     
     min.info <- continuous_c_step(DATA, final.configs[i,], center, scale, 100)	## set to Inf so that this converges on its own; need to make this settable & have a real max embedded in c.step
-    final.dets[i] <- min.info$min.det
-    final.orders[i,] <- min.info$obs.order
+    final_determinants[i] <- min.info$minimum_determinant
+    final_subsamples[i,] <- min.info$observations_subsample
     
   }
   
-  best.order <- order(final.dets)
-  final.dets <- final.dets[best.order]
-  final.orders <- final.orders[best.order,]
+  best.order <- order(final_determinants)
+  final_determinants <- final_determinants[best.order]
+  final_subsamples <- final_subsamples[best.order,]
   
-  return( list(final.dets = final.dets, final.orders = final.orders) )
+  return( list(final_determinants = final_determinants, final_subsamples = final_subsamples) )
   
 }
 
 
-### maybe don't export this one?
-### still document it maybe?
+#' @title C step of the MCD
+#' 
+#' @description Performs the C ("concentration") step in the search for a sample of observations that produces a minimum determinant from a covariance matrix
+#' 
+#' @param DATA a data matrix (of presumably all continuous data)
+#' @param observations_subsample a numeric vector. Indicates which observations to use as the initial subsample in the C-step
+#' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
+#' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
+#' @param max.iters numeric. Indicates how many iterations of the C-step to perform before stopping
+#' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
+#'
+#' @return a list with two items
+#' \item{observations_subsample: }{a numeric vector to for the subsample that produces a minimum determinant}
+#' \item{minimum_determinant: }{the determinant of the covariance matrix produced by \code{observations_subsample}}
+#'
+#' @author Derek Beaton
+#'
+#' @noRd
 
-continuous_c_step <- function(DATA, obs.order, center=T, scale=F, max.iters=25, tol=sqrt(.Machine$double.eps)){
+continuous_c_step <- function(DATA, observations_subsample, center=T, scale=F, max.iters=25, tol=.Machine$double.eps){
 
-  old.det <- Inf
-  old.center <- NaN
-  old.v <- matrix(NaN,0,0)
-  new.order <- old.order <- obs.order
+  old_determinant <- Inf
+  old_center <- NaN
+  old_loadings <- matrix(NaN,0,0)
+  new_subsample <- old_subsample <- observations_subsample
 
   for(i in 1:max.iters){
 
-    sub.data <- DATA[new.order,]
+    sub.data <- DATA[new_subsample,]
     sub.data.normed <- ours_scale(sub.data,center=center,scale=scale)
     svd.res <- tolerance_svd(sub.data.normed, tol = tol)
 
-    new.center <- attributes(sub.data.normed)$`scaled:center`
-    new.scale <- attributes(sub.data.normed)$`scaled:scale`
-    new.det <- geometric_mean(svd.res$d^2)
+    new_center <- attributes(sub.data.normed)$`scaled:center`
+    new_scale <- attributes(sub.data.normed)$`scaled:scale`
+    new_determinant <- geometric_mean(svd.res$d^2)
 
-    if( (new.det <= old.det) & (!isTRUE(all.equal(new.det,0,tolerance=tol))) ){
-      if( center.sigma_checker(old.center, new.center, old.v, svd.res$v,tol=tol) & isTRUE(all.equal(new.det, old.det, tolerance= tol)) ){
-        return( list(obs.order = old.order, min.det = old.det) )
+    if( (new_determinant <= old_determinant) & (!isTRUE(all.equal(new_determinant,0,tolerance=tol))) ){
+      if( center.sigma_checker(old_center, new_center, old_loadings, svd.res$v, tol=tol) & isTRUE(all.equal(new_determinant, old_determinant, tolerance= tol)) ){
+        return( list(observations_subsample = old_subsample, minimum_determinant = old_determinant) )
       }
       else{
 
-        old.det <- new.det
-        old.center <- new.center
-        old.v <- svd.res$v
-        old.order <- new.order
+        old_determinant <- new_determinant
+        old_center <- new_center
+        old_loadings <- svd.res$v
+        old_subsample <- new_subsample
 
-        sup.scores.and.dists <- continuous_scores_dists(DATA, new.center, new.scale, svd.res$v, svd.res$d)
-        new.order <- sort(order(sup.scores.and.dists$mahals)[1:length(obs.order)])
+        sup.scores.and.dists <- continuous_scores_dists(DATA, new_center, new_scale, svd.res$v, svd.res$d)
+        new_subsample <- sort(order(sup.scores.and.dists$mahals)[1:length(observations_subsample)])
 
-        if( isTRUE(all.equal(sort(new.order),sort(old.order))) ){
-          return( list(obs.order = old.order, min.det = old.det) )
+        if( isTRUE(all.equal(sort(new_subsample),sort(old_subsample))) ){
+          return( list(observations_subsample = old_subsample, minimum_determinant = old_determinant) )
         }
       }
     }else{
-      return( list(obs.order = old.order, min.det = old.det) )
+      return( list(observations_subsample = old_subsample, minimum_determinant = old_determinant) )
     }
   }
 
-  return( list(obs.order = new.order, min.det= new.det) )
+  return( list(observations_subsample = new_subsample, minimum_determinant = new_determinant) )
 }
