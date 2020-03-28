@@ -47,11 +47,11 @@ component_plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4",
 #' @title Distance-distance plot
 #' @description A plot of standard vs. robust Mahalanobis distances (with optional transformations)
 #' @param ours_mcd_list
-#' @param horizontal_line
-#' @param vertical_cutoff
+#' @param md_cutoff
+#' @param robust_md_cutoff
 #' @param dist_transform
 #' 
-dd_plot <- function(ours_mcd_list, horizontal_line = NA, vertical_cutoff = NA, dist_transform = "none"){
+dd_plot <- function(ours_mcd_list, md_cutoff = NA, robust_md_cutoff = NA,  dist_transform = "none"){
   
   if(!inherits(ours_mcd_list,c("list", "OuRS", "MCD"))){
     stop("dd_plot: 'ours_mcd_list' is not a recognized OuRS MCD object.")
@@ -65,19 +65,35 @@ dd_plot <- function(ours_mcd_list, horizontal_line = NA, vertical_cutoff = NA, d
     stop("dd_plot: 'dist_transform' is not one of the recognized types ('none','sqrt','log')")
   }
   
+  
   # if a transform for Ds, also transform h & v
   xy <- cbind(ours_mcd_list$dists$mahal_dists, ours_mcd_list$dists$robust_mahal_dists)
+  
+  if(!is.numeric(md_cutoff) | is.na(md_cutoff) | is.nan(md_cutoff) | is.infinite(md_cutoff) | is.null(md_cutoff)){
+    md_cutoff <- quantile(xy[,1], probs = .95)
+  }
+  if(!is.numeric(robust_md_cutoff) | is.na(robust_md_cutoff) | is.nan(robust_md_cutoff) | is.infinite(robust_md_cutoff) | is.null(robust_md_cutoff)){
+    robust_md_cutoff <- quantile(xy[,1], probs = .95)
+  }
+  
+  
   if(dist_transform=="sqrt"){
     
-    plot(sqrt(xy), )
+    plot(sqrt(xy), xlab = "Square root of squared Mahalanobis Distances", ylab = "Square root of squared robust Mahalanobis Distances", main = "distance-distance plot")
+    abline(h = sqrt(robust_md_cutoff), col="firebrick3")
+    abline(v = sqrt(md_cutoff), col="steelblue4")
     
   }else if(dist_transform=="log"){
     
-    plot(log(xy), )
+    plot(log(xy), xlab = "Natural log of squared Mahalanobis Distances", ylab = "Natural log of squared robust Mahalanobis Distances", main = "distance-distance plot")
+    abline(h = log(robust_md_cutoff), col="firebrick3")
+    abline(v = log(md_cutoff), col="steelblue4")
     
   }else{
     
-    plot(xy, )
+    plot(xy, xlab = "Squared Mahalanobis Distances", ylab = "Squared robust Mahalanobis Distances", main = "distance-distance plot")
+    abline(h = robust_md_cutoff, col="firebrick3")
+    abline(v = md_cutoff, col="steelblue4")
     
   }
   
