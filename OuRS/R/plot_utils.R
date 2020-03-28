@@ -1,10 +1,27 @@
 ### plot utils
 
 ### the component plot is not correctly scaled according to D, but, that's OK this is just a simple visual
+#' @title Plot components from PCA or CA
+#' @description a simple 2D plot for observation (or variable) component scores or vectors to visualize PCA or CA
+#' @param scores a numeric matrix with the scores (fi or fj) or vectors (u/p or v/q)
+#' @param axes a numeric vector of length 2. Indicates which axes (columns) of \code{scores} to plot
+#' @param pch see \code{\link{plot}} and \code{\link{par}}. Default here is '20'
+#' @param col see \code{\link{plot}} and \code{\link{par}}. Default here is 'mediumorchid4'
+#' @param main see \code{\link{plot}} and \code{\link{par}}. Default here is 'Component scores'
+#' @param xlab see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{paste0("Component ",axes[1])}'
+#' @param ylab see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{paste0("Component ",axes[2])}'
+#' @param xlim see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{c(-max(abs(scores[,axes])),max(abs(scores[,axes])))*1.3}'
+#' @param ylim see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{c(-max(abs(scores[,axes])),max(abs(scores[,axes])))*1.3}'
+#' @param asp see \code{\link{plot}} and \code{\link{par}}. Default here is '1'
+#' @param pos see \code{\link{plot}} and \code{\link{par}}. Default here is '3'
+#' @param display_names a logical (boolean). If \code{TRUE} plot the row names of \code{scores}
+#' @param cex see \code{\link{plot}} and \code{\link{par}}. Default here is '1'
+#' @param text.cex like \code{cex} but for text plotting when \code{display_names = TRUE}. See also \code{\link{plot}} and \code{\link{par}}. Default here is '1'
+#' @param ... Additional arguments to be passed for plotting. See \code{\link{plot}} and \code{\link{par}}.
+#' 
+#' @author Derek Beaton
 #' @export
-#'
-
-component.plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4", line.col="grey80", lty=2, lwd=2,
+component_plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4",
                            main="Component scores",
                            xlab=paste0("Component ",axes[1]),
                            ylab=paste0("Component ",axes[2]),
@@ -26,11 +43,65 @@ component.plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4", lin
 }
 
 
+## pass in where we want the cutoffs
+#' @title Distance-distance plot
+#' @description A plot of standard vs. robust Mahalanobis distances (with optional transformations)
+#' @param ours_mcd_list
+#' @param horizontal_line
+#' @param vertical_cutoff
+#' @param dist_transform
+#' 
+dd_plot <- function(ours_mcd_list, horizontal_line = NA, vertical_cutoff = NA, dist_transform = "none"){
+  
+  if(!inherits(ours_mcd_list,c("list", "OuRS", "MCD"))){
+    stop("dd_plot: 'ours_mcd_list' is not a recognized OuRS MCD object.")
+  }
+  
+  ## 3 options for transforms
+  if(length(dist_transform) != 1){
+    stop("dd_plot: 'dist_transform' must be of length 1")
+  }
+  if( !(dist_transform %in% c("none","sqrt","log")) ){
+    stop("dd_plot: 'dist_transform' is not one of the recognized types ('none','sqrt','log')")
+  }
+  
+  # if a transform for Ds, also transform h & v
+  xy <- cbind(ours_mcd_list$dists$mahal_dists, ours_mcd_list$dists$robust_mahal_dists)
+  if(dist_transform=="sqrt"){
+    
+    plot(sqrt(xy), )
+    
+  }else if(dist_transform=="log"){
+    
+    plot(log(xy), )
+    
+  }else{
+    
+    plot(xy, )
+    
+  }
+  
+  
+}
 
-#' @export
+
+#' @title Make tolerance ellipse for a 2D or x-y scatter plot
+#' @description Compute the tolerance ellipse for x-y data
+#' @details Note: This function is effectively a wrapper for a set of functions copied from the R package SIBER.
+#' Here, many of the SIBER functions are private to \code{tolerance_ellipse}, but were copied directly from SIBER 2.1.0. 
+#' So users of \code{OuRS} only interface with \code{tolerance_ellipse} and not any of the private functions
 #'
-
-tolerance_ellipse <- function(dat,ellipse.alpha=.75,mcd.alpha=.75,xlab=colnames(dat)[1],ylab=colnames(dat)[2],graphs=F){
+#' @param DATA a numeric matrix with (presumably) two columns. This function will only make use of the first two.
+#' @param ellipse.alpha numeric in the range of (.5,1). The percentage for a tolerance ellipse
+#' @param mcd.alpha numeric in the range of (.5,1).  The percentage for a robust tolerance ellipse (by way of the MCD)
+#' @param xlab see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{colnames(DATA)[1]}'
+#' @param ylab see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{colnames(DATA)[2]}'
+#' @param graphs logical (boolean). Default is \code{FALSE}. When \code{FALSE} ellipses are added to an existing plot, when \code{TRUE} a new x-y plot is made with ellipses
+#' 
+#' @author Derek Beaton for \code{tolerance_ellipse}; Andrew Jackson and Andrew Parnell for all functions inside (i.e., \code{pointsToEllipsoid}, \code{ellipsoidTransform}, \code{ellipseInOut}, \code{addEllipse}, \code{genCircle})
+#' @seealso https://CRAN.R-project.org/package=SIBER
+#' @export
+tolerance_ellipse <- function(DATA, ellipse.alpha=.75, mcd.alpha=.75, xlab=colnames(DATA)[1], ylab=colnames(DATA)[2], graphs=F){
 
   ## private function. STOLEN FROM SIBER 2.1.0
   pointsToEllipsoid <- function (X, Sigma, mu)
@@ -96,28 +167,35 @@ tolerance_ellipse <- function(dat,ellipse.alpha=.75,mcd.alpha=.75,xlab=colnames(
     return(cbind(x, y))
   }
 
-  mcd <- covMcd(dat,alpha = mcd.alpha)
+  if(alpha < .5){
+    alpha <- .5
+  }
+  if(alpha > 1){
+    alpha <- 1
+  }
+  
+  mcd <- covMcd(DATA,alpha = mcd.alpha)
   mcd.center <- mcd$center
   mcd.cov <- mcd$cov
-  data.center <- colMeans(dat)
-  data.cov <- cov(dat)
+  data.center <- colMeans(DATA)
+  data.cov <- cov(DATA)
 
 
 
   if(graphs){
-    x1 <- c(-max(abs(dat[,1]))*.05,max(abs(dat[,1])))*1.1
-    y1 <- c(-max(abs(dat[,2]))*.05,max(abs(dat[,2])))*1.1
+    x1 <- c(-max(abs(DATA[,1]))*.05,max(abs(DATA[,1])))*1.1
+    y1 <- c(-max(abs(DATA[,2]))*.05,max(abs(DATA[,2])))*1.1
 
 
-    plot(dat, xlim = x1, ylim = y1,pch=20,col="grey80", main="", xlab=xlab, ylab=ylab,cex=.5)
+    plot(DATA, xlim = x1, ylim = y1,pch=20,col="grey80", main="", xlab=xlab, ylab=ylab,cex=.5)
 
     rob.ellipse <- addEllipse(mcd.center,mcd.cov,p.interval = ellipse.alpha,col="blue",lty=2)
     classic.ellipse <- addEllipse(data.center,data.cov,p.interval = ellipse.alpha,col="red",lty=2)
 
     abline(v=max(rob.ellipse[,1]), h=max(rob.ellipse[,2]),lty=1,col="blue")
-    points(dat[which(dat[,1] >= max(rob.ellipse[,1]) | dat[,2] >= max(rob.ellipse[,2])),],bg="blue",pch=21,cex=1)
+    points(DATA[which(DATA[,1] >= max(rob.ellipse[,1]) | DATA[,2] >= max(rob.ellipse[,2])),],bg="blue",pch=21,cex=1)
     abline(v=max(classic.ellipse[,1]), h=max(classic.ellipse[,2]),lty=1,col="red")
-    points(dat[which(dat[,1] >= max(classic.ellipse[,1]) | dat[,2] >= max(classic.ellipse[,2])),],bg="red",pch=21,cex=2)
+    points(DATA[which(DATA[,1] >= max(classic.ellipse[,1]) | DATA[,2] >= max(classic.ellipse[,2])),],bg="red",pch=21,cex=2)
     legend("bottomright",legend=c(paste0("Classic ellipse alpha = ", ellipse.alpha),paste0("Robust ellipse alpha = ", ellipse.alpha, "with MCD alpha = ", mcd.alpha)), col=c("red","blue"), lty=c(2,1))
   }else{
     rob.ellipse <- addEllipse(mcd.center,mcd.cov,p.interval = ellipse.alpha,col="blue",lty=2,do.plot = F)
@@ -131,10 +209,10 @@ tolerance_ellipse <- function(dat,ellipse.alpha=.75,mcd.alpha=.75,xlab=colnames(
       y.robust.cutoff=max(rob.ellipse[,2]),
       y.classic.cutoff=max(classic.ellipse[,2]),
 
-      x.robust.outliers = (dat[,1] >= max(rob.ellipse[,1])),
-      x.classic.outliers= (dat[,1] >= max(classic.ellipse[,1])),
-      y.robust.outliers = (dat[,2] >= max(rob.ellipse[,2])),
-      y.classic.outliers= (dat[,2] >= max(classic.ellipse[,2]))
+      x.robust.outliers = (DATA[,1] >= max(rob.ellipse[,1])),
+      x.classic.outliers= (DATA[,1] >= max(classic.ellipse[,1])),
+      y.robust.outliers = (DATA[,2] >= max(rob.ellipse[,2])),
+      y.classic.outliers= (DATA[,2] >= max(classic.ellipse[,2]))
     )
   )
 

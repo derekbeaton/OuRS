@@ -24,15 +24,15 @@
 #' }
 #' \item \strong{dists}
 #' \itemize{
-#'   \item{rob.md} {a matrix of loadings via PCA from the robust covariance matrix}
-#'   \item{rob.chid} {a vector of singular values via PCA from the robust covariance matrix}
-#'   \item{md} {a vector of the column-wise centers for the final subsample that produces the robust covariance matrix}
-#'   \item{chid} {a vector of the column-wise scale for the final subsample that produces the robust covariance matrix}
+#'   \item{robust_mahal_dists} {}
+#'   \item{robust_score_dists} {}
+#'   \item{mahal_dists} {}
+#'   \item{score_dists} {}
 #' }
 #' \item \strong{det.samps}
 #' \itemize{
-#'   \item{dets:} {a matrix of loadings via PCA from the robust covariance matrix}
-#'   \item{samples:} {a vector of singular values via PCA from the robust covariance matrix}
+#'   \item{dets:} {}
+#'   \item{samples:} {}
 #' }
 #'
 #' @seealso \code{\link{continuous_mcd_search_for_sample}}, \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
@@ -42,6 +42,8 @@
 #' @author Derek Beaton
 #' @export
 
+
+### I have to change all the chis to score_distance and md to mahal or something
 
 continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
@@ -63,13 +65,6 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
   if( any(is.na(DATA)) | any(is.infinite(DATA)) | any(is.nan(DATA)) | any(is.null(DATA)) ){
     stop("continuous_mcd: NA, Inf, -Inf, NULL, and NaN are not allowed.")
   }
-  
-  ## alpha check
-  if(alpha < .5){
-    alpha <- .5
-  }
-
-  
   
   ## sample finder
   mcd.samples <- continuous_mcd_search_for_sample(DATA, center=center, scale=scale, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent,tol=tol)
@@ -96,14 +91,14 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
                center = rob.center,
                scale = rob.scale
     ),
-    dists = list(rob.md = robust.vectors.and.scores$mahals,
-                 rob.chid = robust.vectors.and.scores$chis,
-                 md = mahals,
-                 chid = chis),
+    dists = list(robust_mahal_dists = robust.vectors.and.scores$mahals,
+                 rob_score_dists = robust.vectors.and.scores$chis,
+                 mahal_dists = mahals,
+                 score_dists = chis),
     det.samps = list(dets = mcd.samples$final_determinants,
                      samples = mcd.samples$final_subsamples)
   )
-  class(res) <- c("list", "contMCD")
+  class(res) <- c("list", "OuRS", "MCD", "continuous")
 
   return(res)
 }
@@ -177,8 +172,8 @@ continuous_scores_dists <- function(DATA, center=T, scale=F, loadings, singular.
 
 continuous_mcd_search_for_sample <- function(DATA, center=T, scale=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
-  
-  h.size <- h.alpha.n(alpha,nrow(DATA),ncol(DATA))
+  # h.alpha.n now handles changing of alpha values outside of the range of [.5,1]
+  h.size <- h.alpha.n(alpha, nrow(DATA), ncol(DATA))
   max.det.iters <- round(max.total.iters / num.subsets)
   
   dets <- vector("numeric", num.subsets)
@@ -269,7 +264,8 @@ continuous_c_step <- function(DATA, observations_subsample, center=T, scale=F, m
 
     new_center <- attributes(sub.data.normed)$`scaled:center`
     new_scale <- attributes(sub.data.normed)$`scaled:scale`
-    new_determinant <- geometric_mean(svd.res$d^2)
+    # new_determinant <- geometric_mean(svd.res$d^2)
+    new_determinant <- exp(mean(log(svd.res$d^2)))
 
     if( (new_determinant <= old_determinant) & (!isTRUE(all.equal(new_determinant,0,tolerance=tol))) ){
       if( center.sigma_checker(old_center, new_center, old_loadings, svd.res$v, tol=tol) & isTRUE(all.equal(new_determinant, old_determinant, tolerance= tol)) ){

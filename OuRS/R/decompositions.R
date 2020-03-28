@@ -35,7 +35,6 @@
 pca <- function(DATA, center = T, scale = T, k = 0, tol = sqrt(.Machine$double.eps)){
 
   res <- gsvd(ours_scale(DATA, center = center, scale = scale), k = k, tol = tol)
-  res$type <- "pca"
   res
 
 }

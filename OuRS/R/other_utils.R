@@ -1,33 +1,20 @@
-## don't export any of these, but do document them?
-
-
-## stolen from 'psych' package
-#' @title Geometric mean
-#' @description Compute the geometric mean of the vector \code{x}
-#' @details This function is copied from \code{\link{psych::geometric.mean}}
-#' @param x a numeric vector
-#' @param na.rm a logical value indicating whether NA values should be stripped before the computation proceeds.
-#' @author William Revelle
-#' @export
-
-geometric_mean <- function (x, na.rm = TRUE)
-{
-  if (is.null(nrow(x))) {
-    exp(mean(log(x), na.rm = TRUE))
-  }
-  else {
-    exp(apply(log(x), 2, mean, na.rm = na.rm))
-  }
-}
-
-
-
 ## stolen from rrcov or robustbase
-#' @export
-#'
+#' @title H subset from alpha
+#' @description Compute the size of the H subset from alpha, number of rows (n), and number of columns (p)
+#' 
+#' @param alpha numeric. Percentage value for computing subsample size. Should exist between [.5,1]. If outside of that range it will be changed to .5 or 1.
+#' @param n number of rows for data to compute the H subset
+#' @param p number of columns for data to compute the H subset
+#' @noRd
 
 h.alpha.n <- function (alpha, n, p)
 {
+  if(alpha < .5){
+    alpha <- .5
+  }
+  if(alpha > 1){
+    alpha <- 1
+  }
   n2 <- (n + p + 1)%/%2
   floor(2 * n2 - n + 2 * (n - n2) * alpha)
 }
@@ -36,12 +23,20 @@ h.alpha.n <- function (alpha, n, p)
 
 
 ### this is a check to see if the new center and covariance are identical to the old, so we can stop the search
-
-#' @export
-#'
-#'
+#' @title Check old and new data center and loadings matrices
+#' @description a check that returns a logical. If the center and loadings matrix of iteration \eqn{(n-1)} is the same as center and loadings matrix of iteration \eqn{n}, then return \code{TRUE}. Else \code{FALSE}
+#' @details This function is meant to test if the MCD search should stop because the current iteration has the same center and loadings as the previous iteration.
+#' @param old.center a numeric vector. The column-wise center from iteration \eqn{n-1}
+#' @param new.center a numeric vector. The column-wise center from the current iteration \eqn{n}
+#' @param old.v a numeric matrix. The column loadings (from the SVD) of a matrix from iteration \eqn{n-1}
+#' @param new.v a numeric matrix. The column loadings (from the SVD) of a matrix from the current iteration \eqn{n}
+#' @param tol numeric scalar >= 0. Any values smaller than \code{tol} are considered 0
+#' @noRd
 
 center.sigma_checker <- function(old.center=NaN,new.center=NaN,old.v=matrix(NaN,0,0),new.v=matrix(NaN,0,0),tol=sqrt(.Machine$double.eps)){
+  
+  ## not entirely sure why these two if() statements are here.
+  ### the center & span of columns should be the same.
   if(length(old.center)!=length(new.center)){
     old.center <- rep(0,length(new.center))
   }

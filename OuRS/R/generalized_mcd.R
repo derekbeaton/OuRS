@@ -198,7 +198,8 @@ generalized_c_step <- function(profiles, weighted.deviations, row.weights, col.w
     svd.res <- tryCatch( {tolerance.svd(sub.data)}, error=function(x) 'FAIL') ## this should probably be explained a bit!
 
     if(length(svd.res)==3){
-      new.det <- geometric_mean(svd.res$d^2)
+      # new.det <- geometric_mean(svd.res$d^2)
+      new.det <- exp(mean(log(svd.res$d^2)))
 
 
       if( (new.det <= old.det) & (!isTRUE(all.equal(new.det,0,tolerance=tol))) ){
