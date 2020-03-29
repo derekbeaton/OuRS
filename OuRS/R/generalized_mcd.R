@@ -1,3 +1,14 @@
+### a potential speed up and big change:
+  ### from the current usage, I'm not allowing external/reference weights or expected matrices
+  ### everything here is computed directly from the data
+  ### so I should be able to overhaul all the cals that take in the wZx, m, w, and such, and thenn only pass in DATA
+    #### I do suppose that it's possibly faster to pass that information in, but then we have duplicate information all over the place
+    #### it does seem like I only need the ca_preproc info one time...
+    #### so I should make a choice: simplify here and force the use of these in one way or
+    #### allow for the more generalized approach, which requires more parameters to pass, but only a singular computation of ca_preproc
+
+### quick exec. decision: it all stays for now because it is inevitable that there will be a rewrite for optimization
+
 
 ### the categorical version should explicitly handle the disjunctive transform
 ## same for ordinal and mixed data
@@ -230,7 +241,6 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
   best.sample <- mcd.samples$final.orders[1,]
 
   preproc.DATA <- ca_preproc(DATA, compact = T) ## this could be more efficient...
-  profiles <- DATA / rowSums(DATA)
 
   ca.res <- ca(DATA)
   mahals <- rowSums(ca.res$u^2)
@@ -242,6 +252,7 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
   robust.tsvd.res <- tolerance_svd(rob.sample,tol=tol)
 
   ## call to function that computes robust mahal
+  ## I may not need to pass all of this in
   robust.vectors.and.scores <- generalized_scores_dists(DATA, preproc.DATA$m, preproc.DATA$w, robust.tsvd.res$v, robust.tsvd.res$d)
 
   res <- list(
@@ -265,14 +276,11 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
 }
 
 ## same as the above two: this needs to be the generalized version, it doesn't care what data they were
-  ## but also this should handle profiles internally
-# formerly cat.sup.fi.u
+  # formerly cat.sup.fi.u
 #' @export
 generalized_scores_dists <- function(DATA, row.weights, col.weights, loadings, singular.values){
 
   ## NOT EFFICIENT. MAKE MORE EFFICIENT
-  ## also this can handle the profiles here...
-
   profiles <- DATA / rowSums(DATA)
   sup.fi <- profiles %*% sweep(loadings,1,sqrt(col.weights)/col.weights,"*")
   sup.u <- sweep(sweep(sup.fi,2,singular.values,"/"),1,sqrt(row.weights),"*")
@@ -313,9 +321,10 @@ generalized_scores_dists <- function(DATA, row.weights, col.weights, loadings, s
 
 generalized_mcd_search_for_sample <- function(DATA, alpha=.75,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05,tol=.Machine$double.eps){
   
-
+  ## I may not need this here.
+    ### actually it is needed here.
+    ### but is conceptually a place holder for the ability to use more flexible weights/reference structures
   preproc.DATA <- ca_preproc(DATA, compact = T)
-  profiles <- DATA / rowSums(DATA)
   
   h.size <- h.alpha.n(alpha,nrow(DATA),ncol(DATA))
   max.det.iters <- round(max.total.iters / num.subsets)
@@ -336,13 +345,16 @@ generalized_mcd_search_for_sample <- function(DATA, alpha=.75,num.subsets=500,ma
       if(length(unique(init.mds)) < 2){
         init.size <- init.size + 1
       }else{
+        
+        ### generalized_scores_dists may not need all of these to be passed in...
         sup.scores.and.dists <- generalized_scores_dists(DATA, preproc.DATA$m, preproc.DATA$w, init.svd$v, init.svd$d)
         samp.config <- sort(order(sup.scores.and.dists$projected_mahal_dists)[1:h.size])
         findInit <- F
       }
     }
     
-    min.info <- generalized_c_step(profiles, weighted.deviations = preproc.DATA$weightedZx, row.weights = preproc.DATA$m, col.weights = preproc.DATA$w, observations_subsample = samp.config, max.iters = max.det.iters)
+    ### generalized_c_step may not need all of these to be passed in...
+    min.info <- generalized_c_step(DATA, weighted.deviations = preproc.DATA$weightedZx, row.weights = preproc.DATA$m, col.weights = preproc.DATA$w, observations_subsample = samp.config, max.iters = max.det.iters)
     dets[i] <- min.info$minimum_determinant
     orders[i,] <- min.info$observations_subsample
   }
@@ -353,8 +365,11 @@ generalized_mcd_search_for_sample <- function(DATA, alpha=.75,num.subsets=500,ma
   
   final.dets <- vector("numeric", nrow(final.configs))
   final.orders <- matrix(NA,nrow(final.configs),h.size)
+  
   for( i in 1:nrow(final.configs)){
-    min.info <- generalized_c_step(profiles, weighted.deviations = preproc.DATA$weightedZx, row.weights = preproc.DATA$m, col.weights = preproc.DATA$w, observations_subsample = final.configs[i,])
+    
+    ### generalized_c_step may not need all of these to be passed in...
+    min.info <- generalized_c_step(DATA, weighted.deviations = preproc.DATA$weightedZx, row.weights = preproc.DATA$m, col.weights = preproc.DATA$w, observations_subsample = final.configs[i,])
     final.dets[i] <- min.info$minimum_determinant
     final.orders[i,] <- min.info$observations_subsample
   }
@@ -373,7 +388,7 @@ generalized_mcd_search_for_sample <- function(DATA, alpha=.75,num.subsets=500,ma
 #' 
 #' @description Performs the C ("concentration") step in the search for a sample of observations that produces a minimum determinant from a covariance matrix
 #' 
-#' @param profiles a matrix of "row profiles"
+#' @param DATA a data matrix (of presumably all transformed data)
 #' @param weighted.deviations the matrix of weighted deviations from \code{\link{ca_preproc}}, specifically \code{$weightedZx}
 #' @param row.weights the vector of row weights from \code{\link{ca_preproc}}, specifically \code{$m}
 #' @param col.weights the vector of column weights from \code{\link{ca_preproc}}, specifically \code{$w}
@@ -388,7 +403,7 @@ generalized_mcd_search_for_sample <- function(DATA, alpha=.75,num.subsets=500,ma
 #' @author Derek Beaton
 #'
 #' @noRd
-generalized_c_step <- function(profiles, weighted.deviations, row.weights, col.weights, observations_subsample, max.iters=100, tol=.Machine$double.eps){
+generalized_c_step <- function(DATA, weighted.deviations, row.weights, col.weights, observations_subsample, max.iters=100, tol=.Machine$double.eps){
 
   old_determinant <- Inf
   old_center <- NaN
