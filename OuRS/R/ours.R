@@ -4,7 +4,7 @@
 #' @details Some level of detail!
 #' @seealso \code{\link{gsvd}}
 #'
-#' @aliases ours OuRS
+#' @aliases ours OuRS OURS
 #'
 #' @references
 #'

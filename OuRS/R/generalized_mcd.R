@@ -238,7 +238,7 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
   
   ## sample finder
   mcd.samples <- generalized_mcd_search_for_sample(DATA, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
-  best.sample <- mcd.samples$final.orders[1,]
+  best.sample <- mcd.samples$final_subsamples[1,]
 
   preproc.DATA <- ca_preproc(DATA, compact = T) ## this could be more efficient...
 
@@ -257,7 +257,7 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
 
   res <- list(
     cov = list(loadings = robust.tsvd.res$v,
-               singular.values = robust.tsvd.res$d,
+               singular.values = robust.tsvd.res$d
                # row_weights = preproc.DATA$m,
                # column_weights = preproc.DATA$w
     ),
@@ -277,18 +277,41 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
 
 ## same as the above two: this needs to be the generalized version, it doesn't care what data they were
   # formerly cat.sup.fi.u
+#' @title Compute scores and distances with projection for generalized MCD
+#'
+#' @description Computes projected: singular vectors, Mahalanobis distance, component scores, and score distances. 
+#' 
+#' @details This approach uses loadings (singular vectors) and singular values to compute scores and distances for \code{DATA}. For use with the GMCD, \code{loadings} and \code{singular.values} come from a robust covariance matrix, where \code{row.weights} and \code{col.weights} are the weights from preprocessing for Correspondence Analysis.
+#' 
+#'
+#' @param DATA a data matrix (of presumably all continuous data)
+#' @param row.weights a numeric vector of row weights (as in correspondence analysis)
+#' @param col.weights a numeric vector of column weights (as in correspondence analysis)
+#' @param loadings a numeric matrix that contains the loadings (singular vectors or eigenvectors of variables)  from a decomposed covariance matrix
+#' @param singular.values a numeric vector that contains the singular values from a decomposed covariance matrix
+#'
+#' @return a list with four items. All items are for the rows of \code{DATA} and computed through projection (via \code{loadings} and \code{singular.vectors})
+#' \item{projected_u:} {Projected singular vectors}
+#' \item{projected_fi:} {Projected component scores}
+#' \item{projected_mahal_dists:} {Mahalanobis distances (computed as \code{rowSums(projected_u^2)})}
+#' \item{projected_score_dists:} {Score distances (computed as \code{rowSums(projected_fi^2)})}
+#'
+#' @seealso \code{\link{generalized_mcd}} and \code{\link{continuous_scores_dists}}
+#'
+#' @author Derek Beaton
 #' @export
+
 generalized_scores_dists <- function(DATA, row.weights, col.weights, loadings, singular.values){
 
   ## NOT EFFICIENT. MAKE MORE EFFICIENT
   profiles <- DATA / rowSums(DATA)
-  sup.fi <- profiles %*% sweep(loadings,1,sqrt(col.weights)/col.weights,"*")
-  sup.u <- sweep(sweep(sup.fi,2,singular.values,"/"),1,sqrt(row.weights),"*")
+  projected_fi <- profiles %*% sweep(loadings,1,sqrt(col.weights)/col.weights,"*")
+  projected_u <- sweep(sweep(projected_fi,2,singular.values,"/"),1,sqrt(row.weights),"*")
 
-  mahals <- rowSums(sup.u^2)
-  chis <- rowSums(sup.fi^2)
+  projected_mahal_dists <- rowSums(projected_u^2)
+  projected_score_dists <- rowSums(projected_fi^2)
 
-  return( list(mahals = mahals, chis = chis, sup.u=sup.u, sup.fi=sup.fi) )
+  return( list(projected_mahal_dists = projected_mahal_dists, projected_score_dists = projected_score_dists, projected_u = projected_u, projected_fi = projected_fi) )
 
 }
 
@@ -363,22 +386,22 @@ generalized_mcd_search_for_sample <- function(DATA, alpha=.75,num.subsets=500,ma
   unique.min.configs <- unique(orders[order(dets),])
   final.configs <- unique(unique.min.configs[1:min(nrow(unique.min.configs), perc.cut),])
   
-  final.dets <- vector("numeric", nrow(final.configs))
-  final.orders <- matrix(NA,nrow(final.configs),h.size)
+  final_determinants <- vector("numeric", nrow(final.configs))
+  final_subsamples <- matrix(NA,nrow(final.configs),h.size)
   
   for( i in 1:nrow(final.configs)){
     
     ### generalized_c_step may not need all of these to be passed in...
     min.info <- generalized_c_step(DATA, weighted.deviations = preproc.DATA$weightedZx, row.weights = preproc.DATA$m, col.weights = preproc.DATA$w, observations_subsample = final.configs[i,])
-    final.dets[i] <- min.info$minimum_determinant
-    final.orders[i,] <- min.info$observations_subsample
+    final_determinants[i] <- min.info$minimum_determinant
+    final_subsamples[i,] <- min.info$observations_subsample
   }
   
-  best.order <- order(final.dets)
-  final.dets <- final.dets[best.order]
-  final.orders <- final.orders[best.order,]
+  best.order <- order(final_determinants)
+  final_determinants <- final_determinants[best.order]
+  final_subsamples <- final_subsamples[best.order,]
   
-  return( list(final.dets= final.dets, final.orders= final.orders) )
+  return( list(final_determinants = final_determinants, final_subsamples = final_subsamples) )
   
 }
 

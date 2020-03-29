@@ -105,7 +105,7 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
 #### I have accepted the fact that all of this will be completely re-written some day
 ##### perhaps for ExPo2?
 
-#' @title Compute scores and distances with projection
+#' @title Compute scores and distances with projection for continuous MCD
 #'
 #' @description Computes projected: singular vectors, Mahalanobis distance, component scores, and score distances. 
 #' 
@@ -114,8 +114,8 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
 #' @param DATA a data matrix (of presumably all continuous data)
 #' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
 #' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
-#' @param loadings a
-#' @param singular.values a
+#' @param loadings a numeric matrix that contains the loadings (singular vectors or eigenvectors of variables)  from a decomposed covariance matrix
+#' @param singular.values a numeric vector that contains the singular values from a decomposed covariance matrix
 #'
 #' @return a list with four items. All items are for the rows of \code{DATA} and computed through projection (via \code{loadings} and \code{singular.vectors})
 #' \item{projected_u:} {Projected singular vectors}
@@ -124,8 +124,6 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
 #' \item{projected_score_dists:} {Score distances (computed as \code{rowSums(projected_fi^2)})}
 #'
 #' @seealso \code{\link{continuous_mcd}} and \code{\link{generalized_scores_dists}}
-#'
-#' @examples
 #'
 #' @author Derek Beaton
 #' @export
