@@ -24,26 +24,23 @@
 #' }
 #' \item \strong{dists}
 #' \itemize{
-#'   \item{robust_mahal_dists} {}
-#'   \item{robust_score_dists} {}
-#'   \item{mahal_dists} {}
-#'   \item{score_dists} {}
+#'   \item{robust_mahal_dists} {Robust Mahalanobis distances from the robust covariance matrix}
+#'   \item{robust_score_dists} {Robust score distances (computed from component scores) from the robust covariance matrix}
+#'   \item{mahal_dists} {Mahalanobis distances}
+#'   \item{score_dists} {Score distances (computed from component scores)}
 #' }
 #' \item \strong{det.samps}
 #' \itemize{
-#'   \item{dets:} {}
-#'   \item{samples:} {}
+#'   \item{dets:} {A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search}
+#'   \item{samples:} {A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})}
 #' }
 #'
-#' @seealso \code{\link{continuous_mcd_search_for_sample}}, \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
+#' @seealso \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
 #'
 #' @examples
 #'
 #' @author Derek Beaton
 #' @export
-
-
-### I have to change all the chis to score_distance and md to mahal or something
 
 continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
@@ -51,26 +48,26 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
   if(ncol(DATA) > (nrow(DATA)*.9)){
   	stop("continuous_mcd: the column-to-row ratio is too high so 'mcd' cannot be performed")
   }
-
-  ## collinearity check
-    ## NOTE: the DetMCD.m does exactly this via classSVD.m
-  svd.res <- tolerance_svd(ours_scale(DATA, center=center, scale=scale), tol = NULL)
-  if( any(svd.res$d^2 < tol) ) {
-    if(!allow_collinearity){
-      stop("continuous_mcd: Matrix is singular. It is likely that data are collinear where some variables are combinations of other variables.")
-    }
-  }
   
   ## stop if anything is NA; ask that they handle NAs outside of here
   if( any(is.na(DATA)) | any(is.infinite(DATA)) | any(is.nan(DATA)) | any(is.null(DATA)) ){
     stop("continuous_mcd: NA, Inf, -Inf, NULL, and NaN are not allowed.")
   }
   
+  ## collinearity check
+    ## NOTE: the DetMCD.m does exactly this via classSVD.m
+  svd.res <- tolerance_svd(ours_scale(DATA, center=center, scale=scale), tol = NA)
+  if( any(svd.res$d^2 < tol) ) {
+    if(!allow_collinearity){
+      stop("continuous_mcd: Matrix is singular. It is likely that data are collinear where some variables are combinations of other variables.")
+    }
+  }
+  
   ## sample finder
   mcd.samples <- continuous_mcd_search_for_sample(DATA, center=center, scale=scale, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent,tol=tol)
 
   ## get sample distances
-  tsvd.res <- tolerance_svd(ours_scale(DATA, center=center, scale=scale),tol = tol)
+  tsvd.res <- tolerance_svd(ours_scale(DATA, center=center, scale=scale), tol = tol)
   mahals <- rowSums(tsvd.res$u^2)
   chis <- rowSums( (tsvd.res$u  * matrix(tsvd.res$d,nrow(tsvd.res$u),ncol(tsvd.res$u),byrow=T))^2 )
 
@@ -91,8 +88,8 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
                center = rob.center,
                scale = rob.scale
     ),
-    dists = list(robust_mahal_dists = robust.vectors.and.scores$mahals,
-                 rob_score_dists = robust.vectors.and.scores$chis,
+    dists = list(robust_mahal_dists = robust.vectors.and.scores$projected_mahal_dists,
+                 rob_score_dists = robust.vectors.and.scores$projected_score_dists,
                  mahal_dists = mahals,
                  score_dists = chis),
     det.samps = list(dets = mcd.samples$final_determinants,
@@ -153,11 +150,10 @@ continuous_scores_dists <- function(DATA, center=T, scale=F, loadings, singular.
 #' @param DATA a data matrix (of presumably all continuous data)
 #' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
 #' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
-#' @param allow_collinearity a
-#' @param alpha a
-#' @param num.subsets a
-#' @param max.total.iters a
-#' @param top.sets.percent a
+#' @param alpha numeric. A value between .5 and 1 to select the size of the subsample based on a breakdown point
+#' @param num.subsets numeric. The number of initial subsamples to start the MCD algorithm with
+#' @param max.total.iters numeric. The total number of iterations allowed for the MCD search
+#' @param top.sets.percent numeric. A value within (0,1] for the number of samples and determinants to return. Returned results are in ascending order of determinants (minimum is the first element)
 #' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
 #'
 #' @return a list with a vector and a matrix
@@ -197,7 +193,7 @@ continuous_mcd_search_for_sample <- function(DATA, center=T, scale=F, alpha=.75,
         init.size <- init.size + 1
       }else{
         sup.scores.and.dists <- continuous_scores_dists(DATA, attributes(init.norm)$`scaled:center`, attributes(init.norm)$`scaled:scale`, init.svd$v, init.svd$d)
-        samp.config <- sort(order(sup.scores.and.dists$mahals)[1:h.size])
+        samp.config <- sort(order(sup.scores.and.dists$projected_mahal_dists)[1:h.size])
         findInit <- F
       }
     }
@@ -279,7 +275,7 @@ continuous_c_step <- function(DATA, observations_subsample, center=T, scale=F, m
         old_subsample <- new_subsample
 
         sup.scores.and.dists <- continuous_scores_dists(DATA, new_center, new_scale, svd.res$v, svd.res$d)
-        new_subsample <- sort(order(sup.scores.and.dists$mahals)[1:length(observations_subsample)])
+        new_subsample <- sort(order(sup.scores.and.dists$projected_mahal_dists)[1:length(observations_subsample)])
 
         if( isTRUE(all.equal(sort(new_subsample),sort(old_subsample))) ){
           return( list(observations_subsample = old_subsample, minimum_determinant = old_determinant) )

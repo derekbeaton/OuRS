@@ -5,89 +5,261 @@
   ## and it performs it as defined in the paper.
 
 
-ordinal_mcd <- function(data, make_data_doubled=T, mins = NULL, maxs = NULL, impute_NA_to_mean = F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+#' @title Generalized minimum covariance determinant (GMCD) for ordinal data
+#'
+#' @description
+#' \code{ordinal_mcd} performs the GMCD of a data matrix \code{DATA}.
+#' 
+#' @param DATA a numeric data matrix (of presumably all ordinal data)
+#' @param mins a vector to denote the expected minimum values for \code{DATA}. If not defined, the observed minimums will be used
+#' @param maxs a vector to denote the expected maximum values for \code{DATA}. If not defined, the observed maximums will be used
+#' @param alpha numeric. A value between .5 and 1 to select the size of the subsample based on a breakdown point
+#' @param num.subsets numeric. The number of initial subsamples to start the MCD algorithm with
+#' @param max.total.iters numeric. The total number of iterations allowed for the MCD search
+#' @param top.sets.percent numeric. A value within (0,1] for the number of samples and determinants to return. Returned results are in ascending order of determinants (minimum is the first element)
+#' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
+#'
+#'
+#' @return The 'OuRS MCD' object: a list of three lists:
+#' \item \strong{cov:} a list for the robust covariance structure items
+#' \itemize{
+#'   \item{loadings:} {a matrix of loadings via CA from the robust covariance matrix}
+#'   \item{singular.values:} {a vector of singular values via CA from the robust covariance matrix}
+#' }
+#' \item \strong{dists}
+#' \itemize{
+#'   \item{robust_mahal_dists} {Robust Mahalanobis distances from the robust covariance matrix}
+#'   \item{robust_score_dists} {Robust score distances (computed from component scores) from the robust covariance matrix}
+#'   \item{mahal_dists} {Mahalanobis distances}
+#'   \item{score_dists} {Score distances (computed from component scores)}
+#' }
+#' \item \strong{det.samps}
+#' \itemize{
+#'   \item{dets:} {A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search}
+#'   \item{samples:} {A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})}
+#' }
+#'
+#' @seealso \code{\link{continuous_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{categorical_mcd}}, \code{\link{generalized_mcd}}
+#'
+#' @examples
+#'
+#' @author Derek Beaton
+#' @export
+#' 
+ordinal_mcd <- function(DATA, mins = NULL, maxs = NULL, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
+  # if(make_data_doubled){
+    DATA <- thermometer_coding(DATA, mins = mins, maxs = maxs)
+  # }
 
-  if(make_data_doubled){
-    data <- thermometer_coding(data, mins = mins, maxs = maxs, impute_NA_to_mean = impute_NA_to_mean)
-  }
-
-  generalized_mcd(data, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent, tol=tol)
-
+  
+  res <- generalized_mcd(DATA, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent, tol=tol)
+  class(res) <- c("list", "OuRS", "MCD", "generalized", "ordinal")
+  return(res)
 
 }
 
 
-## data types will only allow for "cat" = categorical, "ord" for ordinal", "con" for continuous and "frq" for frequency
-# mixed_data_mcd <- function(data, column.types=rep("cat",ncol(data)), alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
-# }
+## data types only allow for n, o, c, z, and x
+#' @title Generalized minimum covariance determinant (GMCD) for mixed data
+#'
+#' @description
+#' \code{mixed_data_mcd} performs the GMCD of a data matrix \code{DATA}.
+#' 
+#' @details the input parameter \code{DATA} must be a \code{data.frame}, where ordinal and continuous variables are \code{numeric} and categorical variables are \code{character}. Any variables denoted with "x" (i.e., "do nothing") must also be \code{numeric}.
+#' See \code{\link{mixed_data_coding}}
+#'
+#' @param DATA a data frame with character columns (categorical) and numeric otherwise
+#' @param column.types a vector to denote the data type of each column of \code{DATA}. Options are "n" for categorical (nominal), "c" for continuous (centering only), "z" for continuous (centering and scaling), "o" for ordinal, and "x" which does nothing to those respective columns
+#' @param alpha numeric. A value between .5 and 1 to select the size of the subsample based on a breakdown point
+#' @param num.subsets numeric. The number of initial subsamples to start the MCD algorithm with
+#' @param max.total.iters numeric. The total number of iterations allowed for the MCD search
+#' @param top.sets.percent numeric. A value within (0,1] for the number of samples and determinants to return. Returned results are in ascending order of determinants (minimum is the first element)
+#' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
+#'
+#'
+#' @return The 'OuRS MCD' object: a list of three lists:
+#' \item \strong{cov:} a list for the robust covariance structure items
+#' \itemize{
+#'   \item{loadings:} {a matrix of loadings via CA from the robust covariance matrix}
+#'   \item{singular.values:} {a vector of singular values via CA from the robust covariance matrix}
+#' }
+#' \item \strong{dists}
+#' \itemize{
+#'   \item{robust_mahal_dists} {Robust Mahalanobis distances from the robust covariance matrix}
+#'   \item{robust_score_dists} {Robust score distances (computed from component scores) from the robust covariance matrix}
+#'   \item{mahal_dists} {Mahalanobis distances}
+#'   \item{score_dists} {Score distances (computed from component scores)}
+#' }
+#' \item \strong{det.samps}
+#' \itemize{
+#'   \item{dets:} {A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search}
+#'   \item{samples:} {A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})}
+#' }
+#'
+#' @seealso \code{\link{continuous_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{categorical_mcd}}, \code{\link{generalized_mcd}}
+#'
+#' @examples
+#'
+#' @author Derek Beaton
+#' @export
+#' 
+mixed_data_mcd <- function(DATA, column.types=rep("x",ncol(DATA)), alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
-
-categorical_mcd <- function(data, make_data_disjunctive=T, impute_NA_to_mean = F, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
-
-  if(make_data_disjunctive){
-    data <- disjunctive_coding(data, impute_NA_to_mean = impute_NA_to_mean)
-  }
-
-  generalized_mcd(data, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent, tol=tol)
-
+  
+  DATA <- mixed_data_coding(DATA, column.types)
+  res <- generalized_mcd(DATA, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent, tol=tol)
+  class(res) <- c("list", "OuRS", "MCD", "generalized", "mixed")
+  return(res)
+  
 }
 
+
+#' @title Generalized minimum covariance determinant (GMCD) for categorical data
+#'
+#' @description
+#' \code{categorical_mcd} performs the GMCD of a data matrix \code{DATA}.
+#' 
+#' @details the input parameter \code{DATA} must be a matrix of categorical data. Each level for each column (variable) will be represented through disjunctive coding. See \code{\link{disjunctive_coding}}
+#'
+#' @param DATA a data matrix (of presumably all categorical data)
+#' @param alpha numeric. A value between .5 and 1 to select the size of the subsample based on a breakdown point
+#' @param num.subsets numeric. The number of initial subsamples to start the MCD algorithm with
+#' @param max.total.iters numeric. The total number of iterations allowed for the MCD search
+#' @param top.sets.percent numeric. A value within (0,1] for the number of samples and determinants to return. Returned results are in ascending order of determinants (minimum is the first element)
+#' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
+#'
+#'
+#' @return The 'OuRS MCD' object: a list of three lists:
+#' \item \strong{cov:} a list for the robust covariance structure items
+#' \itemize{
+#'   \item{loadings:} {a matrix of loadings via CA from the robust covariance matrix}
+#'   \item{singular.values:} {a vector of singular values via CA from the robust covariance matrix}
+#' }
+#' \item \strong{dists}
+#' \itemize{
+#'   \item{robust_mahal_dists} {Robust Mahalanobis distances from the robust covariance matrix}
+#'   \item{robust_score_dists} {Robust score distances (computed from component scores) from the robust covariance matrix}
+#'   \item{mahal_dists} {Mahalanobis distances}
+#'   \item{score_dists} {Score distances (computed from component scores)}
+#' }
+#' \item \strong{det.samps}
+#' \itemize{
+#'   \item{dets:} {A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search}
+#'   \item{samples:} {A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})}
+#' }
+#'
+#' @seealso \code{\link{continuous_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
+#'
+#' @examples
+#'
+#' @author Derek Beaton
+#' @export
+#' 
+categorical_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+
+  # if(make_data_disjunctive){
+    DATA <- disjunctive_coding(DATA)
+  # }
+
+  res <- generalized_mcd(DATA, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent, tol=tol)
+  class(res) <- c("list", "OuRS", "MCD", "generalized", "categorical")
+  return(res)
+  
+}
 
 
 ### techinically, the generalized MCD is CA-based, so it has to assume we have data that are CA-friendly
-generalized_mcd <- function(data, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
+#' @title Generalized minimum covariance determinant (GMCD) for non-continuous data
+#'
+#' @description
+#' \code{generalized_mcd} performs the GMCD of a data matrix \code{DATA}.
+#' 
+#' @details the input parameter \code{DATA} are assumed to be transformed into disjunctive data (see \code{\link{disjunctive_coding}}) or an analog for continuous and/or ordinal data (see \code{\link{escofier_coding}}, \code{\link{thermometer_coding}}, \code{\link{mixed_data_coding}}).
+#' Generally, \code{DATA} should have the same properties as a data matrix that would be analyzed by Correspondence Analysis.
+#'
+#' @param DATA a data matrix (of presumably all transformed data)
+#' @param alpha numeric. A value between .5 and 1 to select the size of the subsample based on a breakdown point
+#' @param num.subsets numeric. The number of initial subsamples to start the MCD algorithm with
+#' @param max.total.iters numeric. The total number of iterations allowed for the MCD search
+#' @param top.sets.percent numeric. A value within (0,1] for the number of samples and determinants to return. Returned results are in ascending order of determinants (minimum is the first element)
+#' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
+#'
+#'
+#' @return The 'OuRS MCD' object: a list of three lists:
+#' \item \strong{cov:} a list for the robust covariance structure items
+#' \itemize{
+#'   \item{loadings:} {a matrix of loadings via CA from the robust covariance matrix}
+#'   \item{singular.values:} {a vector of singular values via CA from the robust covariance matrix}
+#' }
+#' \item \strong{dists}
+#' \itemize{
+#'   \item{robust_mahal_dists} {Robust Mahalanobis distances from the robust covariance matrix}
+#'   \item{robust_score_dists} {Robust score distances (computed from component scores) from the robust covariance matrix}
+#'   \item{mahal_dists} {Mahalanobis distances}
+#'   \item{score_dists} {Score distances (computed from component scores)}
+#' }
+#' \item \strong{det.samps}
+#' \itemize{
+#'   \item{dets:} {A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search}
+#'   \item{samples:} {A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})}
+#' }
+#'
+#' @seealso \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{continuous_mcd}}
+#'
+#' @examples
+#'
+#' @author Derek Beaton
+#' @export
+#' 
 
-    ## it's basically all of the above but without the transforms.
+### I have to change all the chis to score_distance and md to mahal or something
+generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=num.subsets*20, top.sets.percent=.05, tol=.Machine$double.eps){
 
-  ### at this point it should call off to a generalized_mcd() which only takes data
-  ## no passing of the disjunctive stuff.
-
-  if(ncol(data) > (nrow(data)*.9)){
+  if(ncol(DATA) > (nrow(DATA)*.9)){
     stop("generalized_mcd: the column-to-row ratio is too high so 'mcd' cannot be performed")
   }
-  if(alpha < .5){
-    alpha <- .5
+  
+  ## stop if anything is NA; ask that they handle NAs outside of here
+  if( any(is.na(DATA)) | any(is.infinite(DATA)) | any(is.nan(DATA)) | any(is.null(DATA)) ){
+    stop("continuous_mcd: NA, Inf, -Inf, NULL, and NaN are not allowed.")
   }
-
+  
   ## sample finder
-  mcd.samples <- generalized_mcd_find_sample(data, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
-  ## only grab the top sample.
+  mcd.samples <- generalized_mcd_find_sample(DATA, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
   best.sample <- mcd.samples$final.orders[1,]
 
-  preproc.data <- ca.preproc(data) ## this could be more efficient...
-  #profiles <- (diag(1/preproc.data$m) %*% preproc.data$Ox)
-  profiles <- sweep(preproc.data$Ox,1,preproc.data$m,"/")
+  preproc.DATA <- ca_preproc(DATA, compact = T) ## this could be more efficient...
+  profiles <- DATA / rowSums(DATA)
 
-  ca.res <- ca(data)
+  ca.res <- ca(DATA)
   mahals <- rowSums(ca.res$u^2)
   chis <- rowSums(ca.res$fi^2)
 
 
   ## get robust mean & cov (loadings)
-  rob.sample <- preproc.data$weightedZx[best.sample,]
+  rob.sample <- preproc.DATA$weightedZx[best.sample,]
   robust.tsvd.res <- tolerance.svd(rob.sample,tol=tol)
 
   ## call to function that computes robust mahal
-  robust.dists <- generalized_scores_dists(profiles, preproc.data$m, preproc.data$w, robust.tsvd.res$v, robust.tsvd.res$d)
-    ## change this
-  # robust.mahals <- rowSums(robust.dists$sup.u^2)
-  # robust.chis <- rowSums(robust.dists$sup.fi^2)
+  robust.vectors.and.scores <- generalized_scores_dists(profiles, preproc.DATA$m, preproc.DATA$w, robust.tsvd.res$v, robust.tsvd.res$d)
 
   res <- list(
     cov = list(loadings = robust.tsvd.res$v,
-               singular.values = robust.tsvd.res$d
+               singular.values = robust.tsvd.res$d,
+               # row_weights = preproc.DATA$m,
+               # column_weights = preproc.DATA$w
     ),
-    dists = list(rob.md = robust.mahals,
-                 rob.chid = robust.chis,
-                 md = mahals,
-                 chid = chis),
-    det.samps = list(dets = mcd.samples$final.dets,
-                     samples = mcd.samples$final.orders)
+    dists = list(robust_mahal_dists = robust.vectors.and.scores$projected_mahal_dists,
+                 rob_score_dists = robust.vectors.and.scores$projected_score_dists,
+                 mahal_dists = mahals,
+                 score_dists = chis),
+    det.samps = list(dets = mcd.samples$final_determinants,
+                     samples = mcd.samples$final_subsamples)
   )
 
 
-  class(res) <- c("list", "catMCD")
+  class(res) <- c("list", "OuRS", "MCD", "generalized")
   return(res)
 
 }
@@ -97,19 +269,16 @@ generalized_mcd <- function(data, alpha=.75, num.subsets=500, max.total.iters=nu
 #### so this has the same requirement as generalized_mcd and works under the assumption that the data have been transformed appropriately
 
 # formerly cat.mcd.find.sample
-generalized_mcd_find_sample <- function(data, alpha=.75,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05,tol=.Machine$double.eps){
+#' @noRd
+generalized_mcd_find_sample <- function(DATA, alpha=.75,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05,tol=.Machine$double.eps){
 
 
   ## I need to assess how necesarry these various (possibly redundant) pieces are
   ## just compute these directly from data
-  preproc.data <- ca.preproc(data) ## this could be more efficient...
-  #profiles <- (diag(1/preproc.data$m) %*% preproc.data$Ox)
-  profiles <- sweep(preproc.data$Ox,1,preproc.data$m,"/")
+  preproc.DATA <- ca_preproc(DATA, compact = T) ## this could be more efficient...
+  profiles <- DATA / rowSums(DATA)
 
-  if(alpha<.5){
-    h.size <- floor((nrow(data)+1)/2)
-  }
-  h.size <- h.alpha.n(alpha,nrow(data),ncol(data))
+  h.size <- h.alpha.n(alpha,nrow(DATA),ncol(DATA))
   max.det.iters <- round(max.total.iters / num.subsets)
 
   dets <- vector("numeric", num.subsets)
@@ -117,19 +286,19 @@ generalized_mcd_find_sample <- function(data, alpha=.75,num.subsets=500,max.tota
   for(i in 1:num.subsets){
 
     findInit <- T
-    init.size <- min(dim(data))+1
+    init.size <- min(dim(DATA))+1
 
     while( findInit ){
 
-      init.samp <- sort(sample(nrow(data),init.size))
+      init.samp <- sort(sample(nrow(DATA),init.size))
 
-      init.svd <- tolerance.svd(preproc.data$weightedZx[init.samp,],tol=tol)
+      init.svd <- tolerance.svd(preproc.DATA$weightedZx[init.samp,],tol=tol)
       init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round? ### I should probably use a tol parameter here...
 
       if(length(unique(init.mds)) < 2){
         init.size <- init.size + 1
       }else{
-        sup.scores <- generalized_scores_dists(profiles, preproc.data$m, preproc.data$w, init.svd$v, init.svd$d)
+        sup.scores <- generalized_scores_dists(profiles, preproc.DATA$m, preproc.DATA$w, init.svd$v, init.svd$d)
         ## change this
         # mahals <- rowSums(sup.scores$sup.u^2)
         samp.config <- sort(order(mahals)[1:h.size])
@@ -137,7 +306,7 @@ generalized_mcd_find_sample <- function(data, alpha=.75,num.subsets=500,max.tota
       }
     }
 
-    min.info <- generalized_c_step(profiles, preproc.data$weightedZx, preproc.data$m, preproc.data$w, samp.config, max.det.iters)
+    min.info <- generalized_c_step(profiles, preproc.DATA$weightedZx, preproc.DATA$m, preproc.DATA$w, samp.config, max.det.iters)
     dets[i] <- min.info$min.det
     orders[i,] <- min.info$obs.order
   }
@@ -151,7 +320,7 @@ generalized_mcd_find_sample <- function(data, alpha=.75,num.subsets=500,max.tota
   for( i in 1:nrow(final.configs)){
 
     ## RETURN TO THIS. I NEED INF to work.
-    min.info <- generalized_c_step(profiles, preproc.data$weightedZx, preproc.data$m, preproc.data$w, final.configs[i,], 1000)		## set to Inf so that this converges on its own; need to make this settable & have a real max embedded in c.step
+    min.info <- generalized_c_step(profiles, preproc.DATA$weightedZx, preproc.DATA$m, preproc.DATA$w, final.configs[i,], 1000)		## set to Inf so that this converges on its own; need to make this settable & have a real max embedded in c.step
     final.dets[i] <- min.info$min.det
     final.orders[i,] <- min.info$obs.order
   }
@@ -167,6 +336,7 @@ generalized_mcd_find_sample <- function(data, alpha=.75,num.subsets=500,max.tota
 ## same as the above two: this needs to be the generalized version, it doesn't care what data they were
   ## but also this should handle profiles internally
 # formerly cat.sup.fi.u
+#' @export
 generalized_scores_dists <- function(profiles, row.weights, col.weights, loadings, singular.values){
 
   ## NOT EFFICIENT. MAKE MORE EFFICIENT
@@ -185,6 +355,7 @@ generalized_scores_dists <- function(profiles, row.weights, col.weights, loading
 ### same same same as the above points: this is the generalized version
 
 # formerly cat.c.step
+#' @noRd
 generalized_c_step <- function(profiles, weighted.deviations, row.weights, col.weights, obs.order, max.iters=25, tol=sqrt(.Machine$double.eps)){
 
   old.det <- Inf

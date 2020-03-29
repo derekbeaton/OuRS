@@ -366,24 +366,37 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute_NA
 #' @details A data matrix processed akin to the way \eqn{\chi^2} is computed (deviations from independence)
 #' 
 #' @param DATA a numeric matrix
+#' @param compact a logical (boolean). Default is \code{TRUE}. When \code{TRUE} only some elements are returned
 #' 
-#' @return a list with 6 elements
-#' \item{Ox:} {The observed values}
-#' \item{m:} {Row probabilities}
-#' \item{w:} {Column probabilities}
-#' \item{Ex:} {The expected values}
-#' \item{Zx:} {The deviations values}
-#' \item{weightedZx:} {The deviations divided by the square root of the row and column probabilities}
+#' @return 
+#' \item if \code{compact = FALSE} a list with 6 elements
+#' \itemize{
+#'   \item{Ox:} {The observed values}
+#'   \item{m:} {Row probabilities}
+#'   \item{w:} {Column probabilities}
+#'   \item{Ex:} {The expected values}
+#'   \item{Zx:} {The deviations values}
+#'   \item{weightedZx:} {The deviations divided by the square root of the row and column probabilities}
+#' }
+#' \item if \code{compact = TRUE} a list with 3 elements
+#' \itemize{
+#'   \item{m:} {Row probabilities}
+#'   \item{w:} {Column probabilities}
+#'   \item{weightedZx:} {The deviations divided by the square root of the row and column probabilities}
+#' }
 #' 
 #' @author Derek Beaton
 #' @export
 
-ca_preproc <- function(DATA){
+ca_preproc <- function(DATA, compact = T){
   Ox <- DATA/sum(DATA)
   m <- rowSums(Ox)
   w <- colSums(Ox)
   Ex <- m %o% w
   Zx <- Ox - Ex
   weightedZx <- sweep(sweep(Zx,1,sqrt(m),"/"),2,sqrt(w),"/")
+  if(compact){
+    return( list(m=m,w=w,weightedZx=weightedZx) )
+  }
   return( list(m=m,w=w,Zx=Zx,Ox=Ox,Ex=Ex,weightedZx=weightedZx) )
 }
