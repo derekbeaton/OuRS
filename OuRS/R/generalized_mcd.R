@@ -60,7 +60,7 @@ ordinal_mcd <- function(DATA, mins = NULL, maxs = NULL, alpha=.75, num.subsets=5
 }
 
 
-## data types only allow for n, o, c, z, and x
+## data types only allow for n, c, z, o, and x
 #' @title Generalized minimum covariance determinant (GMCD) for mixed data
 #'
 #' @description
@@ -226,7 +226,7 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
   }
   
   ## sample finder
-  mcd.samples <- generalized_mcd_find_sample(DATA, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
+  mcd.samples <- generalized_mcd_search_for_sample(DATA, alpha=alpha, num.subsets=num.subsets, max.total.iters=max.total.iters, top.sets.percent=top.sets.percent)
   best.sample <- mcd.samples$final.orders[1,]
 
   preproc.DATA <- ca_preproc(DATA, compact = T) ## this could be more efficient...
@@ -239,10 +239,10 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
 
   ## get robust mean & cov (loadings)
   rob.sample <- preproc.DATA$weightedZx[best.sample,]
-  robust.tsvd.res <- tolerance.svd(rob.sample,tol=tol)
+  robust.tsvd.res <- tolerance_svd(rob.sample,tol=tol)
 
   ## call to function that computes robust mahal
-  robust.vectors.and.scores <- generalized_scores_dists(profiles, preproc.DATA$m, preproc.DATA$w, robust.tsvd.res$v, robust.tsvd.res$d)
+  robust.vectors.and.scores <- generalized_scores_dists(DATA, preproc.DATA$m, preproc.DATA$w, robust.tsvd.res$v, robust.tsvd.res$d)
 
   res <- list(
     cov = list(loadings = robust.tsvd.res$v,
@@ -264,84 +264,16 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
 
 }
 
-
-### techinically, the generalized MCD is CA-based, so it has to assume we have data that are CA-friendly
-#### so this has the same requirement as generalized_mcd and works under the assumption that the data have been transformed appropriately
-
-# formerly cat.mcd.find.sample
-#' @noRd
-generalized_mcd_find_sample <- function(DATA, alpha=.75,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05,tol=.Machine$double.eps){
-
-
-  ## I need to assess how necesarry these various (possibly redundant) pieces are
-  ## just compute these directly from data
-  preproc.DATA <- ca_preproc(DATA, compact = T) ## this could be more efficient...
-  profiles <- DATA / rowSums(DATA)
-
-  h.size <- h.alpha.n(alpha,nrow(DATA),ncol(DATA))
-  max.det.iters <- round(max.total.iters / num.subsets)
-
-  dets <- vector("numeric", num.subsets)
-  orders <- matrix(NA,num.subsets,h.size)
-  for(i in 1:num.subsets){
-
-    findInit <- T
-    init.size <- min(dim(DATA))+1
-
-    while( findInit ){
-
-      init.samp <- sort(sample(nrow(DATA),init.size))
-
-      init.svd <- tolerance.svd(preproc.DATA$weightedZx[init.samp,],tol=tol)
-      init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round? ### I should probably use a tol parameter here...
-
-      if(length(unique(init.mds)) < 2){
-        init.size <- init.size + 1
-      }else{
-        sup.scores <- generalized_scores_dists(profiles, preproc.DATA$m, preproc.DATA$w, init.svd$v, init.svd$d)
-        ## change this
-        # mahals <- rowSums(sup.scores$sup.u^2)
-        samp.config <- sort(order(mahals)[1:h.size])
-        findInit <- F
-      }
-    }
-
-    min.info <- generalized_c_step(profiles, preproc.DATA$weightedZx, preproc.DATA$m, preproc.DATA$w, samp.config, max.det.iters)
-    dets[i] <- min.info$min.det
-    orders[i,] <- min.info$obs.order
-  }
-
-  perc.cut <- round(num.subsets * top.sets.percent)	## they take "top 10" -- I will allow our search to be broader
-  unique.min.configs <- unique(orders[order(dets),])
-  final.configs <- unique(unique.min.configs[1:min(nrow(unique.min.configs), perc.cut),])
-
-  final.dets <- vector("numeric", nrow(final.configs))
-  final.orders <- matrix(NA,nrow(final.configs),h.size)
-  for( i in 1:nrow(final.configs)){
-
-    ## RETURN TO THIS. I NEED INF to work.
-    min.info <- generalized_c_step(profiles, preproc.DATA$weightedZx, preproc.DATA$m, preproc.DATA$w, final.configs[i,], 1000)		## set to Inf so that this converges on its own; need to make this settable & have a real max embedded in c.step
-    final.dets[i] <- min.info$min.det
-    final.orders[i,] <- min.info$obs.order
-  }
-
-  best.order <- order(final.dets)
-  final.dets <- final.dets[best.order]
-  final.orders <- final.orders[best.order,]
-
-  return( list(final.dets= final.dets, final.orders= final.orders) )
-
-}
-
 ## same as the above two: this needs to be the generalized version, it doesn't care what data they were
   ## but also this should handle profiles internally
 # formerly cat.sup.fi.u
 #' @export
-generalized_scores_dists <- function(profiles, row.weights, col.weights, loadings, singular.values){
+generalized_scores_dists <- function(DATA, row.weights, col.weights, loadings, singular.values){
 
   ## NOT EFFICIENT. MAKE MORE EFFICIENT
   ## also this can handle the profiles here...
 
+  profiles <- DATA / rowSums(DATA)
   sup.fi <- profiles %*% sweep(loadings,1,sqrt(col.weights)/col.weights,"*")
   sup.u <- sweep(sweep(sup.fi,2,singular.values,"/"),1,sqrt(row.weights),"*")
 
@@ -352,57 +284,154 @@ generalized_scores_dists <- function(profiles, row.weights, col.weights, loading
 
 }
 
-### same same same as the above points: this is the generalized version
+
+
+
+### techinically, the generalized MCD is CA-based, so it has to assume we have data that are CA-friendly
+#### so this has the same requirement as generalized_mcd and works under the assumption that the data have been transformed appropriately
+
+# formerly cat.mcd.find.sample
+#' @title Generalized minimum covariance determinant (GMCD) search for subsample in non-continuous data
+#'
+#' @description Performs the search for the subsample for GMCD of a data matrix \code{DATA}.
+#'
+#' @param DATA a data matrix (of numeric but presumably non-continuous data that have been transformed)
+#' @param alpha numeric. A value between .5 and 1 to select the size of the subsample based on a breakdown point
+#' @param num.subsets numeric. The number of initial subsamples to start the GMCD algorithm with
+#' @param max.total.iters numeric. The total number of iterations allowed for the GMCD search
+#' @param top.sets.percent numeric. A value within (0,1] for the number of samples and determinants to return. Returned results are in ascending order of determinants (minimum is the first element)
+#' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
+#'
+#' @return a list with a vector and a matrix
+#' \item{final_determinants: }{a vector of length \code{round(num.subsets * top.sets.percent)} with determinants produced from the search. Listed in ascending order, so the first element is the minimum determinant}
+#' \item{final_subsamples: }{a matrix \code{round(num.subsets * top.sets.percent)} rows with subsamples produced from the search that produce the \code{final_determinants}. Listed in descending order, so the first row is the subsample that produces the minimum determinant}
+#'
+#'
+#' @author Derek Beaton
+#' 
+#' @noRd
+
+generalized_mcd_search_for_sample <- function(DATA, alpha=.75,num.subsets=500,max.total.iters=num.subsets*20,top.sets.percent=.05,tol=.Machine$double.eps){
+  
+
+  preproc.DATA <- ca_preproc(DATA, compact = T)
+  profiles <- DATA / rowSums(DATA)
+  
+  h.size <- h.alpha.n(alpha,nrow(DATA),ncol(DATA))
+  max.det.iters <- round(max.total.iters / num.subsets)
+  
+  dets <- vector("numeric", num.subsets)
+  orders <- matrix(NA,num.subsets,h.size)
+  for(i in 1:num.subsets){
+    
+    findInit <- T
+    init.size <- min(dim(DATA))+1
+    
+    while( findInit ){
+      
+      init.samp <- sort(sample(nrow(DATA),init.size))
+      init.svd <- tolerance_svd(preproc.DATA$weightedZx[init.samp,],tol=tol)
+      init.mds <- round(rowSums(init.svd$u^2),digits=8)	## do I need to round? ### I should probably use a tol parameter here...
+      
+      if(length(unique(init.mds)) < 2){
+        init.size <- init.size + 1
+      }else{
+        sup.scores.and.dists <- generalized_scores_dists(DATA, preproc.DATA$m, preproc.DATA$w, init.svd$v, init.svd$d)
+        samp.config <- sort(order(sup.scores.and.dists$projected_mahal_dists)[1:h.size])
+        findInit <- F
+      }
+    }
+    
+    min.info <- generalized_c_step(profiles, weighted.deviations = preproc.DATA$weightedZx, row.weights = preproc.DATA$m, col.weights = preproc.DATA$w, observations_subsample = samp.config, max.iters = max.det.iters)
+    dets[i] <- min.info$minimum_determinant
+    orders[i,] <- min.info$observations_subsample
+  }
+  
+  perc.cut <- round(num.subsets * top.sets.percent)
+  unique.min.configs <- unique(orders[order(dets),])
+  final.configs <- unique(unique.min.configs[1:min(nrow(unique.min.configs), perc.cut),])
+  
+  final.dets <- vector("numeric", nrow(final.configs))
+  final.orders <- matrix(NA,nrow(final.configs),h.size)
+  for( i in 1:nrow(final.configs)){
+    min.info <- generalized_c_step(profiles, weighted.deviations = preproc.DATA$weightedZx, row.weights = preproc.DATA$m, col.weights = preproc.DATA$w, observations_subsample = final.configs[i,])
+    final.dets[i] <- min.info$minimum_determinant
+    final.orders[i,] <- min.info$observations_subsample
+  }
+  
+  best.order <- order(final.dets)
+  final.dets <- final.dets[best.order]
+  final.orders <- final.orders[best.order,]
+  
+  return( list(final.dets= final.dets, final.orders= final.orders) )
+  
+}
 
 # formerly cat.c.step
-#' @noRd
-generalized_c_step <- function(profiles, weighted.deviations, row.weights, col.weights, obs.order, max.iters=25, tol=sqrt(.Machine$double.eps)){
 
-  old.det <- Inf
-  old.center <- NaN
-  old.v <- matrix(NaN,0,0)
-  new.order <- old.order <- obs.order
+#' @title C step of the GMCD
+#' 
+#' @description Performs the C ("concentration") step in the search for a sample of observations that produces a minimum determinant from a covariance matrix
+#' 
+#' @param profiles a matrix of "row profiles"
+#' @param weighted.deviations the matrix of weighted deviations from \code{\link{ca_preproc}}, specifically \code{$weightedZx}
+#' @param row.weights the vector of row weights from \code{\link{ca_preproc}}, specifically \code{$m}
+#' @param col.weights the vector of column weights from \code{\link{ca_preproc}}, specifically \code{$w}
+#' @param observations_subsample a numeric vector. Indicates which observations to use as the initial subsample in the C-step
+#' @param max.iters numeric. Default is 100. Indicates how many iterations of the C-step to perform before stopping
+#' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
+#'
+#' @return a list with two items
+#' \item{observations_subsample: }{a numeric vector to for the subsample that produces a minimum determinant}
+#' \item{minimum_determinant: }{the determinant of the covariance matrix produced by \code{observations_subsample}}
+#'
+#' @author Derek Beaton
+#'
+#' @noRd
+generalized_c_step <- function(profiles, weighted.deviations, row.weights, col.weights, observations_subsample, max.iters=100, tol=.Machine$double.eps){
+
+  old_determinant <- Inf
+  old_center <- NaN
+  old_loadings <- matrix(NaN,0,0)
+  new_subsample <- old_subsample <- observations_subsample
 
   for(i in 1:max.iters){
-    sub.data <- weighted.deviations[new.order,]
-    new.center <- colMeans(sub.data)
-    svd.res <- tryCatch( {tolerance.svd(sub.data)}, error=function(x) 'FAIL') ## this should probably be explained a bit!
+    sub.data <- weighted.deviations[new_subsample,]
+    new_center <- colMeans(sub.data)
+    svd.res <- tryCatch( {tolerance_svd(sub.data, tol = tol)}, error=function(x) "generalized_c_step: catching error returned from 'tolerance_svd': 'tolerance_svd(sub.data, tol = tol)' failed.") ## this should probably be explained a bit!
 
+    ### should probably use a better catch of thee class here, and should also port this over to continuous_mcd; although that one is less susceptible to these issues
     if(length(svd.res)==3){
-      # new.det <- geometric_mean(svd.res$d^2)
-      new.det <- exp(mean(log(svd.res$d^2)))
+      new_determinant <- exp(mean(log(svd.res$d^2)))
 
 
-      if( (new.det <= old.det) & (!isTRUE(all.equal(new.det,0,tolerance=tol))) ){
-        if( center.sigma_checker(old.center, new.center, old.v, svd.res$v,tol=tol) & isTRUE(all.equal(new.det, old.det, tolerance= tol)) ){
-          return( list(obs.order = old.order, min.det = old.det) )
+      if( (new_determinant <= old_determinant) & (!isTRUE(all.equal(new_determinant,0,tolerance=tol))) ){
+        if( center.sigma_checker(old_center, new_center, old_loadings, svd.res$v,tol=tol) & isTRUE(all.equal(new_determinant, old_determinant, tolerance= tol)) ){
+          return( list(observations_subsample = old_subsample, minimum_determinant = old_determinant) )
         }
         else{
 
-          old.det <- new.det
-          old.center <- new.center
-          old.v <- svd.res$v
-          old.order <- new.order
+          old_determinant <- new_determinant
+          old_center <- new_center
+          old_loadings <- svd.res$v
+          old_subsample <- new_subsample
 
-          sup.scores <- generalized_scores_dists(profiles, row.weights, col.weights, svd.res$v, svd.res$d)
-          ## change this
-          # mahals <- rowSums(sup.scores$sup.u^2)
-          new.order <- sort(order(mahals)[1:length(obs.order)]	)
+          sup.scores.and.dists <- generalized_scores_dists(DATA, row.weights, col.weights, svd.res$v, svd.res$d)
+          new_subsample <- sort(order(sup.scores.and.dists$projected_mahal_dists)[1:length(observations_subsample)]	)
 
-          if( isTRUE(all.equal(sort(new.order),sort(old.order))) ){
-            return( list(obs.order = old.order, min.det = old.det) )
+          if( isTRUE(all.equal(sort(new_subsample),sort(old_subsample))) ){
+            return( list(observations_subsample = old_subsample, minimum_determinant = old_determinant) )
           }
         }
       }else{
-        return( list(obs.order = old.order, min.det = old.det) )
+        return( list(observations_subsample = old_subsample, minimum_determinant = old_determinant) )
       }
     }else{
-      warning('SVD error caught and skipped. Prior results being returned.')
-      return( list(obs.order = old.order, min.det = old.det) )
+      return( list(observations_subsample = old_subsample, minimum_determinant = old_determinant) )
     }
   }
   ## this is basically the max out which implies the most recent is the best.
-  return( list(obs.order = new.order, min.det= new.det) )
+  return( list(observations_subsample = new_subsample, minimum_determinant = new_determinant) )
 }
 
 

@@ -198,7 +198,7 @@ continuous_mcd_search_for_sample <- function(DATA, center=T, scale=F, alpha=.75,
       }
     }
     
-    min.info <- continuous_c_step(DATA, samp.config, center, scale, max.det.iters)
+    min.info <- continuous_c_step(DATA, center=center, scale=scale, observations_subsample = samp.config, max.iters = max.det.iters)
     dets[i] <- min.info$minimum_determinant
     orders[i,] <- min.info$observations_subsample
   }
@@ -211,7 +211,7 @@ continuous_mcd_search_for_sample <- function(DATA, center=T, scale=F, alpha=.75,
   final_subsamples <- matrix(NA,nrow(final.configs),h.size)
   for( i in 1:nrow(final.configs)){
     
-    min.info <- continuous_c_step(DATA, final.configs[i,], center, scale, 100)	## set to Inf so that this converges on its own; need to make this settable & have a real max embedded in c.step
+    min.info <- continuous_c_step(DATA, center = center, scale = scale, observations_subsample = final.configs[i,])
     final_determinants[i] <- min.info$minimum_determinant
     final_subsamples[i,] <- min.info$observations_subsample
     
@@ -231,10 +231,10 @@ continuous_mcd_search_for_sample <- function(DATA, center=T, scale=F, alpha=.75,
 #' @description Performs the C ("concentration") step in the search for a sample of observations that produces a minimum determinant from a covariance matrix
 #' 
 #' @param DATA a data matrix (of presumably all continuous data)
-#' @param observations_subsample a numeric vector. Indicates which observations to use as the initial subsample in the C-step
 #' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
 #' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
-#' @param max.iters numeric. Indicates how many iterations of the C-step to perform before stopping
+#' @param observations_subsample a numeric vector. Indicates which observations to use as the initial subsample in the C-step
+#' @param max.iters numeric. Default is 100. Indicates how many iterations of the C-step to perform before stopping
 #' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
 #'
 #' @return a list with two items
@@ -245,7 +245,7 @@ continuous_mcd_search_for_sample <- function(DATA, center=T, scale=F, alpha=.75,
 #'
 #' @noRd
 
-continuous_c_step <- function(DATA, observations_subsample, center=T, scale=F, max.iters=25, tol=.Machine$double.eps){
+continuous_c_step <- function(DATA, center=T, scale=F, observations_subsample, max.iters=100, tol=.Machine$double.eps){
 
   old_determinant <- Inf
   old_center <- NaN
