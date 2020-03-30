@@ -132,11 +132,8 @@ made a [preprint](https://www.biorxiv.org/content/10.1101/333005v2) of
 this available on bioRxiv.
 
 The example we provide here is strictly categorical data. The data here
-are a re-coded version of a survey that asked opinions of [different
-beers brewed in the Dallas-Fort Worth
-area](http://www.dallasobserver.com/restaurants/dfws-favorite-local-beer-as-proven-by-an-actual-scientist-7024953).
-Each person’s response to each beer is categorized as “LIKE”,
-“DO.NOT.LIKE”, or “NO.OPINION”.
+are a toy data set of genetic variables (single nucleotide
+polymorphisms, a.k.a. SNPs).
 
 ``` r
 load("OuRS/data/SNPS.rda")
@@ -159,5 +156,6 @@ dd_plot(catmcd.results, dist_transform = "sqrt")
 
 # Additional materials
 
-Please see the `Publications` and `Presentations` directories for more
-examples of some of our outlier and robust structures work.
+Please see the (Publications)\[./Publications\] and
+(Presentations)\[./Presentations\] directories for more examples of some
+of our outlier and robust structures work.
