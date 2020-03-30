@@ -20,6 +20,7 @@
 #' @author Derek Beaton
 #' @export
 #' 
+
 continous_corrmax <- function(target.data, center=T, scale=F, loadings, singular.values){
 
   ## catch NAs
@@ -34,10 +35,10 @@ continous_corrmax <- function(target.data, center=T, scale=F, loadings, singular
   
   if(missing(loadings) | missing(singular.values)){
     
-    pca.res <- pca(target.data)
-    loadings <- pca.res$v
-    singular.values <- pca.res$d
-    pca.res <- NULL ## get rid of it
+    svd.res <- tolerance_svd(target.data)
+    loadings <- svd.res$v
+    singular.values <- svd.res$d
+    svd.res <- NULL ## get rid of it
     
   }
   
@@ -190,20 +191,27 @@ generalized_corrmax <- function(target.data, loadings, singular.values){
 #' @param singular.values a
 #' 
 #' @author Derek Beaton
+
+### I guess technically this is a "covmax"
 corrmax_core_tranform <- function(target.data, loadings, singular.values){
   
   ## should do some error catching here.
   
-  diag.sampcov <- sqrt(diag(tcrossprod( sweep(loadings,2,singular.values,"*") )))
-  ## this can be made more efficient if I use /svd()$d as another sweep inside the tcrossprod()
-  inv.DSD.half <- GSVD::invsqrt_psd_matrix( tcrossprod( sweep( sweep(loadings,2,singular.values,"*"),1,diag.sampcov,"/") ) )
-  W <- target.data %*% sweep(inv.DSD.half,1,diag.sampcov,"/")
+  
+  diag.sampcov <- 1/sqrt(diag(crossprod(t(loadings) * singular.values)))
+  inv.DSD.half <- GSVD::invsqrt_psd_matrix( tcrossprod(t(t(loadings) * singular.values) * diag.sampcov) )
+  transformed_data <- target.data %*% (t(inv.DSD.half) * diag.sampcov)
+  
+  contributions <- transformed_data^2
+  mahal_dists <- rowSums(contributions)
   
   res <- list(
+    diag_sample_cov = diag.sampcov,
     corr_max_transform = inv.DSD.half,
-    transformed_data = W,
-    mahal_dists = rowSums(W^2),
-    percentage_contributions = sweep(W^2,1,rowSums(W^2),"/")*100
+    transformed_data = transformed_data,
+    contributions = contributions,
+    mahal_dists = mahal_dists,
+    percentage_contributions = sweep(contributions,1,mahal_dists,"/")*100
   )
   
   class(res) <- c("list", "OuRS", "CorrMax")
