@@ -18,7 +18,7 @@ tolerance_ellipse(DATA, ellipse.alpha = 0.75, mcd.alpha = 0.75,
 
 \item{ylab}{see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{colnames(DATA)[2]}'}
 
-\item{graphs}{logical (boolean). Default is \code{FALSE}. When \code{FALSE} ellipses are added to an existing plot, when \code{TRUE} a new x-y plot is made with ellipses}
+\item{graphs}{logical (boolean). Default is \code{FALSE}. When \code{FALSE} ellipses extents are returned, when \code{TRUE} a new x-y plot is made with ellipses and ellipses extents returned}
 }
 \description{
 Compute the tolerance ellipse for x-y data

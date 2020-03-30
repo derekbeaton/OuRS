@@ -233,7 +233,7 @@ generalized_mcd <- function(DATA, alpha=.75, num.subsets=500, max.total.iters=nu
   
   ## stop if anything is NA; ask that they handle NAs outside of here
   if( any(is.na(DATA)) | any(is.infinite(DATA)) | any(is.nan(DATA)) | any(is.null(DATA)) ){
-    stop("continuous_mcd: NA, Inf, -Inf, NULL, and NaN are not allowed.")
+    stop("generalized_mcd: NA, Inf, -Inf, NULL, and NaN are not allowed.")
   }
   
   ## sample finder

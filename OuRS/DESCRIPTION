@@ -9,5 +9,5 @@ Description: Identification of outliers, their sources, and robust multivariate 
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: GSVD
+Depends: GSVD
 RoxygenNote: 6.1.0

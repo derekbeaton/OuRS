@@ -112,7 +112,7 @@ escofier_coding <- function(DATA, center=TRUE, scale=TRUE, impute_NA_to_mean=F){
 #' @author Derek Beaton
 #' @export
 
-thermometer_coding <- function (DATA, mins, maxs, impute_NA_to_mean=F)
+thermometer_coding <- function(DATA, mins, maxs, impute_NA_to_mean=F)
 {
   if (is.null(colnames(DATA))) {
     warning("'colnames(DATA)' were NULL. Setting to 1:ncol(DATA).")
@@ -285,6 +285,8 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute_NA
   names(column.type) <- colnames(DATA)
 
   possible.types <- c("n","c","z","o","x")
+  column.types <- tolower(column.types)
+  
   if(any(!(column.type %in% possible.types))){
     warning("Unrecognized 'column.type'. Changing unrecognized types to 'x'")
     column.type[which(!(column.type %in% possible.types))] <-"x"
