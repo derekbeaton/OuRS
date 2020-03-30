@@ -7,24 +7,31 @@
 #cont.corrmax <- function(population.data,sample.data){
 continous_corrmax <- function(target.data,rob.center=T,rob.scale=F,loadings,singular.values,tol=.Machine$double.eps){
 
-  ## if we want to do a correction for sample size in this case, all we need to do is scale up the sv/eigen values.
 
-  target.data <- ours_scale(target.data,center=rob.center,scale=rob.scale) #signs are switched; I can just *-1
+  target.data <- ours_scale(target.data,center=rob.center,scale=rob.scale)
 
   diag.sampcov <- sqrt(diag(tcrossprod( sweep(loadings,2,singular.values,"*") )))
-  inv.DSD.half <- (tcrossprod(sweep( sweep(loadings,2,singular.values,"*"),1,diag.sampcov,"/") %^% (-1/2)))
+
+  inv.DSD.half <- tcrossprod( GSVD::invsqrt_psd_matrix(sweep( sweep(loadings,2,singular.values,"*"),1,diag.sampcov,"/")) )
 
   W <- target.data %*% sweep(inv.DSD.half,1,diag.sampcov,"/")
-  #w.svd <- tolerance_svd(W,tol=tol)
-    ## absolutely no need because, as in Eq 2(?) in Garthwaite & Koch (2016) they point out that X --> W exists where mahal(X) == mahal(W)
-
+  w.svd <- tolerance_svd(W,tol=tol)
+    ## no need because, as in Eq 2(?) in Garthwaite & Koch (2016) they point out that X --> W exists where mahal(X) == mahal(W)
+    ## but I've brought it back for convenience
 
     ## we should use percentages in place of contributions as they have meaning
-    ## also: we now have a new Mahalanobis from corrmax.
-      ### WRONG: (not really) but this Mahal is the same as if it were done on the scaled data...
   #return(list(mah=rowSums(w.svd$u^2),percs=sweep(W^2,1,rowSums(W^2),"/")*100))
-  return(sweep(W^2,1,rowSums(W^2),"/")*100)
-    ## I believe that the contributions (i.e., W^2) could actually be used by CA in some clever way. I just don't know it yet!
+  
+  res <- list(
+    mahal_dists = rowSums(w.svd$u^2),
+    mahal_dists2 = diag(crossprod(W)),
+    corr_max_transform = inv.DSD.half,
+    transformed_data = W,
+    percentage_contributions = sweep(W^2,1,rowSums(W^2),"/")*100
+  )
+  
+  class(res) <- c("list", "OuRS", "CorrMax", "continuous")
+  return(res)
 
 }
 

@@ -1,11 +1,11 @@
 Package: ours
 Type: Package
-Title: OUtliers and Robust Structures
-Version: 0.0.0.9000
+Title: Outliers and Robust Structures
+Version: 0.1.0.9000
 Authors@R: c(person("Kelly","Sunderland",role=c("aut"),email="ksunderland@research.baycrest.org"),
               person("Derek","Beaton",role=c("aut","cre"),email="exposition.software@gmail.com"))
 Maintainer: Derek Beaton <exposition.software@gmail.com>
-Description: Identification of outliers (observations), their sources, and robust multivariate structures
+Description: Identification of outliers, their sources, and robust multivariate structures
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

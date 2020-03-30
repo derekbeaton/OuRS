@@ -120,7 +120,7 @@ dd_plot <- function(ours_mcd_list, md_cutoff = NA, robust_md_cutoff = NA,  dist_
 #' @param mcd.alpha numeric in the range of (.5,1).  The percentage for a robust tolerance ellipse (by way of the MCD)
 #' @param xlab see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{colnames(DATA)[1]}'
 #' @param ylab see \code{\link{plot}} and \code{\link{par}}. Default here is '\code{colnames(DATA)[2]}'
-#' @param graphs logical (boolean). Default is \code{FALSE}. When \code{FALSE} ellipses are added to an existing plot, when \code{TRUE} a new x-y plot is made with ellipses
+#' @param graphs logical (boolean). Default is \code{FALSE}. When \code{FALSE} ellipses extents are returned, when \code{TRUE} a new x-y plot is made with ellipses and ellipses extents returned
 #' 
 #' @author Derek Beaton for \code{tolerance_ellipse}; Andrew Jackson and Andrew Parnell for all functions inside (i.e., \code{pointsToEllipsoid}, \code{ellipsoidTransform}, \code{ellipseInOut}, \code{addEllipse}, \code{genCircle})
 #' @seealso https://CRAN.R-project.org/package=SIBER
@@ -191,11 +191,17 @@ tolerance_ellipse <- function(DATA, ellipse.alpha=.75, mcd.alpha=.75, xlab=colna
     return(cbind(x, y))
   }
 
-  if(alpha < .5){
-    alpha <- .5
+  if(ellipse.alpha < .5){
+    ellipse.alpha <- .5
   }
-  if(alpha > 1){
-    alpha <- 1
+  if(ellipse.alpha > 1){
+    ellipse.alpha <- 1
+  }
+  if(mcd.alpha < .5){
+    mcd.alpha <- .5
+  }
+  if(mcd.alpha > 1){
+    mcd.alpha <- 1
   }
   
   mcd <- covMcd(DATA,alpha = mcd.alpha)
@@ -204,7 +210,8 @@ tolerance_ellipse <- function(DATA, ellipse.alpha=.75, mcd.alpha=.75, xlab=colna
   data.center <- colMeans(DATA)
   data.cov <- cov(DATA)
 
-
+  rob.ellipse <- addEllipse(mcd.center,mcd.cov,p.interval = ellipse.alpha,col="blue",lty=2,do.plot = F)
+  classic.ellipse <- addEllipse(data.center,data.cov,p.interval = ellipse.alpha,col="red",lty=2,do.plot = F)
 
   if(graphs){
     x1 <- c(-max(abs(DATA[,1]))*.05,max(abs(DATA[,1])))*1.1
@@ -221,9 +228,7 @@ tolerance_ellipse <- function(DATA, ellipse.alpha=.75, mcd.alpha=.75, xlab=colna
     abline(v=max(classic.ellipse[,1]), h=max(classic.ellipse[,2]),lty=1,col="red")
     points(DATA[which(DATA[,1] >= max(classic.ellipse[,1]) | DATA[,2] >= max(classic.ellipse[,2])),],bg="red",pch=21,cex=2)
     legend("bottomright",legend=c(paste0("Classic ellipse alpha = ", ellipse.alpha),paste0("Robust ellipse alpha = ", ellipse.alpha, "with MCD alpha = ", mcd.alpha)), col=c("red","blue"), lty=c(2,1))
-  }else{
-    rob.ellipse <- addEllipse(mcd.center,mcd.cov,p.interval = ellipse.alpha,col="blue",lty=2,do.plot = F)
-    classic.ellipse <- addEllipse(data.center,data.cov,p.interval = ellipse.alpha,col="red",lty=2,do.plot = F)
+    
   }
 
   return(
