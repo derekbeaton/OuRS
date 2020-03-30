@@ -7,14 +7,14 @@
 ca(DATA, k = 0, tol = sqrt(.Machine$double.eps))
 }
 \arguments{
+\item{DATA}{a data matrix to decompose}
+
 \item{k}{total number of components to return (see \code{\link{gsvd}}).}
 
 \item{tol}{default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).}
-
-\item{X}{a data matrix to decompose}
 }
 \value{
-A list with eleven elements by way of \code{\link{GSVD::gsvd}}:
+A list with eleven elements by way of \code{\link[GSVD]{gsvd}}:
 \item{d.orig}{A vector containing the singular values of X above the tolerance threshold (based on eigenvalues).}
 \item{l.orig}{A vector containing the eigen values of X above the tolerance threshold (\code{tol}).}
 \item{tau}{A vector that contains the (original) explained variance per component (via eigenvalues: \code{$l.orig}).}

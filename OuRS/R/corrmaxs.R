@@ -111,7 +111,7 @@ ordinal_corrmax <- function(target.data, mins, maxs, loadings, singular.values){
 #' @description A transformation of the data in a row-wise fashion that preserves the Mahalanobis distances yet also provides information on which variables likely contribute to the Mahalanobis distance of the observation
 #' 
 #' @param target.data a
-#' @param column.types a
+#' @param column.type a
 #' @param loadings a
 #' @param singular.values a
 #' 
@@ -120,7 +120,7 @@ ordinal_corrmax <- function(target.data, mins, maxs, loadings, singular.values){
 #' @author Derek Beaton
 #' @export
 #' 
-mixed_data_corrmax <- function(target.data, column.types = rep("x", ncol(target.data)), loadings, singular.values){
+mixed_data_corrmax <- function(target.data, column.type = rep("x", ncol(target.data)), loadings, singular.values){
   
   ## catch NAs
   if( any(is.na(target.data)) | any(is.infinite(target.data)) | any(is.nan(target.data)) | any(is.null(target.data)) ){
@@ -129,7 +129,7 @@ mixed_data_corrmax <- function(target.data, column.types = rep("x", ncol(target.
   
   target.data <- mixed_data_coding(target.data, column.type = column.type)
   
-  res <- generalized_corrmax(preproc.DATA$weightedZx, loadings, singular.values)
+  res <- generalized_corrmax(target.data, loadings, singular.values)
   class(res) <- append(class(res), "mixed")
   
   res  
