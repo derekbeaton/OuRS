@@ -19,3 +19,6 @@ dd_plot(ours_mcd_list, md_cutoff = NA, robust_md_cutoff = NA,
 \description{
 A plot of standard vs. robust Mahalanobis distances (with optional transformations)
 }
+\author{
+Derek Beaton
+}

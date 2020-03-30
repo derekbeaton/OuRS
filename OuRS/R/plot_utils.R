@@ -50,6 +50,8 @@ component_plot <- function(scores, axes=c(1,2), pch=20, col="mediumorchid4",
 #' @param md_cutoff numeric. A value for Mahalanobis distances to display a cutoff. If invalid, \code{quantile(x, probs=.95)} used
 #' @param robust_md_cutoff numeric. A value for robust Mahalanobis distances to display a cutoff. If invalid, \code{quantile(x, probs=.95)} used
 #' @param dist_transform character of type "none", "sqrt", or "log". If "sqrt" the distances will be transformed by square root, if "log" the distances will be transformed by the natural log. If "none" , no transformation will be performed.
+#' @author Derek Beaton
+#' @export
 
 dd_plot <- function(ours_mcd_list, md_cutoff = NA, robust_md_cutoff = NA,  dist_transform = "none"){
   

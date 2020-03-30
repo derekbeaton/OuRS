@@ -78,8 +78,8 @@ Below we provide an example of the MCD for a routinely used data set for the MCD
 data("philips")
 
   # mostly default parameters for now, but with the lowest size of H, i.e., alpha=.5, and many iterations
-mcd.results <- continuous_mcd(philips,alpha = .5,num.subsets = 2000)
-plot(sqrt(mcd.results$dists$md),sqrt(mcd.results$dists$rob.md),pch=21,bg="mediumorchid4",xlab="Mahalanobis Distances",ylab="Robust Mahalanobis Distances")
+mcd.results <- continuous_mcd(philips, alpha = .5)
+dd_plot(mcd.results, dist_transform = "sqrt")
 ```
 
 As can be seen in the above figure, there are observations with a large robust Mahalanobis distance, but relatively small Mahalanobis distance; these are the observations that were "masked".
@@ -94,15 +94,13 @@ The example we provide here is strictly categorical data. The data here are a re
 
 
 ```{r}
-load('OuRS/data/dfw.beer.survey.rda')
-summary(DFW.beer.survey[,1:2])
+load('OuRS/data/SNPS.rda')
+summary(SNPS[,1:2])
 
-  # data are transformed to disjunctive coding:
-beer.disj <- make.data.nominal(DFW.beer.survey)
 
   # mostly default parameters for now, but with the lowest size of H, i.e., alpha=.5, and many iterations
-catmcd.results <- cat.mcd(beer.disj,alpha = .5,num.subsets = 2000)
-plot(sqrt(catmcd.results$dists$md),sqrt(catmcd.results$dists$rob.md),pch=21,bg="mediumorchid4",xlab="Mahalanobis Distances",ylab="Robust Mahalanobis Distances")
+catmcd.results <- categorical_mcd(SNPS, alpha = .5)
+dd_plot(catmcd.results, dist_transform = "sqrt")
 ```
 
 # Additional materials
