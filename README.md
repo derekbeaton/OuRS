@@ -156,6 +156,6 @@ dd_plot(catmcd.results, dist_transform = "sqrt")
 
 # Additional materials
 
-Please see the (Publications)\[./Publications\] and
-(Presentations)\[./Presentations\] directories for more examples of some
+Please see the [Publications](./Publications) and
+[Presentations](./Presentations) directories for more examples of some
 of our outlier and robust structures work.
