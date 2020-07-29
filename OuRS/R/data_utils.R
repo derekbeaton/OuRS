@@ -3,19 +3,19 @@
 
 ## a radically simplified version of "ExPosition::expo.scale" that ensures we have a scale and center returned from scale every time
 #' @title Variant of \code{scale}: scaling and centering of matrix-like objects
-#' 
+#'
 #' @description Performs the same functionality as \code{\link{scale}} but always returns the "scale:center" and "scale:scale" attributes. Also allows mean imputation for \code{NA}
-#' 
-#' @details 
+#'
+#' @details
 #' If no centering is performed (i.e., set to \code{FALSE}), then \code{attributes()`scale:center` <- rep(0, ncol(DATA))}
 #' If no scaling is performed (i.e., set to \code{FALSE}), then \code{attributes()`scale:scale` <- rep(1, ncol(DATA))}
 #' If \code{impute_NA_to_mean = TRUE} then all \code{NA} will be replaced with the column-wise mean *after* centering/scaling
-#' 
+#'
 #' @param DATA a numeric matrix
 #' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
 #' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
 #' @param impute_NA_to_mean a logical (boolean). Default is \code{FALSE}. If \code{TRUE} all \code{NA} will be replaced with the column-wise mean *after* centering and scaling.
-#' 
+#'
 #' @seealso \code{\link{scale}}
 #' @author Derek Beaton
 #' @export
@@ -39,7 +39,7 @@ ours_scale <- function(DATA, center=TRUE, scale=TRUE, impute_NA_to_mean=F){
   if(impute_NA_to_mean){
     DATA <- apply(DATA, 2, function(x){ x[is.na(x)] <- mean(x, na.rm = T); x })
   }
-  
+
   DATA
 
 }
@@ -47,21 +47,21 @@ ours_scale <- function(DATA, center=TRUE, scale=TRUE, impute_NA_to_mean=F){
 
 
 #' @title Escofier's approach to "data-doubling" for continuous data
-#' 
+#'
 #' @description Performs data-doubling for continuous data so that the data behave like disjunctive data.
 #' This function makes use of \code{\link{ours_scale}} to center and/or scale (presumably) continous data.
-#' 
-#' @details 
+#'
+#' @details
 #' Data are returned in a "doubled" way where each column is represented twice as \eqn{[\frac{1-x}{2}, \frac{1+x}{2}]} where \code{x} is a centered and/or scaled vector.
 #' If \code{impute_NA_to_mean = TRUE} then all \code{NA} will be replaced with the column-wise mean *after* centering/scaling
-#' 
+#'
 #' @param DATA a numeric matrix
 #' @param center logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which centers the columns (e.g., when \code{TRUE} substract the mean of a column from its respective column)
 #' @param scale logical or numeric (see \code{\link{scale}}). Default is \code{TRUE} which scales the columns (e.g., when \code{TRUE} divide a column by its respective standard deviation or scaling factor)
 #' @param impute_NA_to_mean a logical (boolean). Default is \code{FALSE}. If \code{TRUE} all \code{NA} will be replaced with the column-wise mean *after* centering and scaling.
-#' 
+#'
 #' @references
-#' 
+#'
 #' @seealso \code{\link{scale}}, \code{\link{disjunctive_coding}}, and \code{\link{thermometer_coding}}
 #' @author Derek Beaton
 #' @export
@@ -94,20 +94,20 @@ escofier_coding <- function(DATA, center=TRUE, scale=TRUE, impute_NA_to_mean=F){
 
 
 #' @title "Thermometer" approach to "data-doubling" for ordinal data
-#' 
+#'
 #' @description Performs data-doubling for ordinal data so that the data behave like disjunctive data.
-#' 
-#' @details 
+#'
+#' @details
 #' Data are returned in a "doubled" way where each column is represented twice as \eqn{[\frac{1-x}{2}, \frac{1+x}{2}]} where \code{x} is a centered and/or scaled vector.
 #' If \code{impute_NA_to_mean = TRUE} then all \code{NA} will be replaced with the column-wise mean *after* transformation.
-#' 
+#'
 #' @param DATA a numeric matrix
 #' @param mins (optional) numeric vector of length \code{ncol(DATA)}. Contains the expected minimum value per column. If none provided then they are computed as \code{apply(DATA, 2, min, na.rm = T)}
 #' @param maxs (optional) numeric vector of length \code{ncol(DATA)}. Contains the expected maximum value per column. If none provided then they are computed as \code{apply(DATA, 2, max, na.rm = T)}
 #' @param impute_NA_to_mean a logical (boolean). Default is \code{FALSE}. If \code{TRUE} all \code{NA} will be replaced with the column-wise mean *after* transformation.
-#' 
+#'
 #' @references
-#' 
+#'
 #' @seealso \code{\link{escofier_coding}} and \code{\link{disjunctive_coding}}
 #' @author Derek Beaton
 #' @export
@@ -170,17 +170,17 @@ thermometer_coding <- function(DATA, mins, maxs, impute_NA_to_mean=F)
 
 ### this one is a bit ugly but it works, so I'm leaving it alone for now.
 #' @title Complete disjunctive coding
-#' 
+#'
 #' @description Complete disjunctive coding for categorical (nominal) data
-#' 
+#'
 #' @details If \code{impute_NA_to_mean = TRUE} then all \code{NA} will be replaced with the column-wise mean *after* transformation
 #' The presence of a level is indicated with a '1', where the absence of a level is '0'. Imputed values are the mean proportion of 0s & 1s and thus (0,1).
-#' 
+#'
 #' @param DATA a matrix where each column is a variable, and each value within the columns is assumed to be a level within that variable
 #' @param impute_NA_to_mean a logical (boolean). Default is \code{FALSE}. If \code{TRUE} all \code{NA} will be replaced with the column-wise mean *after* transformation.
-#' 
+#'
 #' @references
-#' 
+#'
 #' @seealso \code{\link{escofier_coding}} and \code{\link{thermometer_coding}}
 #' @author Derek Beaton
 #' @export
@@ -249,10 +249,10 @@ disjunctive_coding <- function(DATA, impute_NA_to_mean=F){
 
 ### this one is a bit ugly but it works, so I'm leaving it alone for now.
 #' @title Mixed data coding
-#' 
+#'
 #' @description Transforms mixtures of data contained within a data.frame
-#' 
-#' @details For each type of data, this function cals into the respective transformation function. 
+#'
+#' @details For each type of data, this function cals into the respective transformation function.
 #' \item{"n"} {is categorical data and calls \code{disjunctive_coding}}
 #' \item{"c"} {is continuous data that should only be centered and calls \code{escofier_coding} with \code{center = TRUE} and \code{scale = FALSE}}
 #' \item{"z"} {is continuous data that should be centered and scaled, and calls \code{escofier_coding} with \code{center = TRUE} and \code{scale = TRUE}}
@@ -262,12 +262,12 @@ disjunctive_coding <- function(DATA, impute_NA_to_mean=F){
 #' In all cases, values are derived from the data and other parameters of those functions are not available. For examples: you cannot pass \code{min} to \code{thermometer_coding} here. Instead, the observed minimums will be used
 #' \code{impute_NA_to_mean} is applied globally and passed into each function exactly as it is used here.
 #' If \code{impute_NA_to_mean = TRUE} then all \code{NA} will be replaced with the column-wise mean *after* transformation
-#' 
+#'
 #' @param DATA a matrix where each column is a variable, and each value within the columns is assumed to be a level within that variable
 #' @param column.type a character vector of length \code{ncol(DATA)}. Each element indicates the data type of its respective column: "n" is categorical/nominal, "c" is continuous (only center the data), "z" is continuous (center and scale the data) "o" is ordinal, and "x" means 'do nothing to this column'. Each column will be transformed according to \code{disjunctive_coding} (categorical), \code{escofier_coding} (continuous), \code{thermometer_coding} (ordinal), or no transformation.
 #' @param impute_NA_to_mean a logical (boolean). Default is \code{FALSE}. If \code{TRUE} all \code{NA} will be replaced with the column-wise mean *after* transformation.
-#' 
-#' 
+#'
+#'
 #' @seealso \code{\link{disjunctive_coding}}, \code{\link{thermometer_coding}}, and \code{\link{escofier_coding}}
 #' @author Derek Beaton
 #' @export
@@ -285,8 +285,8 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute_NA
   names(column.type) <- colnames(DATA)
 
   possible.types <- c("n","c","z","o","x")
-  column.types <- tolower(column.types)
-  
+  column.type <- tolower(column.type)
+
   if(any(!(column.type %in% possible.types))){
     warning("Unrecognized 'column.type'. Changing unrecognized types to 'x'")
     column.type[which(!(column.type %in% possible.types))] <-"x"
@@ -366,11 +366,11 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute_NA
 #' @title Correspondence analysis (CA) preprocessing
 #' @description Preprocessing/preparing a data matrix for correspondence analysis
 #' @details A data matrix processed akin to the way \eqn{\chi^2} is computed (deviations from independence)
-#' 
+#'
 #' @param DATA a numeric matrix
 #' @param compact a logical (boolean). Default is \code{TRUE}. When \code{TRUE} only some elements are returned
-#' 
-#' @return 
+#'
+#' @return
 #' \item if \code{compact = FALSE} a list with 6 elements
 #' \itemize{
 #'   \item{Ox:} {The observed values}
@@ -386,7 +386,7 @@ mixed_data_coding <- function(DATA, column.type = rep("x",ncol(DATA)), impute_NA
 #'   \item{w:} {Column probabilities}
 #'   \item{weightedZx:} {The deviations divided by the square root of the row and column probabilities}
 #' }
-#' 
+#'
 #' @author Derek Beaton
 #' @export
 

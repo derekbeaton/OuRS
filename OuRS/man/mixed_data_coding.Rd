@@ -18,7 +18,7 @@ mixed_data_coding(DATA, column.type = rep("x", ncol(DATA)),
 Transforms mixtures of data contained within a data.frame
 }
 \details{
-For each type of data, this function cals into the respective transformation function. 
+For each type of data, this function cals into the respective transformation function.
 \item{"n"} {is categorical data and calls \code{disjunctive_coding}}
 \item{"c"} {is continuous data that should only be centered and calls \code{escofier_coding} with \code{center = TRUE} and \code{scale = FALSE}}
 \item{"z"} {is continuous data that should be centered and scaled, and calls \code{escofier_coding} with \code{center = TRUE} and \code{scale = TRUE}}
