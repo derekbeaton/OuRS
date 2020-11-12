@@ -4,9 +4,17 @@
 \alias{continuous_mcd}
 \title{Minimum covariance determinant (MCD) for continuous data}
 \usage{
-continuous_mcd(DATA, center = T, scale = F, allow_collinearity = F,
-  alpha = 0.75, num.subsets = 500, max.total.iters = num.subsets *
-  20, top.sets.percent = 0.05, tol = .Machine$double.eps)
+continuous_mcd(
+  DATA,
+  center = T,
+  scale = F,
+  allow_collinearity = F,
+  alpha = 0.75,
+  num.subsets = 500,
+  max.total.iters = num.subsets * 20,
+  top.sets.percent = 0.05,
+  tol = .Machine$double.eps
+)
 }
 \arguments{
 \item{DATA}{a data matrix (of presumably all continuous data)}

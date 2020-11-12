@@ -4,8 +4,7 @@
 \alias{escofier_coding}
 \title{Escofier's approach to "data-doubling" for continuous data}
 \usage{
-escofier_coding(DATA, center = TRUE, scale = TRUE,
-  impute_NA_to_mean = F)
+escofier_coding(DATA, center = TRUE, scale = TRUE, impute_NA_to_mean = F)
 }
 \arguments{
 \item{DATA}{a numeric matrix}

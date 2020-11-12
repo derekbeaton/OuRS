@@ -4,8 +4,7 @@
 \alias{pca}
 \title{Principal components analysis}
 \usage{
-pca(DATA, center = T, scale = T, k = 0,
-  tol = sqrt(.Machine$double.eps))
+pca(DATA, center = T, scale = T, k = 0, tol = sqrt(.Machine$double.eps))
 }
 \arguments{
 \item{DATA}{a data matrix to decompose}

@@ -4,9 +4,16 @@
 \alias{ordinal_mcd}
 \title{Generalized minimum covariance determinant (GMCD) for ordinal data}
 \usage{
-ordinal_mcd(DATA, mins = NULL, maxs = NULL, alpha = 0.75,
-  num.subsets = 500, max.total.iters = num.subsets * 20,
-  top.sets.percent = 0.05, tol = .Machine$double.eps)
+ordinal_mcd(
+  DATA,
+  mins = NULL,
+  maxs = NULL,
+  alpha = 0.75,
+  num.subsets = 500,
+  max.total.iters = num.subsets * 20,
+  top.sets.percent = 0.05,
+  tol = .Machine$double.eps
+)
 }
 \arguments{
 \item{DATA}{a numeric data matrix (of presumably all ordinal data)}

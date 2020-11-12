@@ -4,9 +4,15 @@
 \alias{mixed_data_mcd}
 \title{Generalized minimum covariance determinant (GMCD) for mixed data}
 \usage{
-mixed_data_mcd(DATA, column.types = rep("x", ncol(DATA)), alpha = 0.75,
-  num.subsets = 500, max.total.iters = num.subsets * 20,
-  top.sets.percent = 0.05, tol = .Machine$double.eps)
+mixed_data_mcd(
+  DATA,
+  column.types = rep("x", ncol(DATA)),
+  alpha = 0.75,
+  num.subsets = 500,
+  max.total.iters = num.subsets * 20,
+  top.sets.percent = 0.05,
+  tol = .Machine$double.eps
+)
 }
 \arguments{
 \item{DATA}{a data frame with character columns (categorical) and numeric otherwise}

@@ -4,8 +4,12 @@
 \alias{dd_plot}
 \title{Distance-distance plot}
 \usage{
-dd_plot(ours_mcd_list, md_cutoff = NA, robust_md_cutoff = NA,
-  dist_transform = "none")
+dd_plot(
+  ours_mcd_list,
+  md_cutoff = NA,
+  robust_md_cutoff = NA,
+  dist_transform = "none"
+)
 }
 \arguments{
 \item{ours_mcd_list}{an OuRS MCD class object (of type list). Returned from \code{continuous_mcd}, \code{categorical_mcd}, \code{ordinal_mcd}, or \code{mixed_data_mcd}}

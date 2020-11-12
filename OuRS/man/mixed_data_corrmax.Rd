@@ -4,8 +4,12 @@
 \alias{mixed_data_corrmax}
 \title{CorrMax transformation for mixed data}
 \usage{
-mixed_data_corrmax(target.data, column.type = rep("x",
-  ncol(target.data)), loadings, singular.values)
+mixed_data_corrmax(
+  target.data,
+  column.type = rep("x", ncol(target.data)),
+  loadings,
+  singular.values
+)
 }
 \arguments{
 \item{target.data}{a}

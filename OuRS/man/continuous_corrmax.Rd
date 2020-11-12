@@ -4,8 +4,13 @@
 \alias{continuous_corrmax}
 \title{CorrMax transformation for continuous data}
 \usage{
-continuous_corrmax(target.data, center = T, scale = F, loadings,
-  singular.values)
+continuous_corrmax(
+  target.data,
+  center = T,
+  scale = F,
+  loadings,
+  singular.values
+)
 }
 \arguments{
 \item{target.data}{a}

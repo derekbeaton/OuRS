@@ -4,8 +4,11 @@
 \alias{mixed_data_coding}
 \title{Mixed data coding}
 \usage{
-mixed_data_coding(DATA, column.type = rep("x", ncol(DATA)),
-  impute_NA_to_mean = F)
+mixed_data_coding(
+  DATA,
+  column.type = rep("x", ncol(DATA)),
+  impute_NA_to_mean = F
+)
 }
 \arguments{
 \item{DATA}{a matrix where each column is a variable, and each value within the columns is assumed to be a level within that variable}

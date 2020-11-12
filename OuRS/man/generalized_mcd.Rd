@@ -4,9 +4,14 @@
 \alias{generalized_mcd}
 \title{Generalized minimum covariance determinant (GMCD) for non-continuous data}
 \usage{
-generalized_mcd(DATA, alpha = 0.75, num.subsets = 500,
-  max.total.iters = num.subsets * 20, top.sets.percent = 0.05,
-  tol = .Machine$double.eps)
+generalized_mcd(
+  DATA,
+  alpha = 0.75,
+  num.subsets = 500,
+  max.total.iters = num.subsets * 20,
+  top.sets.percent = 0.05,
+  tol = .Machine$double.eps
+)
 }
 \arguments{
 \item{DATA}{a data matrix (of presumably all transformed data)}

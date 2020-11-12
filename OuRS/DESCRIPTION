@@ -1,7 +1,7 @@
 Package: ours
 Type: Package
 Title: Outliers and Robust Structures
-Version: 0.1.0.9003
+Version: 0.1.0.9004
 Authors@R: c(person("Kelly","Sunderland",role=c("aut"),email="ksunderland@research.baycrest.org"),
               person("Derek","Beaton",role=c("aut","cre"),email="exposition.software@gmail.com"))
 Maintainer: Derek Beaton <exposition.software@gmail.com>
@@ -10,4 +10,4 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends: GSVD
-RoxygenNote: 6.1.0
+RoxygenNote: 7.1.1

@@ -4,8 +4,7 @@
 \alias{continuous_scores_dists}
 \title{Compute scores and distances with projection for continuous MCD}
 \usage{
-continuous_scores_dists(DATA, center = T, scale = F, loadings,
-  singular.values)
+continuous_scores_dists(DATA, center = T, scale = F, loadings, singular.values)
 }
 \arguments{
 \item{DATA}{a data matrix (of presumably all continuous data)}

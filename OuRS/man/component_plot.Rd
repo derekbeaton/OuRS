@@ -4,13 +4,23 @@
 \alias{component_plot}
 \title{Plot components from PCA or CA}
 \usage{
-component_plot(scores, axes = c(1, 2), pch = 20,
-  col = "mediumorchid4", main = "Component scores",
-  xlab = paste0("Component ", axes[1]), ylab = paste0("Component ",
-  axes[2]), xlim = c(-max(abs(scores[, axes])), max(abs(scores[, axes])))
-  * 1.3, ylim = c(-max(abs(scores[, axes])), max(abs(scores[, axes]))) *
-  1.3, asp = 1, pos = 3, display_names = T, cex = 1,
-  text.cex = 1, ...)
+component_plot(
+  scores,
+  axes = c(1, 2),
+  pch = 20,
+  col = "mediumorchid4",
+  main = "Component scores",
+  xlab = paste0("Component ", axes[1]),
+  ylab = paste0("Component ", axes[2]),
+  xlim = c(-max(abs(scores[, axes])), max(abs(scores[, axes]))) * 1.3,
+  ylim = c(-max(abs(scores[, axes])), max(abs(scores[, axes]))) * 1.3,
+  asp = 1,
+  pos = 3,
+  display_names = T,
+  cex = 1,
+  text.cex = 1,
+  ...
+)
 }
 \arguments{
 \item{scores}{a numeric matrix with the scores (fi or fj) or vectors (u/p or v/q)}

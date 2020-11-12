@@ -91,12 +91,12 @@ dd_plot <- function(ours_mcd_list, md_cutoff = NA, robust_md_cutoff = NA,  dist_
     
     plot(sqrt(xy), xlab = "Square root of squared Mahalanobis Distances", ylab = "Square root of squared robust Mahalanobis Distances", main = "distance-distance plot", pch = 21, bg = "grey80", col="black")
     if( is.numeric(robust_md_cutoff )){
-      if( !is.na(robust_md_cutoff) & !is.infinite(robust_md_cutoff) & is.nan(robust_md_cutoff) ){
+      if( !is.na(robust_md_cutoff) & !is.infinite(robust_md_cutoff) & !is.nan(robust_md_cutoff) ){
         abline(h = sqrt(robust_md_cutoff), col="firebrick3")
       }
     }
     if( is.numeric(md_cutoff )){
-      if( !is.na(md_cutoff) & !is.infinite(md_cutoff) & is.nan(md_cutoff) ){
+      if( !is.na(md_cutoff) & !is.infinite(md_cutoff) & !is.nan(md_cutoff) ){
         abline(v = sqrt(md_cutoff), col="steelblue4")
       }
     }
@@ -105,12 +105,12 @@ dd_plot <- function(ours_mcd_list, md_cutoff = NA, robust_md_cutoff = NA,  dist_
     
     plot(log(xy), xlab = "Natural log of squared Mahalanobis Distances", ylab = "Natural log of squared robust Mahalanobis Distances", main = "distance-distance plot", pch = 21, bg = "grey80", col="black")
     if( is.numeric(robust_md_cutoff )){
-      if( !is.na(robust_md_cutoff) & !is.infinite(robust_md_cutoff) & is.nan(robust_md_cutoff) ){
+      if( !is.na(robust_md_cutoff) & !is.infinite(robust_md_cutoff) & !is.nan(robust_md_cutoff) ){
         abline(h = log(robust_md_cutoff), col="firebrick3")
       }
     }
     if( is.numeric(md_cutoff )){
-      if( !is.na(md_cutoff) & !is.infinite(md_cutoff) & is.nan(md_cutoff) ){
+      if( !is.na(md_cutoff) & !is.infinite(md_cutoff) & !is.nan(md_cutoff) ){
         abline(v = log(md_cutoff), col="steelblue4")
       }
     }
@@ -119,12 +119,12 @@ dd_plot <- function(ours_mcd_list, md_cutoff = NA, robust_md_cutoff = NA,  dist_
     
     plot(xy, xlab = "Squared Mahalanobis Distances", ylab = "Squared robust Mahalanobis Distances", main = "distance-distance plot", pch = 21, bg = "grey80", col="black")
     if( is.numeric(robust_md_cutoff )){
-      if( !is.na(robust_md_cutoff) & !is.infinite(robust_md_cutoff) & is.nan(robust_md_cutoff) ){
+      if( !is.na(robust_md_cutoff) & !is.infinite(robust_md_cutoff) & !is.nan(robust_md_cutoff) ){
         abline(h = robust_md_cutoff, col="firebrick3")
       }
     }
     if( is.numeric(md_cutoff )){
-      if( !is.na(md_cutoff) & !is.infinite(md_cutoff) & is.nan(md_cutoff) ){
+      if( !is.na(md_cutoff) & !is.infinite(md_cutoff) & !is.nan(md_cutoff) ){
         abline(v = md_cutoff, col="steelblue4")
       }
     }

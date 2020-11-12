@@ -4,8 +4,13 @@
 \alias{generalized_scores_dists}
 \title{Compute scores and distances with projection for generalized MCD}
 \usage{
-generalized_scores_dists(DATA, row.weights, col.weights, loadings,
-  singular.values)
+generalized_scores_dists(
+  DATA,
+  row.weights,
+  col.weights,
+  loadings,
+  singular.values
+)
 }
 \arguments{
 \item{DATA}{a data matrix (of presumably all continuous data)}
