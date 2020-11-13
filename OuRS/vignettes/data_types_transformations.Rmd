@@ -1,91 +1,101 @@
 ---
 title: "Data Types and Transformation Functions"
+author: "Kelly Sunderland"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Transformation Funcions}
+  %\VignetteIndexEntry{Data Types and Transformation Functions}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+library(ours)
+library(magrittr)
 ```
 
 ## Data Types
 
-The functions you use in this package are dependent on the data type of the variables you have. In this package, we assume there are 3 types of data: continuous, categorical, and ordinal.
+The functions you use in this package are dependent on the data type of the variables you have. In this package, we assume there are 3 types of data: continuous, categorical, and ordinal. In this vignette, we go through these data types to help orient the user, and to build a foundation for subsequent vignettes. We also use data available in this package (specifically: "`synthetic_ADNI`"; see also http://adni.loni.usc.edu/).
 
-### Continuous Data sets
+### Continuous data sets
 
-A variable is **continuous** if observed values are numerical and represent some measurement. Continuous variables can be an infinite number of possible values within a range (i.e., can be recorded to any number of decimal places but are limited to a range of plausible values). Examples of continuous variables include:
+A variable is **continuous** if observed values are numerical and represent some measurement. Continuous variables can be an infinite number of possible values within a range. Continuous variables can be recorded to any number of decimal places, but are usually limited to a range of plausible values. Examples of continuous variables include:
 
- - age, when measured as time since birth and not binned into ranges
+ - age (when measured as time since birth and *not* when binned into ranges!)
  - time to complete a task
- - intracranial volume
 
-Note that discrete variables are also numerical values that represent measurement, but can be counted and therefore have a finite number of possible values.  For example, consider the number of people in a line; possible values include only whole numbers as there cannot be some fractions of people.
+Note that discrete variables are also numerical values that represent measurement, but can be counted and therefore have a finite number of possible values. For example "intracranial volume" (in the "`synthetic_ADNI`" set) is the count of the number of cubic millimeters or voxels ("volume pixels") to indicate the volume (generally) within the skull. Possible values include only whole numbers as there cannot be some fractions of people.
 
 Any dataset composed entirely of continuous variables is a **continuous data set**.
 
-### Categorical Data sets
+### Categorical data sets
 
-A variable is **categorical** if observed values are members of a group based on some qualitative property. Examples of categorical variables include:
+A variable is **categorical** if observed values are members of a group based on some qualitative property. Sometimes we call these "nominal" (named) variables. An important feature to **categorical** data is that the groups (or levels) within a categorical variable are **unordered**. Examples of categorical variables include:
 
  - sex, where groups include "male" and "female"
- - disease status, where groups include "present" or "absent"
- - single nucleotide polmorphisms (SNPs), where groups might include genotypes "AA","Aa", and "aa"
+ - disease status, where groups include, for example "Alzheimer's", "Mild Cognitive Impairment", or "Control"
+ - single nucleotide polymorphisms (SNPs), where groups might include genotypes "AA","Aa", and "aa"
  
 Any dataset composed entirely of categorical variables is a **categorical data set**.
 
-### Ordinal Data sets
+### Ordinal data sets
 
-A variable is **ordinal** if it meets the requirements for categorical variables and the set of groups have an underlying order, but the differences between groups are unequal or unmeasureable (subjective). Examples of ordinal variables include:
+A variable is **ordinal** if it meets the requirements for categorical variables and the set of groups are **ordered**. The catch is that with ordinal variables, the differences between groups (or levels) are unequal or unmeasureable (subjective). Examples of ordinal variables include:
 
  - level of education, where groups might include "high school or less", "bachelor's degree", and "graduate degree"
- - likert scales, such as level of satisfaction, where groups are named levels such as "dissatisfied", "neutral", and "satisfied", or numeric but where values are arbitrary and have no objective numerical basis (i.e., level of satisfaction is rated on a scale from 1 to 10)
- - binned continous observations, such as household income, where groups are ranges of numerical values
+ - Likert scales, such as level of satisfaction, where groups are *named and ordered* levels such as "dissatisfied", "neutral", and "satisfied", or numeric but where values are arbitrary and have no objective numerical basis (i.e., level of satisfaction is rated on a scale from 1 to 10)
+ - binned continuous observations, such as household income, where groups are ranges of numerical values
 
 Any dataset composed entirely of ordinal variables is a **ordinal data set**.
 
-### Mixed Data sets
+### Mixed data sets
 
-Any dataset composed of two or more data types is a **mixed data set**.
+Any dataset composed of two or more of the aforementioned data types is a **mixed data set**.
 
 
-## Data Transformations
+## Data transformations
 
-Continuous data sets can be entered into the functions as they are. Categorical, ordinal, or mixed data sets need to be transformed prior to use.
+Here we introduce data transformations used here in the `ours` package. These transformations happen to specific types of data sets when calling into some of the core functions in `ours` (for example: `categorical_mcd`). Users can also call these transformations themselves to then perform more customized analyses. 
 
-```{r install, echo=F}
-# The OuRS package is available from github at https://github.com/derekbeaton/ours, and dependent on the GSVD package.
-# library(devtools)
-# install_github("derekbeaton/GSVD")
-# install_github("derekbeaton/OuRS",subdir="/OuRS")
+We use the ADNI synthetic data set from the `GSVD` package to demonstrate data transformations and their properties.  More information about the ADNI can be found here: http://adni.loni.usc.edu/. The "synthetic" data here were created with the `synthpop` package (https://CRAN.R-project.org/package=synthpop) based on the ADNI's `ADNIMERGE` package.
 
-# Note that the OuRS package is all lowercase here
-suppressMessages(library(ours))
-```
-
-We use the ADNI synthetic data set from the GSVD package [add link] to demonstrate data transformations and their properties.  More information about the ADNI synthetic data set can be found [here].
- 
 ```{r adni}
 data("synthetic_ADNI")
 ```
 
-### Categorical Data sets
+### Continuous data sets
 
-Categorical variables need to be made completely disjunctive, i.e., a new column is created for each observed group of the variable. This is done with the disjunctive_coding() [add link] function. Consider 2 categorical variables: diagnosis (dx), and participant gender (ptgender).
+When data sets are *strictly* continuous (i.e., every variable is a continuous variable), we're in luck: no elaborate transformations are done. The only ones done are the typical transformations of centering and/or scaling each variable (see, e.g., `scale()`). This is controlled by the `center` and `scale` flags in various functions throughout `ours`.
 
-```{r categorical_head}
+However, when continuous data are used with other data---for example continuous and categorical---then it is now "mixed" data. When data are mixed, all data types are transformed in certain ways. We will see later how continuous data are transformed when mixed with other data.
+
+### Categorical data sets
+
+In order to perform various analyses in the `ours` package, categorical variables need to be transformed into `complete disjunctive`: a new column is created for each observed group (or level) of the variable. This is done with the `disjunctive_coding()` function. Let's consider just 2 categorical variables: diagnosis (`dx`), and participant gender (`ptgender`).
+
+
+```{r categorical_head, echo = T, eval = F}
 
 # Defining and viewing the categorical data set
 categorical_data <- synthetic_ADNI[, c("dx", "ptgender")]
-categorical_data[1:3, ]
+head(categorical_data)
 
 ```
 
-Using the apply and table functions, we learn that *dx* has 3 levels: CN/cognitively normal (n=252); MCI/mild cognitive impairment (n=291); and Dementia (n=80).  *ptgender* has 2 levels: Female (n=314) and Male (n=309).
+```{r categorical_head_nice_table, echo = F}
+
+# Defining and viewing the categorical data set
+categorical_data <- synthetic_ADNI[, c("dx", "ptgender")]
+head(categorical_data) %>%
+  kbl() %>%
+  kable_minimal()
+
+```
+
+Using `table()` within an `apply()`, we can see that `dx` has 3 levels: CN/cognitively normal ($N$=`r sum(categorical_data$dx=="CN")`); MCI/mild cognitive impairment ($N$=`r sum(categorical_data$dx=="MCI")`); and Dementia ($N$=`r sum(categorical_data$dx=="Dementia")`). We also see that `ptgender` has 2 levels: Female ($N$=`r sum(categorical_data$ptgender=="Female")`) and Male ($N$=`r sum(categorical_data$ptgender=="Male")`).
 
 ```{r categorical_table}
 
@@ -94,22 +104,45 @@ apply(categorical_data, 2, table)
 
 ```
 
-With *disjunctive_coding()*, a new column is created for each group of each categorical variable, where a subject's value is 1 if the subject observed that group, and 0 otherwise. This ensures that column sums equal the frequency of each group within the data set, the sums of column sums within each original variable equal the number of rows, and row sums equal the number of original variables. 
+With `disjunctive_coding()`, a new column is created for each group of each categorical variable. For each row (here: a subject), a value is 1 if the row is in that observed group, and 0 otherwise. *Each* column of this newly transformed data is recoded with the same procedure, but for *each* group in the original variable. Let's see what that looks like.
 
-```{r categorical_transform}
+**NOTE**: We use `kableExtra` to help us show tables in a nicer way that also allows us to illustrate properties of the transformations.
 
-# Categorical data set after transformation
-categorical_data_disjunct <- disjunctive_coding(categorical_data)
-categorical_data_disjunct[1:3, ]
+```{r categorical_transform, echo = T, eval = F}
+
+categorical_data_disjunctive <- disjunctive_coding(categorical_data)
+head(categorical_data_disjunctive)
 
 ```
 
-We can confirm the properties of a disjunctive data set by looking at the row and column sums.
+```{r categorical_transform_nice_table, echo = F}
+
+categorical_data_disjunctive <- disjunctive_coding(categorical_data)
+head(categorical_data_disjunctive) %>%
+  kbl() %>%
+  kable_minimal() %>%
+  # add_header_above(c(" ", "dx" = 3, "ptgender" = 2))
+  column_spec(2:4, background = rgb(t(col2rgb("mediumorchid3")), alpha = 255, maxColorValue = 255)) %>%
+  column_spec(5:6, background = rgb(t(col2rgb("olivedrab3")), alpha = 255, maxColorValue = 255))
+
+
+```
+
+The "complete disjunctive" approach---as seen in `categorical_data_disjunctive`---has some very nice properties:
+
+* Each column sum equals the frequency of its respective group, 
+
+* The sum of set of disjunctive columns (for each original variable) equals the number of rows, and 
+
+* The row sums for the entire disjunctive matrix equal the number of original categorical variables. 
+
+
+We can see these properties of the disjunctive data set by looking at those various sums.
 
 ```{r categorical_properties}
 
 # Confirming each column sums to the observed frequency of each group
-colSums_categorical <- colSums(categorical_data_disjunct)
+colSums_categorical <- colSums(categorical_data_disjunctive)
 colSums_categorical
 
 # Confirming the sum of the column sums within each original variable equals the number of rows
@@ -117,19 +150,30 @@ sum(colSums_categorical[c("dx.MCI", "dx.Dementia", "dx.CN")])
 sum(colSums_categorical[c("ptgender.Female", "ptgender.Male")])
 
 # Confirming each row sums to the number of original variables
-rowSums(categorical_data_disjunct)[1:3]
+rowSums(head(categorical_data_disjunctive))
 
 ```
 
-### Ordinal Data sets
+### Ordinal data sets
 
-Ordinal variables are made pseudo-disjunctive so that they behave like a disjunctive data set. This is done by "doubling" the variable with thermometer coding (a.k.a. fuzzy coding or bipolar coding). Consider 3 ordinal variables: geriatric depression scale total score (gdtotal), modified Hachinkski score (hmscore), and clinical dementia rating sum of boxes (cdrsb).
+Like with categorical data, in order to perform various analyses in the `ours` package, we need a transformation for ordinal data. Ordinal data has a transform called "doubling", which creates 2 columns for each original variable. This procedure has many names in the literature (e.g., fuzzy coding, bipolar coding, data doubling). We use the term "thermometer coding" and the function is called `thermometer_coding()`. To note, we sometimes refer to this transformation (and some others) as "*pseudo-disjunctive*" because, after transformation, we can see the same properties as with the categorical transform (i.e., `disjunctive_coding()`). Let's consider 3 ordinal variables: geriatric depression scale total score (`gdtotal`), modified Hachinkski score (`hmscore`), and clinical dementia rating sum of boxes (`cdrsb`).
 
-```{r ordinal_head}
+```{r ordinal_head, echo = T, eval = F}
 
 # Defining and viewing the ordinal data set
 ordinal_data <- synthetic_ADNI[, c("gdtotal", "hmscore", "cdrsb")]
-ordinal_data[1:3, ]
+head(ordinal_data)
+
+```
+
+
+```{r ordinal_head_nice_table, echo = F, eval = T}
+
+# Defining and viewing the ordinal data set
+ordinal_data <- synthetic_ADNI[, c("gdtotal", "hmscore", "cdrsb")]
+head(ordinal_data) %>%
+  kbl() %>%
+  kable_minimal()
 
 ```
 
@@ -142,88 +186,206 @@ apply(ordinal_data, 2, function(i){sort(unique(i))})
 
 ```
 
-With *thermometer_coding()*, 2 new columns are created for each variable: high (+), where $+ = \frac{max-score}{max-min}$ and low (-), where $- = \frac{score-min}{max-min}$. Observed values closer to the maximum will have larger weights in the + column and smaller weights in the - column, while observed values closer to the minimum will have smaller weights in the + column and larger weights in the - column. The sum of the weights for each set of poles equals 1, so that, like disjuctive coding, the row sums equal the number of original variables. Also, each sum of column sums of each set of poles equals the number of rows.
+With `thermometer_coding()`, 2 new columns are created for each variable: high (`+`), where $+ =  \frac{score-min}{max-min}$ and low (-), where $- =\frac{max-score}{max-min}$. Thermometer coding shows how close a value is to the high and low. The "low" and "high" are why we refer to it as "thermometer coding". Observed values close to the *maximum* will have large values in the `+` column and small values in the `-` column. Observed values close to the *minimum* will have small values in the `+` column and large values in the `-` column. 
 
-```{r ordinal_transform}
+There are two special cases: when the value itself is the $min$ or the $max$. When it's the $min$, then $-=1$ and $+=0$, and when it's the $max$, then $-=0$ and $+=1$. This is because the min and max are *completely* at the low and high, respectively. 
+
+The sum of the values for each set of `+` and `-` equals 1. So that, like disjunctive coding, the row sums equal the number of original variables. Also, the sum of column sums for each pair of columns equals the number of rows.
+
+Both the aforementioned properties and the special cases are why we call this "*pseudo-disjunctive*": the data *behave* like the disjunctive data, but clearly are not. This is also why sometimes in the literature you'll see disjunctive coding called "crisp" (exclusively 0/1) and various types of data doubling called "fuzzy". 
+
+**NOTE**: The `thermometer_coding()` function requires that the values are `numeric` and that the values themselves reflect the desired ordinality, or that they can reflect the intended distance "between" values. We'll highlight this with a second example. 
+
+First, let's take a look at `thermometer_coding()` with our ordinal variables. Like with the categorical data, we're going to highlight the variables. 
+
+```{r ordinal_transform, echo = T, eval = F}
 
 # Ordinal data set after transformation
-ordinal_data_poles <- thermometer_coding(ordinal_data)
-round(ordinal_data_poles[1:3, ], 3)
+ordinal_data_thermometer <- thermometer_coding(ordinal_data)
+head(round(ordinal_data_thermometer, 3))
 
 ```
 
-Again, we can confirm the properties of a disjunctive data set by looking at the row and column sums.
+
+
+```{r ordinal_transform_nice_table, echo = F, eval = T}
+
+# Ordinal data set after transformation
+ordinal_data_thermometer <- thermometer_coding(ordinal_data)
+head(round(ordinal_data_thermometer, 3)) %>%
+  kbl() %>%
+  kable_minimal() %>%
+  column_spec(., column = c(2,5), background = rgb(t(col2rgb("mediumorchid3")), alpha = 255, maxColorValue = 255)) %>%
+  column_spec(., column = c(3,6), background = rgb(t(col2rgb("olivedrab3")), alpha = 255, maxColorValue = 255))
+
+```
+
+Note some of the special cases here, for example, `pt.5` and `pt.6`. They, respectively, have the minimum and maximum values observed for `gdtotal`. So in the `gdtotal-` column we see that `pt.5` has a 1 and `pt.6` has a 0 (for `gdtotal+` it's the opposite). Again, we can confirm the properties of a disjunctive data set by looking at the row and column sums.
 
 ```{r ordinal_properties}
 
+# Confirming the sum of column sums of each set of poles equals the number of rows
+colSums_ordinal <- colSums(ordinal_data_thermometer)
+# sum(colSums_ordinal[c("gdtotal+", "gdtotal-")])
+# sum(colSums_ordinal[c("hmscore+", "hmscore-")])
+sum(colSums_ordinal[c("cdrsb+", "cdrsb-")])
+
 # Confirming the sum of each set of poles equals 1 for each participant
-rowSums(ordinal_data_poles[, c("gdtotal+", "gdtotal-")])[1:3]
-rowSums(ordinal_data_poles[, c("hmscore+", "hmscore-")])[1:3]
-rowSums(ordinal_data_poles[, c("cdrsb+", "cdrsb-")])[1:3]
+# rowSums(head(ordinal_data_thermometer[, c("gdtotal+", "gdtotal-")]))
+# rowSums(head(ordinal_data_thermometer[, c("hmscore+", "hmscore-")]))
+rowSums(head(ordinal_data_thermometer[, c("cdrsb+", "cdrsb-")]))
 
 # Confirming each row sums to the number of original variables
-rowSums(ordinal_data_poles)[1:3]
-
-# Confirming the sum of column sums of each set of poles equals the number of rows
-colSums_ordinal <- colSums(ordinal_data_poles)
-sum(colSums_ordinal[c("gdtotal+", "gdtotal-")])
-sum(colSums_ordinal[c("hmscore+", "hmscore-")])
-sum(colSums_ordinal[c("cdrsb+", "cdrsb-")])
+rowSums(head(ordinal_data_thermometer))
 
 ```
 
-## Data sets with Mixtures of Data Types
+In the above example, the numbers provided to `thermometer_coding()` also reflect the distance between values. So when we see a '0' and a '1', or a '1' and a '2', then we know the distance between '0' and '1' is the same as '1' and '2'. If we want to use different values for ordinality, we need to do that on our own *before* we use `thermometer_coding()`. A simple example is if we believe that responses are quadratic. Let's do that by simply squaring all the values in the `ordinal_data` matrix
 
-Consider a dataset with a mixture of all data types, including continuous, categorical, and ordinal variables. Categorical and ordinal variables are transformed as described above, and continuous variables are now also made pseudo-disjunctive. Similar to ordinal varaibles, this is done by "doubling" the variable, but with escofier coding. Here, there are 5 continuous variables: age, z-scores for the Trails B total score (mpacctrailsb), z-scores for the Digit Span total score (mpaccdigit), hippocampal volume (hippocampus), and total intracranial volume (icv).
+```{r ordinal2_transform, echo = T, eval = F}
 
-```{r continuous_mixed}
+# Ordinal data set after transformation
+ordinal2_data_thermometer <- thermometer_coding(ordinal_data^2)
+head(round(ordinal2_data_thermometer, 3))
+
+```
+
+
+
+```{r ordinal2_transform_nice_table, echo = F, eval = T}
+
+# Ordinal data set after transformation
+ordinal2_data_thermometer <- thermometer_coding(ordinal_data^2)
+head(round(ordinal2_data_thermometer, 3)) %>%
+  kbl() %>%
+  kable_minimal() %>%
+  column_spec(., column = c(2,5), background = rgb(t(col2rgb("mediumorchid3")), alpha = 255, maxColorValue = 255)) %>%
+  column_spec(., column = c(3,6), background = rgb(t(col2rgb("olivedrab3")), alpha = 255, maxColorValue = 255))
+
+```
+
+We can see that the *pseudo-disjunctive* properties still hold: 
+
+```{r ordinal2_properties}
+
+# Confirming the sum of column sums of each set of poles equals the number of rows
+colSums_ordinal2 <- colSums(ordinal2_data_thermometer)
+# sum(colSums_ordinal2[c("gdtotal+", "gdtotal-")])
+# sum(colSums_ordinal2[c("hmscore+", "hmscore-")])
+sum(colSums_ordinal2[c("cdrsb+", "cdrsb-")])
+
+# Confirming the sum of each set of poles equals 1 for each participant
+# rowSums(head(ordinal2_data_thermometer[, c("gdtotal+", "gdtotal-")]))
+# rowSums(head(ordinal2_data_thermometer[, c("hmscore+", "hmscore-")]))
+rowSums(head(ordinal2_data_thermometer[, c("cdrsb+", "cdrsb-")]))
+
+# Confirming each row sums to the number of original variables
+rowSums(head(ordinal2_data_thermometer))
+
+```
+
+**NOTE**: When you have ordinal data, it is important to make sure that the numeric values represent what you *believe* are the appropriate ordinal properties. 
+
+
+## Mixed data sets
+
+Let's now consider a dataset with a mixture of all data types: categorical, ordinal, and continuous variables. We've seen how categorical and ordinal variables are transformed in the previous examples. But we need to now also transform the continuous data. Before we show the mixed data set, we need to show the continuous data set in its transformed state.
+
+Continuous variables are also transformed into *pseudo-disjunctive*. Similar to ordinal variables, this is done by "doubling" the variable, but with something called Escofier coding (named after Brigitte Escofier-Cordier, who first proposed this approach). Here, there are 5 continuous variables: age, scores for the Trails B total score (mpacctrailsb), scores for the Digit Span total score (mpaccdigit), hippocampal volume (hippocampus), and total intracranial volume (icv). Note that these are all on very different scales!
+
+```{r continuous_for_mixed}
 
 # Defining and viewing the continuous data set
 continuous_data <- synthetic_ADNI[, c("age", "mpacctrailsb","mpaccdigit", "hippocampus", "icv")]
-round(continuous_data[1:3, ], 3)
-
-# Defining and viewing the mixed data set
-mixed_data <- cbind(categorical_data, ordinal_data, round(continuous_data, 3))
-mixed_data[1:3, ]
+round(head(continuous_data), 3)
 
 ```
 
-With *escofier_coding()*, 2 new columns are created for each variable: high (+), where $+ = \frac{1+score}{2}$ and low (-), where $- = \frac{1-score}{2}$.
+With `escofier_coding()`, 2 new columns are created for each variable just like with the ordinal example: high (+), where $+ = \frac{1+score}{2}$ and low (-), where $- = \frac{1-score}{2}$. Continuous variables must be centered (mean = 0) and/or scaled (by their standard deviation) *before* transformation. Centering and scaling is commonly done through `scale()`. Fortunately for us, `escofier_coding()` will center and/or scale for you by setting parameters `center` and `scale` to `TRUE` (which are the defaults).
 
-Continuous variables must be centred (mean = 0) and scaled (standard deviation = 1) before transformation. Fortunately, this can be done within *escofier_coding()* by setting the parameters *center* and *scale* to TRUE (the default).
+Unlike with ordinal variables, values can exist outside of [0,1]. However, they still hold the properties of a disjunctive data set: the sum of the values is 1, sums of column sums within each original variable equal the number of rows, and row sums equal the number of original variables!
 
-Unlike with ordinal variables, values can be outside of [0,1]. However, they still hold the properties of a isjunctive data set: the sum of the weights is 1, sums of column sums within each original variable equal the number of rows, and row sums equal the number of original variables.
+Let's take a look at what `escofier_coding()` does. Note that in this case we have 5 variables, but we're going to just look at 2 variables (for brevity).
 
-```{r continuous_transform}
+```{r continuous_transform, echo = T, eval = F}
 
 # Continuous data set after transformation
 continuous_data_escofier <- escofier_coding(continuous_data, center = TRUE, scale = TRUE)
-round(continuous_data_escofier[1:3, ], 3)
+round(head(continuous_data_escofier), 3)
 
 ```
 
-We confirm the properties of a disjunctive data set by looking at the row and column sums.
+```{r continuous_transform_nice_table, echo = F, eval = T}
+
+# Continuous data set after transformation
+continuous_data_escofier <- escofier_coding(continuous_data, center = TRUE, scale = TRUE)
+round(head(continuous_data_escofier[,c("age-","icv-","age+","icv+")]), 3) %>%
+  kbl() %>%
+  kable_minimal() %>%
+  column_spec(., column = c(2,4), background = rgb(t(col2rgb("mediumorchid3")), alpha = 255, maxColorValue = 255)) %>%
+  column_spec(., column = c(3,5), background = rgb(t(col2rgb("olivedrab3")), alpha = 255, maxColorValue = 255))
+
+```
+
+We can again confirm the properties of a disjunctive data set by looking at the row and column sums.
 
 ```{r continuous_properties}
-
-# Confirming the sum of each set of original variables equals 1 for each participant
-rowSums(continuous_data_escofier [, c("age+", "age-")])[1:3]
-rowSums(continuous_data_escofier [, c("mpacctrailsb+", "mpacctrailsb-")])[1:3]
-rowSums(continuous_data_escofier [, c("mpaccdigit+", "mpaccdigit-")])[1:3]
-rowSums(continuous_data_escofier [, c("hippocampus+", "hippocampus-")])[1:3]
-rowSums(continuous_data_escofier [, c("icv+", "icv-")])[1:3]
-
-# Confirming each row sums to the number of original variables
-rowSums(continuous_data_escofier)[1:3]
-
 # Confirming the sum of column sums of each set of poles equals the number of rows
 # note that each column sum equals 311.5, which is the number of rows divided by 2
 colSums_continuous <- colSums(continuous_data_escofier)
-sum(colSums_continuous[c("age+", "age-")])
-sum(colSums_continuous[c("mpacctrailsb+", "mpacctrailsb-")])
-sum(colSums_continuous[c("mpaccdigit+", "mpaccdigit-")])
-sum(colSums_continuous[c("hippocampus+", "hippocampus-")])
+# sum(colSums_continuous[c("age+", "age-")])
+# sum(colSums_continuous[c("mpacctrailsb+", "mpacctrailsb-")])
+# sum(colSums_continuous[c("mpaccdigit+", "mpaccdigit-")])
+# sum(colSums_continuous[c("hippocampus+", "hippocampus-")])
 sum(colSums_continuous[c("icv+", "icv-")])
+
+
+# Confirming the sum of each set of original variables equals 1 for each participant
+# rowSums(head(continuous_data_escofier [, c("age+", "age-")]))
+# rowSums(head(continuous_data_escofier [, c("mpacctrailsb+", "mpacctrailsb-")]))
+# rowSums(head(continuous_data_escofier [, c("mpaccdigit+", "mpaccdigit-")]))
+# rowSums(head(continuous_data_escofier [, c("hippocampus+", "hippocampus-")]))
+rowSums(head(continuous_data_escofier [, c("icv+", "icv-")]))
+
+# Confirming each row sums to the number of original variables
+rowSums(head(continuous_data_escofier))
 
 ```
 
+
+Now that we've transformed the continuous data, we can put the categorical, ordinal, and continuous data together in a single matrix.
+
+
+```{r mixed_data, echo = T, eval = F}
+
+mixed_data <- cbind(
+  categorical_data_disjunctive, 
+  ordinal_data_thermometer, 
+  continuous_data_escofier
+)
+head(mixed_data)
+
+```
+
+Though we've seen what each of these were *separately*, let's take a look at them together. Again, here we'll just focus on 3 variables, with 1 from each of the original data sets.
+
+```{r mixed_data_nice_table, echo = F, eval = T}
+mixed_data <- cbind(
+  categorical_data_disjunctive, 
+  ordinal_data_thermometer, 
+  continuous_data_escofier
+)
+head(mixed_data[,c("dx.MCI","dx.Dementia","dx.CN", "gdtotal-","gdtotal+","age-","age+")]) %>%
+  kbl(., digits = 3) %>%
+  kable_minimal() %>%
+  column_spec(., column = 2:4, background = rgb(t(col2rgb("mediumorchid3")), alpha = 255, maxColorValue = 255)) %>%
+  column_spec(., column = 5:6, background = rgb(t(col2rgb("olivedrab3")), alpha = 255, maxColorValue = 255))
+
+```
+
+
+Now that we can see all of the data together, we can also see that this new mixed data set still has the same disjunctive/pseudo-disjunctive properties we saw in the previous examples. 
+
+## Conclusion
+
+With this example, we can see how data are transformed when we need to turn, say, categories into numbers or to mix data together. These transformations are *fundamental* to the `ours` package because these transformations underlie some of the important methods. For examples, the "generalized" versions of the MCD and CorrMax procedures require these types of transformations. We'll see how these work in other vignettes.

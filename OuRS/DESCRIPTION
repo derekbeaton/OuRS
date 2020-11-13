@@ -9,7 +9,7 @@ Description: Identification of outliers, their sources, and robust multivariate 
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Depends: GSVD
+Depends: GSVD, kableExtra, magrittr
 RoxygenNote: 7.1.1
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr

@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Kelly Sunderland" />
+
+<meta name="date" content="2020-11-12" />
+
+<title>Data Types and Transformation Functions</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+<style type="text/css">
+a.anchor-section {margin-left: 10px; visibility: hidden; color: inherit;}
+a.anchor-section::before {content: '#';}
+.hasAnchor:hover a.anchor-section {visibility: visible;}
+</style>
+<script>// Anchor sections v1.0 written by Atsushi Yasumoto on Oct 3rd, 2020.
+document.addEventListener('DOMContentLoaded', function() {
+  const h = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+  // Do nothing if sections are already anchored
+  if (Array.from(h).some(x => x.classList.contains('hasAnchor'))) {
+    return null;
+  }
+
+  // Use section id when pandoc runs with --section-divs
+  const section_id = function(x) {
+    return ((x.classList.contains('section') || (x.tagName === 'SECTION'))
+            ? x.id : '');
+  };
+
+  // Add anchors
+  h.forEach(function(x) {
+    const id = x.id || section_id(x.parentElement);
+    if (id === '') {
+      return null;
+    }
+    let anchor = document.createElement('a');
+    anchor.href = '#' + id;
+    anchor.classList = ['anchor-section'];
+    x.classList.add('hasAnchor');
+    x.appendChild(anchor);
+  });
+});
+</script>
+<script>$(document).ready(function(){
+    if (typeof $('[data-toggle="tooltip"]').tooltip === 'function') {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+    if ($('[data-toggle="popover"]').popover === 'function') {
+        $('[data-toggle="popover"]').popover();
+    }
+});
+</script>
+<style type="text/css">
+.lightable-minimal {
+border-collapse: separate;
+border-spacing: 16px 1px;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-minimal td {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal th {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal thead tr:last-child th {
+border-bottom: 2px solid #00000050;
+empty-cells: hide;
+}
+.lightable-minimal tbody tr:first-child td {
+padding-top: 0.5em;
+}
+.lightable-minimal.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-minimal.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic {
+border-top: 0.16em solid #111111;
+border-bottom: 0.16em solid #111111;
+width: 100%;
+margin-bottom: 10px;
+margin: 10px 5px;
+}
+.lightable-classic tfoot tr td {
+border: 0;
+}
+.lightable-classic tfoot tr:first-child td {
+border-top: 0.14em solid #111111;
+}
+.lightable-classic caption {
+color: #222222;
+}
+.lightable-classic td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic thead tr:last-child th {
+border-bottom: 0.10em solid #111111;
+}
+.lightable-classic.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic-2 {
+border-top: 3px double #111111;
+border-bottom: 3px double #111111;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-classic-2 tfoot tr td {
+border: 0;
+}
+.lightable-classic-2 tfoot tr:first-child td {
+border-top: 3px double #111111;
+}
+.lightable-classic-2 caption {
+color: #222222;
+}
+.lightable-classic-2 td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic-2 th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic-2 tbody tr:last-child td {
+border-bottom: 3px double #111111;
+}
+.lightable-classic-2 thead tr:last-child th {
+border-bottom: 1px solid #111111;
+}
+.lightable-classic-2.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic-2.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #EEE;
+border-collapse: collapse;
+margin-bottom: 10px;
+}
+.lightable-material tfoot tr td {
+border: 0;
+}
+.lightable-material tfoot tr:first-child td {
+border-top: 1px solid #EEE;
+}
+.lightable-material th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+}
+.lightable-material td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+border-top: 1px solid #eeeeee;
+}
+.lightable-material.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #ddd;
+}
+.lightable-material-dark {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #FFFFFF12;
+border-collapse: collapse;
+margin-bottom: 10px;
+background-color: #363640;
+}
+.lightable-material-dark tfoot tr td {
+border: 0;
+}
+.lightable-material-dark tfoot tr:first-child td {
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF60;
+}
+.lightable-material-dark td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF;
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark.lightable-hover tbody tr:hover {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody tr:nth-child(even) {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material-dark.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #FFFFFF12;
+}
+.lightable-paper {
+width: 100%;
+margin-bottom: 10px;
+color: #444;
+}
+.lightable-paper tfoot tr td {
+border: 0;
+}
+.lightable-paper tfoot tr:first-child td {
+border-top: 1px solid #00000020;
+}
+.lightable-paper thead tr:last-child th {
+color: #666;
+vertical-align: bottom;
+border-bottom: 1px solid #00000020;
+line-height: 1.15em;
+padding: 10px 5px;
+}
+.lightable-paper td {
+vertical-align: middle;
+border-bottom: 1px solid #00000010;
+line-height: 1.15em;
+padding: 7px 5px;
+}
+.lightable-paper.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-paper.lightable-striped tbody tr:nth-child(even) {
+background-color: #00000008;
+}
+.lightable-paper.lightable-striped tbody td {
+border: 0;
+}
+</style>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Data Types and Transformation Functions</h1>
+<h4 class="author">Kelly Sunderland</h4>
+<h4 class="date">November 12, 2020</h4>
+
+
+
+<div id="data-types" class="section level2">
+<h2>Data Types</h2>
+<p>The functions you use in this package are dependent on the data type of the variables you have. In this package, we assume there are 3 types of data: continuous, categorical, and ordinal. In this vignette, we go through these data types to help orient the user, and to build a foundation for subsequent vignettes. We also use data available in this package (specifically: “<code>synthetic_ADNI</code>”; see also <a href="http://adni.loni.usc.edu/" class="uri">http://adni.loni.usc.edu/</a>).</p>
+<div id="continuous-data-sets" class="section level3">
+<h3>Continuous data sets</h3>
+<p>A variable is <strong>continuous</strong> if observed values are numerical and represent some measurement. Continuous variables can be an infinite number of possible values within a range. Continuous variables can be recorded to any number of decimal places, but are usually limited to a range of plausible values. Examples of continuous variables include:</p>
+<ul>
+<li>age (when measured as time since birth and <em>not</em> when binned into ranges!)</li>
+<li>time to complete a task</li>
+</ul>
+<p>Note that discrete variables are also numerical values that represent measurement, but can be counted and therefore have a finite number of possible values. For example “intracranial volume” (in the “<code>synthetic_ADNI</code>” set) is the count of the number of cubic millimeters or voxels (“volume pixels”) to indicate the volume (generally) within the skull. Possible values include only whole numbers as there cannot be some fractions of people.</p>
+<p>Any dataset composed entirely of continuous variables is a <strong>continuous data set</strong>.</p>
+</div>
+<div id="categorical-data-sets" class="section level3">
+<h3>Categorical data sets</h3>
+<p>A variable is <strong>categorical</strong> if observed values are members of a group based on some qualitative property. Sometimes we call these “nominal” (named) variables. An important feature to <strong>categorical</strong> data is that the groups (or levels) within a categorical variable are <strong>unordered</strong>. Examples of categorical variables include:</p>
+<ul>
+<li>sex, where groups include “male” and “female”</li>
+<li>disease status, where groups include, for example “Alzheimer’s”, “Mild Cognitive Impairment”, or “Control”</li>
+<li>single nucleotide polymorphisms (SNPs), where groups might include genotypes “AA”,“Aa”, and “aa”</li>
+</ul>
+<p>Any dataset composed entirely of categorical variables is a <strong>categorical data set</strong>.</p>
+</div>
+<div id="ordinal-data-sets" class="section level3">
+<h3>Ordinal data sets</h3>
+<p>A variable is <strong>ordinal</strong> if it meets the requirements for categorical variables and the set of groups are <strong>ordered</strong>. The catch is that with ordinal variables, the differences between groups (or levels) are unequal or unmeasureable (subjective). Examples of ordinal variables include:</p>
+<ul>
+<li>level of education, where groups might include “high school or less”, “bachelor’s degree”, and “graduate degree”</li>
+<li>Likert scales, such as level of satisfaction, where groups are <em>named and ordered</em> levels such as “dissatisfied”, “neutral”, and “satisfied”, or numeric but where values are arbitrary and have no objective numerical basis (i.e., level of satisfaction is rated on a scale from 1 to 10)</li>
+<li>binned continuous observations, such as household income, where groups are ranges of numerical values</li>
+</ul>
+<p>Any dataset composed entirely of ordinal variables is a <strong>ordinal data set</strong>.</p>
+</div>
+<div id="mixed-data-sets" class="section level3">
+<h3>Mixed data sets</h3>
+<p>Any dataset composed of two or more of the aforementioned data types is a <strong>mixed data set</strong>.</p>
+</div>
+</div>
+<div id="data-transformations" class="section level2">
+<h2>Data transformations</h2>
+<p>Here we introduce data transformations used here in the <code>ours</code> package. These transformations happen to specific types of data sets when calling into some of the core functions in <code>ours</code> (for example: <code>categorical_mcd</code>). Users can also call these transformations themselves to then perform more customized analyses.</p>
+<p>We use the ADNI synthetic data set from the <code>GSVD</code> package to demonstrate data transformations and their properties. More information about the ADNI can be found here: <a href="http://adni.loni.usc.edu/" class="uri">http://adni.loni.usc.edu/</a>. The “synthetic” data here were created with the <code>synthpop</code> package (<a href="https://CRAN.R-project.org/package=synthpop" class="uri">https://CRAN.R-project.org/package=synthpop</a>) based on the ADNI’s <code>ADNIMERGE</code> package.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">data</span>(<span class="st">&quot;synthetic_ADNI&quot;</span>)</span></code></pre></div>
+<div id="continuous-data-sets-1" class="section level3">
+<h3>Continuous data sets</h3>
+<p>When data sets are <em>strictly</em> continuous (i.e., every variable is a continuous variable), we’re in luck: no elaborate transformations are done. The only ones done are the typical transformations of centering and/or scaling each variable (see, e.g., <code>scale()</code>). This is controlled by the <code>center</code> and <code>scale</code> flags in various functions throughout <code>ours</code>.</p>
+<p>However, when continuous data are used with other data—for example continuous and categorical—then it is now “mixed” data. When data are mixed, all data types are transformed in certain ways. We will see later how continuous data are transformed when mixed with other data.</p>
+</div>
+<div id="categorical-data-sets-1" class="section level3">
+<h3>Categorical data sets</h3>
+<p>In order to perform various analyses in the <code>ours</code> package, categorical variables need to be transformed into <code>complete disjunctive</code>: a new column is created for each observed group (or level) of the variable. This is done with the <code>disjunctive_coding()</code> function. Let’s consider just 2 categorical variables: diagnosis (<code>dx</code>), and participant gender (<code>ptgender</code>).</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># Defining and viewing the categorical data set</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>categorical_data &lt;-<span class="st"> </span>synthetic_ADNI[, <span class="kw">c</span>(<span class="st">&quot;dx&quot;</span>, <span class="st">&quot;ptgender&quot;</span>)]</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">head</span>(categorical_data)</span></code></pre></div>
+<table class=" lightable-minimal" style="font-family: &quot;Trebuchet MS&quot;, verdana, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+dx
+</th>
+<th style="text-align:left;">
+ptgender
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+pt.1
+</td>
+<td style="text-align:left;">
+MCI
+</td>
+<td style="text-align:left;">
+Female
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.2
+</td>
+<td style="text-align:left;">
+Dementia
+</td>
+<td style="text-align:left;">
+Female
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.3
+</td>
+<td style="text-align:left;">
+CN
+</td>
+<td style="text-align:left;">
+Female
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.4
+</td>
+<td style="text-align:left;">
+Dementia
+</td>
+<td style="text-align:left;">
+Male
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.5
+</td>
+<td style="text-align:left;">
+CN
+</td>
+<td style="text-align:left;">
+Female
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.6
+</td>
+<td style="text-align:left;">
+MCI
+</td>
+<td style="text-align:left;">
+Male
+</td>
+</tr>
+</tbody>
+</table>
+<p>Using <code>table()</code> within an <code>apply()</code>, we can see that <code>dx</code> has 3 levels: CN/cognitively normal (<span class="math inline">\(N\)</span>=252); MCI/mild cognitive impairment (<span class="math inline">\(N\)</span>=291); and Dementia (<span class="math inline">\(N\)</span>=80). We also see that <code>ptgender</code> has 2 levels: Female (<span class="math inline">\(N\)</span>=314) and Male (<span class="math inline">\(N\)</span>=309).</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># Examining groups within each categorical variable</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">apply</span>(categorical_data, <span class="dv">2</span>, table)</span></code></pre></div>
+<pre><code>## $dx
+## 
+##       CN Dementia      MCI 
+##      252       80      291 
+## 
+## $ptgender
+## 
+## Female   Male 
+##    314    309</code></pre>
+<p>With <code>disjunctive_coding()</code>, a new column is created for each group of each categorical variable. For each row (here: a subject), a value is 1 if the row is in that observed group, and 0 otherwise. <em>Each</em> column of this newly transformed data is recoded with the same procedure, but for <em>each</em> group in the original variable. Let’s see what that looks like.</p>
+<p><strong>NOTE</strong>: We use <code>kableExtra</code> to help us show tables in a nicer way that also allows us to illustrate properties of the transformations.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>categorical_data_disjunctive &lt;-<span class="st"> </span><span class="kw">disjunctive_coding</span>(categorical_data)</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="kw">head</span>(categorical_data_disjunctive)</span></code></pre></div>
+<table class=" lightable-minimal" style="font-family: &quot;Trebuchet MS&quot;, verdana, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+dx.MCI
+</th>
+<th style="text-align:right;">
+dx.Dementia
+</th>
+<th style="text-align:right;">
+dx.CN
+</th>
+<th style="text-align:right;">
+ptgender.Female
+</th>
+<th style="text-align:right;">
+ptgender.Male
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+pt.1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.2
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.3
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.4
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.5
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.6
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1
+</td>
+</tr>
+</tbody>
+</table>
+<p>The “complete disjunctive” approach—as seen in <code>categorical_data_disjunctive</code>—has some very nice properties:</p>
+<ul>
+<li><p>Each column sum equals the frequency of its respective group,</p></li>
+<li><p>The sum of set of disjunctive columns (for each original variable) equals the number of rows, and</p></li>
+<li><p>The row sums for the entire disjunctive matrix equal the number of original categorical variables.</p></li>
+</ul>
+<p>We can see these properties of the disjunctive data set by looking at those various sums.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co"># Confirming each column sums to the observed frequency of each group</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>colSums_categorical &lt;-<span class="st"> </span><span class="kw">colSums</span>(categorical_data_disjunctive)</span>
+<span id="cb6-3"><a href="#cb6-3"></a>colSums_categorical</span></code></pre></div>
+<pre><code>##          dx.MCI     dx.Dementia           dx.CN ptgender.Female   ptgender.Male 
+##             291              80             252             314             309</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Confirming the sum of the column sums within each original variable equals the number of rows</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="kw">sum</span>(colSums_categorical[<span class="kw">c</span>(<span class="st">&quot;dx.MCI&quot;</span>, <span class="st">&quot;dx.Dementia&quot;</span>, <span class="st">&quot;dx.CN&quot;</span>)])</span></code></pre></div>
+<pre><code>## [1] 623</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">sum</span>(colSums_categorical[<span class="kw">c</span>(<span class="st">&quot;ptgender.Female&quot;</span>, <span class="st">&quot;ptgender.Male&quot;</span>)])</span></code></pre></div>
+<pre><code>## [1] 623</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="co"># Confirming each row sums to the number of original variables</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="kw">rowSums</span>(<span class="kw">head</span>(categorical_data_disjunctive))</span></code></pre></div>
+<pre><code>## pt.1 pt.2 pt.3 pt.4 pt.5 pt.6 
+##    2    2    2    2    2    2</code></pre>
+</div>
+<div id="ordinal-data-sets-1" class="section level3">
+<h3>Ordinal data sets</h3>
+<p>Like with categorical data, in order to perform various analyses in the <code>ours</code> package, we need a transformation for ordinal data. Ordinal data has a transform called “doubling”, which creates 2 columns for each original variable. This procedure has many names in the literature (e.g., fuzzy coding, bipolar coding, data doubling). We use the term “thermometer coding” and the function is called <code>thermometer_coding()</code>. To note, we sometimes refer to this transformation (and some others) as “<em>pseudo-disjunctive</em>” because, after transformation, we can see the same properties as with the categorical transform (i.e., <code>disjunctive_coding()</code>). Let’s consider 3 ordinal variables: geriatric depression scale total score (<code>gdtotal</code>), modified Hachinkski score (<code>hmscore</code>), and clinical dementia rating sum of boxes (<code>cdrsb</code>).</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="co"># Defining and viewing the ordinal data set</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a>ordinal_data &lt;-<span class="st"> </span>synthetic_ADNI[, <span class="kw">c</span>(<span class="st">&quot;gdtotal&quot;</span>, <span class="st">&quot;hmscore&quot;</span>, <span class="st">&quot;cdrsb&quot;</span>)]</span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="kw">head</span>(ordinal_data)</span></code></pre></div>
+<table class=" lightable-minimal" style="font-family: &quot;Trebuchet MS&quot;, verdana, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+gdtotal
+</th>
+<th style="text-align:right;">
+hmscore
+</th>
+<th style="text-align:right;">
+cdrsb
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+pt.1
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.4
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+</tr>
+</tbody>
+</table>
+<p>We confirm that values are already coded as numbers (even though their interpretation do not hold numerical properties) and note the minimum and maximum value.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="co"># Examining values within each ordinal variable</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="kw">apply</span>(ordinal_data, <span class="dv">2</span>, <span class="cf">function</span>(i){<span class="kw">sort</span>(<span class="kw">unique</span>(i))})</span></code></pre></div>
+<pre><code>## $gdtotal
+## [1] 0 1 2 3 4 5
+## 
+## $hmscore
+## [1] 0 1 2 3
+## 
+## $cdrsb
+##  [1] 0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5</code></pre>
+<p>With <code>thermometer_coding()</code>, 2 new columns are created for each variable: high (<code>+</code>), where <span class="math inline">\(+ = \frac{score-min}{max-min}\)</span> and low (-), where <span class="math inline">\(- =\frac{max-score}{max-min}\)</span>. Thermometer coding shows how close a value is to the high and low. The “low” and “high” are why we refer to it as “thermometer coding”. Observed values close to the <em>maximum</em> will have large values in the <code>+</code> column and small values in the <code>-</code> column. Observed values close to the <em>minimum</em> will have small values in the <code>+</code> column and large values in the <code>-</code> column.</p>
+<p>There are two special cases: when the value itself is the <span class="math inline">\(min\)</span> or the <span class="math inline">\(max\)</span>. When it’s the <span class="math inline">\(min\)</span>, then <span class="math inline">\(-=1\)</span> and <span class="math inline">\(+=0\)</span>, and when it’s the <span class="math inline">\(max\)</span>, then <span class="math inline">\(-=0\)</span> and <span class="math inline">\(+=1\)</span>. This is because the min and max are <em>completely</em> at the low and high, respectively.</p>
+<p>The sum of the values for each set of <code>+</code> and <code>-</code> equals 1. So that, like disjunctive coding, the row sums equal the number of original variables. Also, the sum of column sums for each pair of columns equals the number of rows.</p>
+<p>Both the aforementioned properties and the special cases are why we call this “<em>pseudo-disjunctive</em>”: the data <em>behave</em> like the disjunctive data, but clearly are not. This is also why sometimes in the literature you’ll see disjunctive coding called “crisp” (exclusively 0/1) and various types of data doubling called “fuzzy”.</p>
+<p><strong>NOTE</strong>: The <code>thermometer_coding()</code> function requires that the values are <code>numeric</code> and that the values themselves reflect the desired ordinality, or that they can reflect the intended distance “between” values. We’ll highlight this with a second example.</p>
+<p>First, let’s take a look at <code>thermometer_coding()</code> with our ordinal variables. Like with the categorical data, we’re going to highlight the variables.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="co"># Ordinal data set after transformation</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a>ordinal_data_thermometer &lt;-<span class="st"> </span><span class="kw">thermometer_coding</span>(ordinal_data)</span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="kw">head</span>(<span class="kw">round</span>(ordinal_data_thermometer, <span class="dv">3</span>))</span></code></pre></div>
+<table class=" lightable-minimal" style="font-family: &quot;Trebuchet MS&quot;, verdana, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+gdtotal-
+</th>
+<th style="text-align:right;">
+hmscore-
+</th>
+<th style="text-align:right;">
+cdrsb-
+</th>
+<th style="text-align:right;">
+gdtotal+
+</th>
+<th style="text-align:right;">
+hmscore+
+</th>
+<th style="text-align:right;">
+cdrsb+
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+pt.1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.2
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.667
+</td>
+<td style="text-align:right;">
+0.455
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.8
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.333
+</td>
+<td style="text-align:right;">
+0.545
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.2
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.6
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.667
+</td>
+<td style="text-align:right;">
+0.545
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.4
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.333
+</td>
+<td style="text-align:right;">
+0.455
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.3
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.4
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.000
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.6
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.4
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.8
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.000
+</td>
+<td style="text-align:right;">
+0.364
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.2
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.000
+</td>
+<td style="text-align:right;">
+0.636
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.5
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1.0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.000
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.6
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.000
+</td>
+<td style="text-align:right;">
+0.455
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1.0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.000
+</td>
+<td style="text-align:right;">
+0.545
+</td>
+</tr>
+</tbody>
+</table>
+<p>Note some of the special cases here, for example, <code>pt.5</code> and <code>pt.6</code>. They, respectively, have the minimum and maximum values observed for <code>gdtotal</code>. So in the <code>gdtotal-</code> column we see that <code>pt.5</code> has a 1 and <code>pt.6</code> has a 0 (for <code>gdtotal+</code> it’s the opposite). Again, we can confirm the properties of a disjunctive data set by looking at the row and column sums.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co"># Confirming the sum of column sums of each set of poles equals the number of rows</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a>colSums_ordinal &lt;-<span class="st"> </span><span class="kw">colSums</span>(ordinal_data_thermometer)</span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="co"># sum(colSums_ordinal[c(&quot;gdtotal+&quot;, &quot;gdtotal-&quot;)])</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="co"># sum(colSums_ordinal[c(&quot;hmscore+&quot;, &quot;hmscore-&quot;)])</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="kw">sum</span>(colSums_ordinal[<span class="kw">c</span>(<span class="st">&quot;cdrsb+&quot;</span>, <span class="st">&quot;cdrsb-&quot;</span>)])</span></code></pre></div>
+<pre><code>## [1] 623</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co"># Confirming the sum of each set of poles equals 1 for each participant</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="co"># rowSums(head(ordinal_data_thermometer[, c(&quot;gdtotal+&quot;, &quot;gdtotal-&quot;)]))</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="co"># rowSums(head(ordinal_data_thermometer[, c(&quot;hmscore+&quot;, &quot;hmscore-&quot;)]))</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="kw">rowSums</span>(<span class="kw">head</span>(ordinal_data_thermometer[, <span class="kw">c</span>(<span class="st">&quot;cdrsb+&quot;</span>, <span class="st">&quot;cdrsb-&quot;</span>)]))</span></code></pre></div>
+<pre><code>## pt.1 pt.2 pt.3 pt.4 pt.5 pt.6 
+##    1    1    1    1    1    1</code></pre>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="co"># Confirming each row sums to the number of original variables</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a><span class="kw">rowSums</span>(<span class="kw">head</span>(ordinal_data_thermometer))</span></code></pre></div>
+<pre><code>## pt.1 pt.2 pt.3 pt.4 pt.5 pt.6 
+##    3    3    3    3    3    3</code></pre>
+<p>In the above example, the numbers provided to <code>thermometer_coding()</code> also reflect the distance between values. So when we see a ‘0’ and a ‘1’, or a ‘1’ and a ‘2’, then we know the distance between ‘0’ and ‘1’ is the same as ‘1’ and ‘2’. If we want to use different values for ordinality, we need to do that on our own <em>before</em> we use <code>thermometer_coding()</code>. A simple example is if we believe that responses are quadratic. Let’s do that by simply squaring all the values in the <code>ordinal_data</code> matrix</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a><span class="co"># Ordinal data set after transformation</span></span>
+<span id="cb24-2"><a href="#cb24-2"></a>ordinal2_data_thermometer &lt;-<span class="st"> </span><span class="kw">thermometer_coding</span>(ordinal_data<span class="op">^</span><span class="dv">2</span>)</span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="kw">head</span>(<span class="kw">round</span>(ordinal2_data_thermometer, <span class="dv">3</span>))</span></code></pre></div>
+<table class=" lightable-minimal" style="font-family: &quot;Trebuchet MS&quot;, verdana, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+gdtotal-
+</th>
+<th style="text-align:right;">
+hmscore-
+</th>
+<th style="text-align:right;">
+cdrsb-
+</th>
+<th style="text-align:right;">
+gdtotal+
+</th>
+<th style="text-align:right;">
+hmscore+
+</th>
+<th style="text-align:right;">
+cdrsb+
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+pt.1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.36
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.889
+</td>
+<td style="text-align:right;">
+0.702
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.64
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.111
+</td>
+<td style="text-align:right;">
+0.298
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.2
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.84
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.889
+</td>
+<td style="text-align:right;">
+0.793
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.16
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.111
+</td>
+<td style="text-align:right;">
+0.207
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.3
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.64
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.000
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.36
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.4
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.96
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.000
+</td>
+<td style="text-align:right;">
+0.595
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.04
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.000
+</td>
+<td style="text-align:right;">
+0.405
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.5
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1.00
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.000
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.00
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.6
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.00
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.000
+</td>
+<td style="text-align:right;">
+0.702
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1.00
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.000
+</td>
+<td style="text-align:right;">
+0.298
+</td>
+</tr>
+</tbody>
+</table>
+<p>We can see that the <em>pseudo-disjunctive</em> properties still hold:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a><span class="co"># Confirming the sum of column sums of each set of poles equals the number of rows</span></span>
+<span id="cb25-2"><a href="#cb25-2"></a>colSums_ordinal2 &lt;-<span class="st"> </span><span class="kw">colSums</span>(ordinal2_data_thermometer)</span>
+<span id="cb25-3"><a href="#cb25-3"></a><span class="co"># sum(colSums_ordinal2[c(&quot;gdtotal+&quot;, &quot;gdtotal-&quot;)])</span></span>
+<span id="cb25-4"><a href="#cb25-4"></a><span class="co"># sum(colSums_ordinal2[c(&quot;hmscore+&quot;, &quot;hmscore-&quot;)])</span></span>
+<span id="cb25-5"><a href="#cb25-5"></a><span class="kw">sum</span>(colSums_ordinal2[<span class="kw">c</span>(<span class="st">&quot;cdrsb+&quot;</span>, <span class="st">&quot;cdrsb-&quot;</span>)])</span></code></pre></div>
+<pre><code>## [1] 623</code></pre>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="co"># Confirming the sum of each set of poles equals 1 for each participant</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a><span class="co"># rowSums(head(ordinal2_data_thermometer[, c(&quot;gdtotal+&quot;, &quot;gdtotal-&quot;)]))</span></span>
+<span id="cb27-3"><a href="#cb27-3"></a><span class="co"># rowSums(head(ordinal2_data_thermometer[, c(&quot;hmscore+&quot;, &quot;hmscore-&quot;)]))</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a><span class="kw">rowSums</span>(<span class="kw">head</span>(ordinal2_data_thermometer[, <span class="kw">c</span>(<span class="st">&quot;cdrsb+&quot;</span>, <span class="st">&quot;cdrsb-&quot;</span>)]))</span></code></pre></div>
+<pre><code>## pt.1 pt.2 pt.3 pt.4 pt.5 pt.6 
+##    1    1    1    1    1    1</code></pre>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a><span class="co"># Confirming each row sums to the number of original variables</span></span>
+<span id="cb29-2"><a href="#cb29-2"></a><span class="kw">rowSums</span>(<span class="kw">head</span>(ordinal2_data_thermometer))</span></code></pre></div>
+<pre><code>## pt.1 pt.2 pt.3 pt.4 pt.5 pt.6 
+##    3    3    3    3    3    3</code></pre>
+<p><strong>NOTE</strong>: When you have ordinal data, it is important to make sure that the numeric values represent what you <em>believe</em> are the appropriate ordinal properties.</p>
+</div>
+</div>
+<div id="mixed-data-sets-1" class="section level2">
+<h2>Mixed data sets</h2>
+<p>Let’s now consider a dataset with a mixture of all data types: categorical, ordinal, and continuous variables. We’ve seen how categorical and ordinal variables are transformed in the previous examples. But we need to now also transform the continuous data. Before we show the mixed data set, we need to show the continuous data set in its transformed state.</p>
+<p>Continuous variables are also transformed into <em>pseudo-disjunctive</em>. Similar to ordinal variables, this is done by “doubling” the variable, but with something called Escofier coding (named after Brigitte Escofier-Cordier, who first proposed this approach). Here, there are 5 continuous variables: age, scores for the Trails B total score (mpacctrailsb), scores for the Digit Span total score (mpaccdigit), hippocampal volume (hippocampus), and total intracranial volume (icv). Note that these are all on very different scales!</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a><span class="co"># Defining and viewing the continuous data set</span></span>
+<span id="cb31-2"><a href="#cb31-2"></a>continuous_data &lt;-<span class="st"> </span>synthetic_ADNI[, <span class="kw">c</span>(<span class="st">&quot;age&quot;</span>, <span class="st">&quot;mpacctrailsb&quot;</span>,<span class="st">&quot;mpaccdigit&quot;</span>, <span class="st">&quot;hippocampus&quot;</span>, <span class="st">&quot;icv&quot;</span>)]</span>
+<span id="cb31-3"><a href="#cb31-3"></a><span class="kw">round</span>(<span class="kw">head</span>(continuous_data), <span class="dv">3</span>)</span></code></pre></div>
+<pre><code>##       age mpacctrailsb mpaccdigit hippocampus     icv
+## pt.1 76.2       -6.710     -6.870        6696 1331751
+## pt.2 89.6      -13.728    -14.974        4459 1535705
+## pt.3 75.7       -0.388      1.076        7393 1415016
+## pt.4 71.0      -12.266    -14.017        5411 1808662
+## pt.5 73.5       -1.992     -0.859        7150 1502709
+## pt.6 70.2       -4.403     -4.331        7920 1773821</code></pre>
+<p>With <code>escofier_coding()</code>, 2 new columns are created for each variable just like with the ordinal example: high (+), where <span class="math inline">\(+ = \frac{1+score}{2}\)</span> and low (-), where <span class="math inline">\(- = \frac{1-score}{2}\)</span>. Continuous variables must be centered (mean = 0) and/or scaled (by their standard deviation) <em>before</em> transformation. Centering and scaling is commonly done through <code>scale()</code>. Fortunately for us, <code>escofier_coding()</code> will center and/or scale for you by setting parameters <code>center</code> and <code>scale</code> to <code>TRUE</code> (which are the defaults).</p>
+<p>Unlike with ordinal variables, values can exist outside of [0,1]. However, they still hold the properties of a disjunctive data set: the sum of the values is 1, sums of column sums within each original variable equal the number of rows, and row sums equal the number of original variables!</p>
+<p>Let’s take a look at what <code>escofier_coding()</code> does. Note that in this case we have 5 variables, but we’re going to just look at 2 variables (for brevity).</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1"></a><span class="co"># Continuous data set after transformation</span></span>
+<span id="cb33-2"><a href="#cb33-2"></a>continuous_data_escofier &lt;-<span class="st"> </span><span class="kw">escofier_coding</span>(continuous_data, <span class="dt">center =</span> <span class="ot">TRUE</span>, <span class="dt">scale =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb33-3"><a href="#cb33-3"></a><span class="kw">round</span>(<span class="kw">head</span>(continuous_data_escofier), <span class="dv">3</span>)</span></code></pre></div>
+<table class=" lightable-minimal" style="font-family: &quot;Trebuchet MS&quot;, verdana, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+age-
+</th>
+<th style="text-align:right;">
+icv-
+</th>
+<th style="text-align:right;">
+age+
+</th>
+<th style="text-align:right;">
+icv+
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+pt.1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.250
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.026
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.750
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+-0.026
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.2
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+-0.732
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.365
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1.732
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.635
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.3
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.287
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.756
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.713
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.244
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.4
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.631
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+-0.520
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.369
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.520
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.5
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.448
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.472
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.552
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.528
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.6
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.690
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+-0.407
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0.310
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.407
+</td>
+</tr>
+</tbody>
+</table>
+<p>We can again confirm the properties of a disjunctive data set by looking at the row and column sums.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1"></a><span class="co"># Confirming the sum of column sums of each set of poles equals the number of rows</span></span>
+<span id="cb34-2"><a href="#cb34-2"></a><span class="co"># note that each column sum equals 311.5, which is the number of rows divided by 2</span></span>
+<span id="cb34-3"><a href="#cb34-3"></a>colSums_continuous &lt;-<span class="st"> </span><span class="kw">colSums</span>(continuous_data_escofier)</span>
+<span id="cb34-4"><a href="#cb34-4"></a><span class="co"># sum(colSums_continuous[c(&quot;age+&quot;, &quot;age-&quot;)])</span></span>
+<span id="cb34-5"><a href="#cb34-5"></a><span class="co"># sum(colSums_continuous[c(&quot;mpacctrailsb+&quot;, &quot;mpacctrailsb-&quot;)])</span></span>
+<span id="cb34-6"><a href="#cb34-6"></a><span class="co"># sum(colSums_continuous[c(&quot;mpaccdigit+&quot;, &quot;mpaccdigit-&quot;)])</span></span>
+<span id="cb34-7"><a href="#cb34-7"></a><span class="co"># sum(colSums_continuous[c(&quot;hippocampus+&quot;, &quot;hippocampus-&quot;)])</span></span>
+<span id="cb34-8"><a href="#cb34-8"></a><span class="kw">sum</span>(colSums_continuous[<span class="kw">c</span>(<span class="st">&quot;icv+&quot;</span>, <span class="st">&quot;icv-&quot;</span>)])</span></code></pre></div>
+<pre><code>## [1] 623</code></pre>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1"></a><span class="co"># Confirming the sum of each set of original variables equals 1 for each participant</span></span>
+<span id="cb36-2"><a href="#cb36-2"></a><span class="co"># rowSums(head(continuous_data_escofier [, c(&quot;age+&quot;, &quot;age-&quot;)]))</span></span>
+<span id="cb36-3"><a href="#cb36-3"></a><span class="co"># rowSums(head(continuous_data_escofier [, c(&quot;mpacctrailsb+&quot;, &quot;mpacctrailsb-&quot;)]))</span></span>
+<span id="cb36-4"><a href="#cb36-4"></a><span class="co"># rowSums(head(continuous_data_escofier [, c(&quot;mpaccdigit+&quot;, &quot;mpaccdigit-&quot;)]))</span></span>
+<span id="cb36-5"><a href="#cb36-5"></a><span class="co"># rowSums(head(continuous_data_escofier [, c(&quot;hippocampus+&quot;, &quot;hippocampus-&quot;)]))</span></span>
+<span id="cb36-6"><a href="#cb36-6"></a><span class="kw">rowSums</span>(<span class="kw">head</span>(continuous_data_escofier [, <span class="kw">c</span>(<span class="st">&quot;icv+&quot;</span>, <span class="st">&quot;icv-&quot;</span>)]))</span></code></pre></div>
+<pre><code>## pt.1 pt.2 pt.3 pt.4 pt.5 pt.6 
+##    1    1    1    1    1    1</code></pre>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a><span class="co"># Confirming each row sums to the number of original variables</span></span>
+<span id="cb38-2"><a href="#cb38-2"></a><span class="kw">rowSums</span>(<span class="kw">head</span>(continuous_data_escofier))</span></code></pre></div>
+<pre><code>## pt.1 pt.2 pt.3 pt.4 pt.5 pt.6 
+##    5    5    5    5    5    5</code></pre>
+<p>Now that we’ve transformed the continuous data, we can put the categorical, ordinal, and continuous data together in a single matrix.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1"></a>mixed_data &lt;-<span class="st"> </span><span class="kw">cbind</span>(</span>
+<span id="cb40-2"><a href="#cb40-2"></a>  categorical_data_disjunctive, </span>
+<span id="cb40-3"><a href="#cb40-3"></a>  ordinal_data_thermometer, </span>
+<span id="cb40-4"><a href="#cb40-4"></a>  continuous_data_escofier</span>
+<span id="cb40-5"><a href="#cb40-5"></a>)</span>
+<span id="cb40-6"><a href="#cb40-6"></a><span class="kw">head</span>(mixed_data)</span></code></pre></div>
+<p>Though we’ve seen what each of these were <em>separately</em>, let’s take a look at them together. Again, here we’ll just focus on 3 variables, with 1 from each of the original data sets.</p>
+<table class=" lightable-minimal" style="font-family: &quot;Trebuchet MS&quot;, verdana, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+dx.MCI
+</th>
+<th style="text-align:right;">
+dx.Dementia
+</th>
+<th style="text-align:right;">
+dx.CN
+</th>
+<th style="text-align:right;">
+gdtotal-
+</th>
+<th style="text-align:right;">
+gdtotal+
+</th>
+<th style="text-align:right;">
+age-
+</th>
+<th style="text-align:right;">
+age+
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+pt.1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.2
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.8
+</td>
+<td style="text-align:right;">
+0.250
+</td>
+<td style="text-align:right;">
+0.750
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.2
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.6
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.4
+</td>
+<td style="text-align:right;">
+-0.732
+</td>
+<td style="text-align:right;">
+1.732
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.3
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.4
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.6
+</td>
+<td style="text-align:right;">
+0.287
+</td>
+<td style="text-align:right;">
+0.713
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.4
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.8
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.2
+</td>
+<td style="text-align:right;">
+0.631
+</td>
+<td style="text-align:right;">
+0.369
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.5
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.0
+</td>
+<td style="text-align:right;">
+0.448
+</td>
+<td style="text-align:right;">
+0.552
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pt.6
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+1
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(180, 82, 205, 1) !important;">
+0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+0.0
+</td>
+<td style="text-align:right;background-color: rgba(154, 205, 50, 1) !important;">
+1.0
+</td>
+<td style="text-align:right;">
+0.690
+</td>
+<td style="text-align:right;">
+0.310
+</td>
+</tr>
+</tbody>
+</table>
+<p>Now that we can see all of the data together, we can also see that this new mixed data set still has the same disjunctive/pseudo-disjunctive properties we saw in the previous examples.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>With this example, we can see how data are transformed when we need to turn, say, categories into numbers or to mix data together. These transformations are <em>fundamental</em> to the <code>ours</code> package because these transformations underlie some of the important methods. For examples, the “generalized” versions of the MCD and CorrMax procedures require these types of transformations. We’ll see how these work in other vignettes.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
