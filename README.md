@@ -39,12 +39,18 @@ for use, namely:
 Because `OuRS` is under development it is not yet available as a
 complete package, though it can still be installed. `OuRS` depends on
 the `GSVD` package ([GSVD](https://github.com/derekbeaton/GSVD)). For
-now, the simplest approach to installation is through the `devtools`
-package:
+now, the simplest approach to installation is through the `devtools` or
+`remote` packages. **NOTE** both packages are more aggressive about
+warnings and treat them as errors, and thus prevents installation (see
+[here](https://github.com/r-lib/remotes/issues/403), for example). So to
+install `OuRS`, you will need to set an environment variable for the
+`remotes` package (there may be equivalents in `devtools` if that is
+preferred):
 
 ``` r
-devtools::install_github("derekbeaton/GSVD")
-devtools::install_github("derekbeaton/OuRS", subdir = "/OuRS")
+remotes::install_github("derekbeaton/GSVD")
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS = TRUE)
+remotes::install_github("derekbeaton/OuRS/OuRS")
 ```
 
 # Set up
@@ -140,10 +146,10 @@ load("OuRS/data/SNPS.rda")
 summary(SNPS[, 1:2])
 ```
 
-    ##  SNP.1  SNP.2 
-    ##  0:29   0:24  
-    ##  1:23   1:28  
-    ##  2: 8   2: 8
+    ##     SNP.1              SNP.2          
+    ##  Length:60          Length:60         
+    ##  Class :character   Class :character  
+    ##  Mode  :character   Mode  :character
 
 ``` r
 # mostly default parameters for now, but with the lowest size
@@ -156,6 +162,6 @@ dd_plot(catmcd.results, dist_transform = "sqrt")
 
 # Additional materials
 
-Please see the [Publications](./Publications) and
-[Presentations](./Presentations) directories for more examples of some
+Please see the (Publications)\[./Publications\] and
+(Presentations)\[./Presentations\] directories for more examples of some
 of our outlier and robust structures work.

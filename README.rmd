@@ -34,11 +34,13 @@ As of now, the OuRS package is under active development. However, several approa
 
 ## Installation
 
-Because `OuRS` is under development it is not yet available as a complete package, though it can still be installed. `OuRS` depends on the `GSVD` package ([GSVD](https://github.com/derekbeaton/GSVD)). For now, the simplest approach to installation is through the `devtools` package:
+Because `OuRS` is under development it is not yet available as a complete package, though it can still be installed. `OuRS` depends on the `GSVD` package ([GSVD](https://github.com/derekbeaton/GSVD)). For now, the simplest approach to installation is through the `devtools` or `remote` packages. **NOTE** both packages are more aggressive about warnings and treat them as errors, and thus prevents installation (see [here](https://github.com/r-lib/remotes/issues/403), for example).  So to install `OuRS`, you will need to set an environment variable for the `remotes` package (there may be equivalents in `devtools` if that is preferred):
 
 ```{r eval=FALSE}
-devtools::install_github("derekbeaton/GSVD")
-devtools::install_github("derekbeaton/OuRS",subdir="/OuRS")
+remotes::install_github("derekbeaton/GSVD")
+
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS=TRUE)
+remotes::install_github("derekbeaton/OuRS/OuRS")
 ```
 
 # Set up
