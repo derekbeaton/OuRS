@@ -20,9 +20,6 @@ A transformation of the data in a row-wise fashion that preserves the Mahalanobi
 \code{target.data} are assumed to be correspondence analysis (CA)-like data (i.e., counts). This function performs CA preprocessing before applying the CorrMax procedure.
 This particular function is the primary function for \code{\link{categorical_corrmax}}, \code{\link{ordinal_corrmax}}, and \code{\link{mixed_data_corrmax}}.
 }
-\examples{
-
-}
 \author{
 Derek Beaton
 }

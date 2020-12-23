@@ -26,8 +26,6 @@
 #'
 #' @seealso \code{\link{gsvd}}
 #'
-#' @examples
-#'
 #'
 #' @author Derek Beaton
 
@@ -66,8 +64,6 @@ pca <- function(DATA, center = T, scale = T, k = 0, tol = sqrt(.Machine$double.e
 #' \item{fj}{Right (columns) component scores. Dimensions are \code{ncol(DATA)} by k.}
 #'
 #' @seealso \code{\link{gsvd}}
-#'
-#' @examples
 #'
 #'
 #' @author Derek Beaton

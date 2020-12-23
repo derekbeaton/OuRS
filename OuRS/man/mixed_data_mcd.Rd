@@ -31,22 +31,22 @@ mixed_data_mcd(
 }
 \value{
 The 'OuRS MCD' object: a list of three lists:
-\item \strong{cov:} a list for the robust covariance structure items
+\strong{cov} a list for the robust covariance structure items
 \itemize{
-  \item{loadings:} {a matrix of loadings via CA from the robust covariance matrix}
-  \item{singular.values:} {a vector of singular values via CA from the robust covariance matrix}
+  \item loadings - a matrix of loadings via CA from the robust covariance matrix
+  \item singular.values - a vector of singular values via CA from the robust covariance matrix
 }
-\item \strong{dists}
+\strong{dists}
 \itemize{
-  \item{robust_mahal_dists} {Robust Mahalanobis distances from the robust covariance matrix}
-  \item{robust_score_dists} {Robust score distances (computed from component scores) from the robust covariance matrix}
-  \item{mahal_dists} {Mahalanobis distances}
-  \item{score_dists} {Score distances (computed from component scores)}
+  \item robust_mahal_dists - Robust Mahalanobis distances from the robust covariance matrix
+  \item robust_score_dists - Robust score distances (computed from component scores) from the robust covariance matrix
+  \item mahal_dists - Mahalanobis distances
+  \item score_dists - Score distances (computed from component scores)
 }
-\item \strong{det.samps}
+\strong{det.samps}
 \itemize{
-  \item{dets:} {A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search}
-  \item{samples:} {A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})}
+  \item dets - A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search
+  \item samples - A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})
 }
 }
 \description{
@@ -55,9 +55,6 @@ The 'OuRS MCD' object: a list of three lists:
 \details{
 the input parameter \code{DATA} must be a \code{data.frame}, where ordinal and continuous variables are \code{numeric} and categorical variables are \code{character}. Any variables denoted with "x" (i.e., "do nothing") must also be \code{numeric}.
 See \code{\link{mixed_data_coding}}
-}
-\examples{
-
 }
 \seealso{
 \code{\link{continuous_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{categorical_mcd}}, \code{\link{generalized_mcd}}

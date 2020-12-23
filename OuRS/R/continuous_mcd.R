@@ -15,29 +15,28 @@
 #' @param tol default is .Machine$double.eps. A tolerance level for eliminating effectively zero (small variance), negative, imaginary eigen/singular value components (see \code{\link{gsvd}}).
 #'
 #' @return The 'OuRS MCD' object: a list of three lists:
-#' \item \strong{cov:} a list for the robust covariance structure items
+#' \strong{cov:} a list for the robust covariance structure items
 #' \itemize{
-#'   \item{loadings:} {a matrix of loadings via PCA from the robust covariance matrix}
-#'   \item{singular.values:} {a vector of singular values via PCA from the robust covariance matrix}
-#'   \item{center:} {a vector of the column-wise centers for the final subsample that produces the robust covariance matrix}
-#'   \item{scale:} {a vector of the column-wise scale for the final subsample that produces the robust covariance matrix}
+#'   \item loadings - a matrix of loadings via PCA from the robust covariance matrix
+#'   \item singular.values - a vector of singular values via PCA from the robust covariance matrix
+#'   \item center - a vector of the column-wise centers for the final subsample that produces the robust covariance matrix
+#'   \item scale - a vector of the column-wise scale for the final subsample that produces the robust covariance matrix
 #' }
-#' \item \strong{dists}
+#' \strong{dists}
 #' \itemize{
-#'   \item{robust_mahal_dists} {Robust Mahalanobis distances from the robust covariance matrix}
-#'   \item{robust_score_dists} {Robust score distances (computed from component scores) from the robust covariance matrix}
-#'   \item{mahal_dists} {Mahalanobis distances}
-#'   \item{score_dists} {Score distances (computed from component scores)}
+#'   \item robust_mahal_dists - Robust Mahalanobis distances from the robust covariance matrix
+#'   \item robust_score_dists - Robust score distances (computed from component scores) from the robust covariance matrix
+#'   \item mahal_dists - Mahalanobis distances
+#'   \item score_dists - Score distances (computed from component scores)
 #' }
-#' \item \strong{det.samps}
+#' \strong{det.samps}
 #' \itemize{
-#'   \item{dets:} {A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search}
-#'   \item{samples:} {A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})}
+#'   \item dets - A numeric vector. The \code{top.sets.percent} determinants in ascending order (from minimum determinant upwards) that reflects the \code{top.sets.percent} best determinants from the MCD search
+#'   \item samples - A numeric matrix. The \code{top.sets.percent} subsamples in to compute the determinants (in \code{dets})
 #' }
 #'
 #' @seealso \code{\link{categorical_mcd}}, \code{\link{ordinal_mcd}}, \code{\link{mixed_data_mcd}}, \code{\link{generalized_mcd}}
 #'
-#' @examples
 #'
 #' @author Derek Beaton
 #' @export
@@ -101,9 +100,6 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
 }
 
 
-### eventually, these things should be class based
-#### I have accepted the fact that all of this will be completely re-written some day
-##### perhaps for ExPo2?
 
 #' @title Compute scores and distances with projection for continuous MCD
 #'
@@ -118,10 +114,12 @@ continuous_mcd <- function(DATA, center=T, scale=F, allow_collinearity=F, alpha=
 #' @param singular.values a numeric vector that contains the singular values from a decomposed covariance matrix
 #'
 #' @return a list with four items. All items are for the rows of \code{DATA} and computed through projection (via \code{loadings} and \code{singular.vectors})
-#' \item{projected_u:} {Projected singular vectors}
-#' \item{projected_fi:} {Projected component scores}
-#' \item{projected_mahal_dists:} {Mahalanobis distances (computed as \code{rowSums(projected_u^2)})}
-#' \item{projected_score_dists:} {Score distances (computed as \code{rowSums(projected_fi^2)})}
+#' \itemize{
+#' \item projected_u - Projected singular vectors
+#' \item projected_fi - Projected component scores
+#' \item projected_mahal_dists - Mahalanobis distances (computed as \code{rowSums(projected_u^2)})
+#' \item projected_score_dists - Score distances (computed as \code{rowSums(projected_fi^2)})
+#' }
 #'
 #' @seealso \code{\link{continuous_mcd}} and \code{\link{generalized_scores_dists}}
 #'

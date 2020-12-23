@@ -12,20 +12,20 @@ ca_preproc(DATA, compact = T)
 \item{compact}{a logical (boolean). Default is \code{TRUE}. When \code{TRUE} only some elements are returned}
 }
 \value{
-\item if \code{compact = FALSE} a list with 6 elements
+if \code{compact = FALSE} a list with 6 elements
 \itemize{
-  \item{Ox:} {The observed values}
-  \item{m:} {Row probabilities}
-  \item{w:} {Column probabilities}
-  \item{Ex:} {The expected values}
-  \item{Zx:} {The deviations values}
-  \item{weightedZx:} {The deviations divided by the square root of the row and column probabilities}
+  \item Ox - The observed values
+  \item m - Row probabilities
+  \item w - Column probabilities
+  \item Ex - The expected values
+  \item Zx - The deviations values
+  \item weightedZx - The deviations divided by the square root of the row and column probabilities
 }
-\item if \code{compact = TRUE} a list with 3 elements
+if \code{compact = TRUE} a list with 3 elements
 \itemize{
-  \item{m:} {Row probabilities}
-  \item{w:} {Column probabilities}
-  \item{weightedZx:} {The deviations divided by the square root of the row and column probabilities}
+  \item m - Row probabilities
+  \item w - Column probabilities
+  \item weightedZx - The deviations divided by the square root of the row and column probabilities
 }
 }
 \description{

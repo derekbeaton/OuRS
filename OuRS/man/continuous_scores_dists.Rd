@@ -19,10 +19,12 @@ continuous_scores_dists(DATA, center = T, scale = F, loadings, singular.values)
 }
 \value{
 a list with four items. All items are for the rows of \code{DATA} and computed through projection (via \code{loadings} and \code{singular.vectors})
-\item{projected_u:} {Projected singular vectors}
-\item{projected_fi:} {Projected component scores}
-\item{projected_mahal_dists:} {Mahalanobis distances (computed as \code{rowSums(projected_u^2)})}
-\item{projected_score_dists:} {Score distances (computed as \code{rowSums(projected_fi^2)})}
+\itemize{
+\item projected_u - Projected singular vectors
+\item projected_fi - Projected component scores
+\item projected_mahal_dists - Mahalanobis distances (computed as \code{rowSums(projected_u^2)})
+\item projected_score_dists - Score distances (computed as \code{rowSums(projected_fi^2)})
+}
 }
 \description{
 Computes projected: singular vectors, Mahalanobis distance, component scores, and score distances.

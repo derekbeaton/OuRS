@@ -20,9 +20,6 @@ ordinal_corrmax(target.data, mins, maxs, loadings, singular.values)
 \description{
 A transformation of the data in a row-wise fashion that preserves the Mahalanobis distances yet also provides information on which variables likely contribute to the Mahalanobis distance of the observation
 }
-\examples{
-
-}
 \author{
 Derek Beaton
 }

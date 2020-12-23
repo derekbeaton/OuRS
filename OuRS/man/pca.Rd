@@ -34,10 +34,6 @@ A list with eleven elements by way of \code{\link[GSVD]{gsvd}}:
 \description{
 \code{pca} performs principal components analysis of a data matrix \code{DATA}.
 }
-\examples{
-
-
-}
 \seealso{
 \code{\link{gsvd}}
 }

@@ -21,12 +21,14 @@ mixed_data_coding(
 Transforms mixtures of data contained within a data.frame
 }
 \details{
-For each type of data, this function cals into the respective transformation function.
-\item{"n"} {is categorical data and calls \code{disjunctive_coding}}
-\item{"c"} {is continuous data that should only be centered and calls \code{escofier_coding} with \code{center = TRUE} and \code{scale = FALSE}}
-\item{"z"} {is continuous data that should be centered and scaled, and calls \code{escofier_coding} with \code{center = TRUE} and \code{scale = TRUE}}
-\item{"o"} {is ordinal data and calls \code{thermometer_coding}}
-\item{"x"} {is 'do nothing' and returns the data exactly as they are}
+For each type of data, this function calls into the respective transformation function.
+\itemize{
+\item "n" - is categorical data and calls \code{disjunctive_coding}
+\item "c" - is continuous data that should only be centered and calls \code{escofier_coding} with \code{center = TRUE} and \code{scale = FALSE}
+\item "z" - is continuous data that should be centered and scaled, and calls \code{escofier_coding} with \code{center = TRUE} and \code{scale = TRUE}
+\item "o" - is ordinal data and calls \code{thermometer_coding}
+\item "x" - is 'do nothing' and returns the data exactly as they are
+}
 The output (transformed) data are returned in a different order than they are input. The order matches the types as: "n", "c", "z", "o", and then "x"
 In all cases, values are derived from the data and other parameters of those functions are not available. For examples: you cannot pass \code{min} to \code{thermometer_coding} here. Instead, the observed minimums will be used
 \code{impute_NA_to_mean} is applied globally and passed into each function exactly as it is used here.

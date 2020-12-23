@@ -15,7 +15,6 @@
 #' @param loadings a
 #' @param singular.values a
 #'
-#' @examples
 #'
 #' @author Derek Beaton
 #' @export
@@ -56,7 +55,6 @@ continuous_corrmax <- function(target.data, center=T, scale=F, loadings, singula
 #' @param loadings a
 #' @param singular.values a
 #'
-#' @examples
 #'
 #' @author Derek Beaton
 #' @export
@@ -86,7 +84,6 @@ categorical_corrmax <- function(target.data, loadings, singular.values){
 #' @param loadings a
 #' @param singular.values a
 #'
-#' @examples
 #'
 #' @author Derek Beaton
 #' @export
@@ -115,7 +112,6 @@ ordinal_corrmax <- function(target.data, mins, maxs, loadings, singular.values){
 #' @param loadings a
 #' @param singular.values a
 #'
-#' @examples
 #'
 #' @author Derek Beaton
 #' @export
@@ -147,7 +143,6 @@ mixed_data_corrmax <- function(target.data, column.type = rep("x", ncol(target.d
 #' @param loadings a
 #' @param singular.values a
 #'
-#' @examples
 #'
 #' @author Derek Beaton
 #' @export
